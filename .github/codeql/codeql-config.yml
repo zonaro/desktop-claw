@@ -1,4 +1,4 @@
-name: 'Desktop Plus CodeQL config'
+name: 'Desktop Claw CodeQL config'
 
 paths-ignore:
   - 'vendor'

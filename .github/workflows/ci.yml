@@ -300,9 +300,9 @@ jobs:
       - name: Install app on macOS
         if: runner.os == 'macOS'
         run: |
-          rm -rf "/Applications/Desktop Plus.app"
-          ditto "dist/Desktop Plus-darwin-arm64/Desktop Plus.app" "/Applications/Desktop Plus.app"
-          echo "DESKTOP_E2E_APP_PATH=/Applications/Desktop Plus.app/Contents/MacOS/Desktop Plus" >> "$GITHUB_ENV"
+          rm -rf "/Applications/Desktop Claw.app"
+          ditto "dist/Desktop Claw-darwin-arm64/Desktop Claw.app" "/Applications/Desktop Claw.app"
+          echo "DESKTOP_E2E_APP_PATH=/Applications/Desktop Claw.app/Contents/MacOS/Desktop Claw" >> "$GITHUB_ENV"
       - name: Install app on Windows
         if: runner.os == 'Windows'
         shell: pwsh
@@ -310,7 +310,7 @@ jobs:
           function Write-SquirrelLogs {
             $logPaths = @(
               "$env:LOCALAPPDATA\SquirrelSetup.log",
-              "$env:LOCALAPPDATA\DesktopPlus\SquirrelSetup.log"
+              "$env:LOCALAPPDATA\DesktopClaw\SquirrelSetup.log"
             )
 
             foreach ($logPath in $logPaths) {
@@ -321,7 +321,7 @@ jobs:
             }
           }
 
-          $setupExe = Get-ChildItem "dist/DesktopPlus-*-windows-${{ matrix.arch }}.exe" -ErrorAction SilentlyContinue |
+          $setupExe = Get-ChildItem "dist/DesktopClaw-*-windows-${{ matrix.arch }}.exe" -ErrorAction SilentlyContinue |
             Sort-Object FullName -Descending |
             Select-Object -First 1 -ExpandProperty FullName
 
@@ -338,11 +338,11 @@ jobs:
             throw "Windows installer timed out after 300 seconds"
           }
 
-          Get-Process DesktopPlus -ErrorAction SilentlyContinue | Stop-Process -Force
+          Get-Process DesktopClaw -ErrorAction SilentlyContinue | Stop-Process -Force
 
           $installedExe = $null
           for ($attempt = 0; $attempt -lt 30 -and -not $installedExe; $attempt++) {
-            $installedExe = Get-ChildItem "$env:LOCALAPPDATA\DesktopPlus\app-*\DesktopPlus.exe" -ErrorAction SilentlyContinue |
+            $installedExe = Get-ChildItem "$env:LOCALAPPDATA\DesktopClaw\app-*\DesktopClaw.exe" -ErrorAction SilentlyContinue |
               Sort-Object FullName -Descending |
               Select-Object -First 1 -ExpandProperty FullName
 
@@ -353,7 +353,7 @@ jobs:
 
           if (-not $installedExe) {
             Write-SquirrelLogs
-            throw "Unable to locate installed Desktop Plus executable"
+            throw "Unable to locate installed Desktop Claw executable"
           }
 
           Add-Content -Path $env:GITHUB_ENV -Value "DESKTOP_E2E_APP_PATH=$installedExe"
@@ -391,7 +391,7 @@ jobs:
       - name: Read release notes
         id: release_notes
         run: |
-          RELEASE_NOTES_FILE=".github/desktop-plus-release-notes.md"
+          RELEASE_NOTES_FILE=".github/desktop-claw-release-notes.md"
           TITLE=$(head -n 1 "$RELEASE_NOTES_FILE")
           BODY=$(tail -n +3 "$RELEASE_NOTES_FILE")
           echo "title=$TITLE" >> $GITHUB_OUTPUT
@@ -407,13 +407,13 @@ jobs:
           name: ${{ steps.release_notes.outputs.title }}
           body: ${{ steps.release_notes.outputs.body }}
           files: |
-            artifacts/**/DesktopPlus-*.AppImage
-            artifacts/**/DesktopPlus-*.AppImage.zsync
-            artifacts/**/DesktopPlus-*.deb
-            artifacts/**/DesktopPlus-*.rpm
-            artifacts/**/DesktopPlus-*.exe
-            artifacts/**/DesktopPlus-*.msi
-            artifacts/**/DesktopPlus-*.zip
+            artifacts/**/DesktopClaw-*.AppImage
+            artifacts/**/DesktopClaw-*.AppImage.zsync
+            artifacts/**/DesktopClaw-*.deb
+            artifacts/**/DesktopClaw-*.rpm
+            artifacts/**/DesktopClaw-*.exe
+            artifacts/**/DesktopClaw-*.msi
+            artifacts/**/DesktopClaw-*.zip
           draft: false
           fail_on_unmatched_files: true
         env:
@@ -469,7 +469,7 @@ jobs:
             fi
             sed -i "s/\[\[APP_VERSION\]\]/${APP_VERSION}/" $PKGBUILD_FILE
             sed -i "s/\[\[NODE_CODENAME\]\]/${NODE_CODENAME}/" $PKGBUILD_FILE
-            desktop_file_sha256=$(sha256sum $AUR_DIR/desktop-plus.desktop | awk '{ print $1 }')
+            desktop_file_sha256=$(sha256sum $AUR_DIR/desktop-claw.desktop | awk '{ print $1 }')
             sed -i "s/\[\[DESKTOP_FILE_SHA256\]\]/$desktop_file_sha256/" $PKGBUILD_FILE
             launch_script_sha256=$(sha256sum $AUR_DIR/launch-app.sh | awk '{ print $1 }')
             sed -i "s/\[\[LAUNCH_SCRIPT_SHA256\]\]/$launch_script_sha256/" $PKGBUILD_FILE
@@ -513,14 +513,14 @@ jobs:
           retention-days: 5
           if-no-files-found: error
 
-      - name: Publish AUR package desktop-plus-bin
+      - name: Publish AUR package desktop-claw-bin
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.2
         with:
-          pkgname: desktop-plus-bin
+          pkgname: desktop-claw-bin
           pkgbuild: ${{ env.PKGBUILD_BIN }}
           assets: |
             ${{ env.AUR_DIR }}/.gitignore
-            ${{ env.AUR_DIR }}/desktop-plus.desktop
+            ${{ env.AUR_DIR }}/desktop-claw.desktop
             ${{ env.AUR_DIR }}/launch-app.sh
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
@@ -529,14 +529,14 @@ jobs:
             'Update AUR package to version v${{ env.APP_VERSION }}'
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
-      - name: Publish AUR package desktop-plus
+      - name: Publish AUR package desktop-claw
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.2
         with:
-          pkgname: desktop-plus
+          pkgname: desktop-claw
           pkgbuild: ${{ env.PKGBUILD }}
           assets: |
             ${{ env.AUR_DIR }}/.gitignore
-            ${{ env.AUR_DIR }}/desktop-plus.desktop
+            ${{ env.AUR_DIR }}/desktop-claw.desktop
             ${{ env.AUR_DIR }}/launch-app.sh
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
@@ -545,14 +545,14 @@ jobs:
             'Update AUR package to version v${{ env.APP_VERSION }}'
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
-      - name: Publish AUR package desktop-plus-git
+      - name: Publish AUR package desktop-claw-git
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.2
         with:
-          pkgname: desktop-plus-git
+          pkgname: desktop-claw-git
           pkgbuild: ${{ env.PKGBUILD_GIT }}
           assets: |
             ${{ env.AUR_DIR }}/.gitignore
-            ${{ env.AUR_DIR }}/desktop-plus.desktop
+            ${{ env.AUR_DIR }}/desktop-claw.desktop
             ${{ env.AUR_DIR }}/launch-app.sh
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
@@ -707,7 +707,7 @@ jobs:
       - name: Publish to winget
         uses: vedantmgoyal9/winget-releaser@b3a5dae0047c6180023acba3f548c55fdf6b7193
         with:
-          identifier: DesktopPlus.DesktopPlus
+          identifier: DesktopClaw.DesktopClaw
           version:
             ${{ needs.compute_version.outputs.SEMVER_COMPATIBLE_VERSION }}
           installers-regex: '\.exe$'
@@ -751,15 +751,15 @@ jobs:
           sed -e "s/\[\[VERSION\]\]/${APP_VERSION}/" \
               -e "s/\[\[SHA256_ARM64\]\]/${SHA256_ARM64}/" \
               -e "s/\[\[SHA256_X64\]\]/${SHA256_X64}/" \
-              publish/homebrew/desktop-plus.rb > homebrew-tap/Casks/desktop-plus.rb
+              publish/homebrew/desktop-claw.rb > homebrew-tap/Casks/desktop-claw.rb
 
       - name: Push to Homebrew Tap
         working-directory: homebrew-tap
         run: |
           git config --global user.name "Formula Updater"
           git config --global user.email "formula-updater@desktop-plus.org"
-          git add Casks/desktop-plus.rb
-          git commit -m "Update desktop-plus to version ${APP_VERSION}"
+          git add Casks/desktop-claw.rb
+          git commit -m "Update desktop-claw to version ${APP_VERSION}"
           git push origin main
 
       - name: Clone Homebrew Tap (old name)
@@ -775,13 +775,13 @@ jobs:
           sed -e "s/\[\[VERSION\]\]/${APP_VERSION}/" \
               -e "s/\[\[SHA256_ARM64\]\]/${SHA256_ARM64}/" \
               -e "s/\[\[SHA256_X64\]\]/${SHA256_X64}/" \
-              publish/homebrew/desktop-plus.rb > homebrew-tap-old/Casks/desktop-plus.rb
+              publish/homebrew/desktop-claw.rb > homebrew-tap-old/Casks/desktop-claw.rb
 
       - name: Push to Homebrew Tap (old name)
         working-directory: homebrew-tap-old
         run: |
           git config --global user.name "Formula Updater"
           git config --global user.email "formula-updater@desktop-plus.org"
-          git add Casks/desktop-plus.rb
-          git commit -m "Update desktop-plus to version ${APP_VERSION}"
+          git add Casks/desktop-claw.rb
+          git commit -m "Update desktop-claw to version ${APP_VERSION}"
           git push origin main

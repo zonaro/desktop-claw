@@ -65,10 +65,10 @@ const options: RedhatOptions = {
   dest: distRoot,
   arch: getArchitecture(),
   version: getVersion(),
-  name: 'desktop-plus',
+  name: 'desktop-claw',
   description:
     'GitHub Desktop fork with advanced functionality and improvements.',
-  productName: 'Desktop Plus',
+  productName: 'Desktop Claw',
   productDescription:
     'GitHub Desktop fork with advanced functionality and improvements.',
   genericName: 'Git Client',
@@ -121,7 +121,7 @@ export async function packageRedhat(): Promise<string> {
     await originalCreateSpec.call(this)
     let specContent: string = await readFile(this.specPath, 'utf8')
 
-    // The RPM package was renamed from "github-desktop-plus" to "desktop-plus".
+    // The RPM package was renamed from "github-desktop-plus" to "desktop-claw".
     // Declaring Obsoletes/Provides for the old name makes `dnf upgrade` migrate
     // existing users by replacing the old package with this one.
     const renameDirectives =
@@ -162,7 +162,7 @@ export async function packageRedhat(): Promise<string> {
     Installer.prototype.createSpec = originalCreateSpec
     restoreIconName()
   }
-  const installersPath = `${distRoot}/desktop-plus*.rpm`
+  const installersPath = `${distRoot}/desktop-claw*.rpm`
 
   const files = await globPromise(installersPath)
 
@@ -174,7 +174,7 @@ export async function packageRedhat(): Promise<string> {
 
   const oldPath = files[0]
 
-  const newFileName = `DesktopPlus-v${getVersion()}-linux-${getArchitectureForFileName()}.rpm`
+  const newFileName = `DesktopClaw-v${getVersion()}-linux-${getArchitectureForFileName()}.rpm`
   const newPath = join(distRoot, newFileName)
   await rename(oldPath, newPath)
 

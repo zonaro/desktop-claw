@@ -46,3 +46,5 @@ export type MenuIDs =
   | 'decrease-active-resizable-width'
   | 'increase-active-resizable-width'
   | 'toggle-changes-filter'
+  | 'ftp-deployments'
+  | 'configure-ftp-deployments'

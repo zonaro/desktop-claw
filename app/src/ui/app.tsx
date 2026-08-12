@@ -22,7 +22,7 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS, isOSNoLongerSupportedByElectron } from '../lib/get-os'
-import { MenuEvent, isTestMenuEvent } from '../main-process/menu'
+import { MenuEvent, isTestMenuEvent, isFtpUploadEvent } from '../main-process/menu'
 import {
   Repository,
   getGitHubHtmlUrl,
@@ -219,8 +219,10 @@ import { TestCLIActionDialog } from './cli-action/test-cli-action-dialog'
 import { TestCopilotSnapshotCardDialog } from './preferences/test-copilot-snapshot-card-dialog'
 import {
   enableCopilotSdkCommitMessageGeneration,
+  enableOpenCodeCommitMessages,
   enableWorktreeSupport,
 } from '../lib/feature-flag'
+import { loadCommitMessageProvider } from '../lib/opencode/commit-message-provider-pref'
 import {
   getCopilotAccountCacheKey,
   type CopilotFeature,
@@ -247,6 +249,8 @@ import { DeleteWorktreeFailedDialog } from './worktrees/delete-worktree-failed-d
 import { PullBranchDeletedDialog } from './pull-branch-deleted/pull-branch-deleted-dialog'
 import { ManageRemotesDialog } from './manage-remotes/manage-remotes-dialog'
 import { AddRemoteDialog } from './manage-remotes/add-remote-dialog'
+import { FtpDeploymentsDialog } from './ftp-deployments/ftp-deployments-dialog'
+import { MarkdownEditor } from './markdown-editor/markdown-editor'
 import { getEditorOverrideLabel } from '../models/editor-override'
 import { WorktreeEntry } from '../models/worktree'
 
@@ -588,7 +592,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.resizeActiveResizable('decrease-active-resizable-width')
       case 'toggle-changes-filter':
         return this.toggleChangesFilterVisibility()
+      case 'show-ftp-deployments':
+        return this.showFtpDeployments()
       default:
+        if (isFtpUploadEvent(name)) {
+          return this.showFtpDeployments(name.slice('ftp-upload:'.length))
+        }
         if (isTestMenuEvent(name)) {
           return showTestUI(
             name,
@@ -1222,10 +1231,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository instanceof Repository
           ? repository.alias ?? repository.name
           : repository.name
-      return `${repositoryTitle} - Desktop Plus`
+      return `${repositoryTitle} - Desktop Claw`
     }
 
-    return 'Desktop Plus'
+    return 'Desktop Claw'
   }
 
   private updateWindowTitle() {
@@ -1482,6 +1491,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.ManageRemotes,
       repository,
+    })
+  }
+
+  private showFtpDeployments(initialUploadDeploymentId?: string) {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+    this.props.dispatcher.showPopup({
+      type: PopupType.FtpDeployments,
+      repository,
+      initialUploadDeploymentId,
     })
   }
 
@@ -1985,6 +2007,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onEditGlobalGitConfig={this.editGlobalGitConfig}
             underlineLinks={this.state.underlineLinks}
             showDiffCheckMarks={this.state.showDiffCheckMarks}
+            enableMarkdownWysiwyg={this.state.enableMarkdownWysiwyg}
             showBranchNameInRepoList={this.state.showBranchNameInRepoList}
             branchSortOrder={this.state.branchSortOrder}
             copyPathNormalization={this.state.copyPathNormalization}
@@ -3323,6 +3346,26 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           />
         )
+      case PopupType.FtpDeployments:
+        return (
+          <FtpDeploymentsDialog
+            key={`ftp-deployments-${popup.repository.id}`}
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            initialUploadDeploymentId={popup.initialUploadDeploymentId}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.MarkdownEditor:
+        return (
+          <MarkdownEditor
+            key={`markdown-editor-${popup.filePath}`}
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            filePath={popup.filePath}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -4413,9 +4456,14 @@ export class App extends React.Component<IAppProps, IAppState> {
           commitMessageGenerationDisabled={this.isCommitMessageGenerationDisabled(
             selectedState.repository
           )}
+          commitMessageProvider={
+            selectedState.repository.commitMessageProvider ??
+            loadCommitMessageProvider()
+          }
           skipCommitHooks={selectedState.state.skipCommitHooks}
           signOffCommits={selectedState.state.signOffCommits}
           allowEmptyCommit={selectedState.state.allowEmptyCommit}
+          enableMarkdownWysiwyg={this.state.enableMarkdownWysiwyg}
           onUpdateCommitOptions={this.onUpdateCommitOptions}
         />
       )
@@ -4439,6 +4487,15 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private isCommitMessageGenerationDisabled(repository: Repository): boolean {
+    const provider =
+      repository.commitMessageProvider ?? loadCommitMessageProvider()
+
+    if (provider === 'openCode' && enableOpenCodeCommitMessages()) {
+      // OpenCode has no per-model disabled concept — always available
+      // when the feature flag and config are enabled.
+      return false
+    }
+
     const commitMessageGenerationAccount = getAccountForCommitMessageGeneration(
       this.state.accounts,
       repository

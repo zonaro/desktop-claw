@@ -73,6 +73,9 @@ describe('IPC channel contract', () => {
     'set-window-title',
     'set-window-selected-repository',
     'restart-app',
+    'opencode-cancel',
+    'ftp-cancel-upload',
+    'ftp-upload-progress',
   ] as const
 
   const expectedResponseChannels = [
@@ -105,6 +108,12 @@ describe('IPC channel contract', () => {
     'update-main-process-config',
     'get-main-process-config',
     'get-config-migration-result',
+    'opencode-check-availability',
+    'opencode-list-models',
+    'opencode-run-prompt',
+    'ftp-test-connection',
+    'ftp-upload',
+    'export-markdown-pdf',
   ] as const
 
   describe('RequestChannels', () => {

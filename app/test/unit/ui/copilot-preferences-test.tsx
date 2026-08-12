@@ -31,6 +31,8 @@ import { Account } from '../../../src/models/account'
 import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
 import { setNumberFormatPreference } from '../../../src/models/formatting-preferences'
 import { deriveApiType } from '../../../src/lib/api'
+import type { IOpenCodeConfig } from '../../../src/lib/opencode/opencode-config'
+import { saveOpenCodeConfig } from '../../../src/lib/opencode/opencode-config'
 
 interface IAccountOptions {
   readonly isCopilotDesktopEnabled?: boolean
@@ -466,7 +468,7 @@ describe('CopilotPreferences', () => {
 
     assert.ok(
       screen.getByText(
-        'Copilot features in Desktop Plus require a GitHub Copilot license.'
+        'Copilot features in Desktop Claw require a GitHub Copilot license.'
       )
     )
 
@@ -697,7 +699,7 @@ describe('CopilotPreferences', () => {
 
     assert.ok(
       screen.getByText(
-        'Copilot features in Desktop Plus require a GitHub Copilot license.'
+        'Copilot features in Desktop Claw require a GitHub Copilot license.'
       )
     )
     assert.strictEqual(screen.queryByRole('combobox'), null)
@@ -1414,6 +1416,60 @@ describe('CopilotPreferences', () => {
           }),
         },
       ])
+    })
+  })
+
+  describe('OpenCode model picker', () => {
+    it('shows model picker when OpenCode is selected', () => {
+      const view = render(<CopilotPreferences {...defaults()} />)
+
+      // Initially, the model picker should not be visible
+      assert.strictEqual(
+        view.container.querySelector('.opencode-model-picker'),
+        null
+      )
+    })
+
+    it('saves the selected model to config', () => {
+      // Test that selecting a model updates the config
+      const config: IOpenCodeConfig = {
+        enabled: true,
+        command: 'opencode',
+        model: null,
+        timeoutMs: 60000,
+      }
+      saveOpenCodeConfig(config)
+
+      const updatedConfig = {
+        ...config,
+        model: 'anthropic/claude-3-5-sonnet-20241022',
+      }
+      saveOpenCodeConfig(updatedConfig)
+
+      const { loadOpenCodeConfig } = require(
+        '../../../src/lib/opencode/opencode-config'
+      )
+      const loaded = loadOpenCodeConfig()
+      assert.strictEqual(loaded.model, 'anthropic/claude-3-5-sonnet-20241022')
+    })
+
+    it('handles empty model selection (default)', () => {
+      const config: IOpenCodeConfig = {
+        enabled: true,
+        command: 'opencode',
+        model: 'anthropic/claude-3-5-sonnet-20241022',
+        timeoutMs: 60000,
+      }
+      saveOpenCodeConfig(config)
+
+      const updatedConfig = { ...config, model: null }
+      saveOpenCodeConfig(updatedConfig)
+
+      const { loadOpenCodeConfig } = require(
+        '../../../src/lib/opencode/opencode-config'
+      )
+      const loaded = loadOpenCodeConfig()
+      assert.strictEqual(loaded.model, null)
     })
   })
 })

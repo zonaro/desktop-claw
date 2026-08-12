@@ -5,6 +5,8 @@ import { assertNonNullable } from '../fatal-error'
 import { GitHubAccountType } from '../api'
 import { EditorOverride } from '../../models/editor-override'
 import type { RepoType } from '../../models/github-repository'
+import type { IFtpDeployment } from '../../models/ftp-deployment'
+import type { CommitMessageProvider } from '../opencode/commit-message-provider-pref'
 
 export interface IDatabaseOwner {
   readonly id?: number
@@ -87,6 +89,8 @@ export interface IDatabaseRepository {
    */
   readonly isTutorialRepository?: boolean
   readonly login: string | null
+  readonly ftpDeployments?: ReadonlyArray<IFtpDeployment>
+  readonly commitMessageProvider?: CommitMessageProvider | null
 }
 
 /**
@@ -159,6 +163,7 @@ export class RepositoriesDatabase extends BaseDatabase {
 
     this.conditionalVersion(8, {}, ensureNoUndefinedParentID)
     this.conditionalVersion(9, { owners: '++id, &key' }, createOwnerKey)
+    this.conditionalVersion(10, {}, ensureFtpDeploymentsField)
   }
 }
 
@@ -262,4 +267,15 @@ async function createOwnerKey(tx: Transaction) {
  */
 export function getOwnerKey(endpoint: string, login: string) {
   return `${endpoint}/users/${login}`.toLowerCase()
+}
+
+async function ensureFtpDeploymentsField(tx: Transaction) {
+  return tx
+    .table<IDatabaseRepository, number>('repositories')
+    .toCollection()
+    .filter(r => r.ftpDeployments === undefined)
+    .modify({ ftpDeployments: [] })
+    .then(modified =>
+      log.info(`ensureFtpDeploymentsField: ${modified}`)
+    )
 }

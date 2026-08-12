@@ -349,6 +349,7 @@ import {
   enableCopilotConflictResolution,
   enableCopilotSdkCommitMessageGeneration,
   enableCustomIntegration,
+  enableOpenCodeCommitMessages,
   enableWorktreeSupport,
 } from '../feature-flag'
 import { isGHES } from '../endpoint-capabilities'
@@ -392,6 +393,13 @@ import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { IFtpDeployment } from '../../models/ftp-deployment'
+import {
+  CommitMessageProvider,
+  loadCommitMessageProvider,
+} from '../opencode/commit-message-provider-pref'
+import { OpenCodeCommitMessageGenerator } from '../commit-message-generator/opencode-commit-message-generator'
+import { CopilotCommitMessageGenerator } from '../commit-message-generator/copilot-commit-message-generator'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
@@ -622,6 +630,9 @@ export const underlineLinksDefault = true
 export const showDiffCheckMarksDefault = true
 export const showDiffCheckMarksKey = 'diff-check-marks-visible'
 
+export const enableMarkdownWysiwygKey = 'enable-markdown-wysiwyg'
+export const enableMarkdownWysiwygDefault = false
+
 export const showBranchNameInRepoListKey = 'show-branch-name-in-repo-list'
 const copyPathNormalizationKey = 'copy-path-normalization'
 const branchSortOrderKey = 'branch-sort-order'
@@ -831,6 +842,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private cachedRepoRulesets = new Map<number, IAPIRepoRuleset>()
 
   private underlineLinks: boolean = underlineLinksDefault
+
+  private enableMarkdownWysiwyg: boolean = enableMarkdownWysiwygDefault
 
   private commitMessageGenerationDisclaimerLastSeen: number | null = null
   private commitMessageGenerationButtonClicked: boolean = false
@@ -1513,6 +1526,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       cachedRepoRulesets: this.cachedRepoRulesets,
       underlineLinks: this.underlineLinks,
       showDiffCheckMarks: this.showDiffCheckMarks,
+      enableMarkdownWysiwyg: this.enableMarkdownWysiwyg,
       showBranchNameInRepoList: this.showBranchNameInRepoList,
       copyPathNormalization: this.copyPathNormalization,
       branchSortOrder: this.branchSortOrder,
@@ -3188,6 +3202,11 @@ export class AppStore extends TypedBaseStore<IAppState> {
       showDiffCheckMarksDefault
     )
 
+    this.enableMarkdownWysiwyg = getBoolean(
+      enableMarkdownWysiwygKey,
+      enableMarkdownWysiwygDefault
+    )
+
     this.preferAbsoluteDates = getPreferAbsoluteDates()
 
     this.preferAbsoluteDates = getPreferAbsoluteDates()
@@ -3495,6 +3514,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
       gitHubRepositoryEndpoint: isGitHub
         ? selectedRepository.gitHubRepository.endpoint
         : null,
+      ftpDeployments:
+        selectedRepository instanceof Repository
+          ? selectedRepository.ftpDeployments
+              .filter(d => d.active)
+              .slice(0, 10)
+              .map(d => ({ id: d.id, name: d.name }))
+          : [],
     }
 
     if (state === null) {
@@ -7530,6 +7556,80 @@ export class AppStore extends TypedBaseStore<IAppState> {
     repository: Repository,
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>
   ): Promise<boolean> {
+    const provider =
+      repository.commitMessageProvider ?? loadCommitMessageProvider()
+
+    if (provider === 'openCode' && enableOpenCodeCommitMessages()) {
+      this._setCommitMessageGenerationButtonClicked()
+
+      if (
+        !this.commitMessageGenerationDisclaimerLastSeen ||
+        offsetFromNow(-30, 'days') >
+          this.commitMessageGenerationDisclaimerLastSeen
+      ) {
+        await this._showPopup({
+          type: PopupType.GenerateCommitMessageDisclaimer,
+          repository,
+          filesSelected,
+        })
+        return false
+      }
+
+      return this.withIsGeneratingCommitMessage(repository, async signal => {
+        try {
+          // If user is amending a commit, we want to use the commit
+          // to amend as the base for the commit message generation.
+          const commitToAmend =
+            this.repositoryStateCache.get(repository)?.commitToAmend?.sha ??
+            undefined
+          const diff = await getFilesDiffText(
+            repository,
+            filesSelected,
+            commitToAmend ? `${commitToAmend}^` : undefined
+          )
+          if (!diff) {
+            return false
+          }
+
+          const commitMessageRules =
+            this.repositoryStateCache
+              .get(repository)
+              ?.changesState.currentRepoRulesInfo?.commitMessagePatterns.getRules() ??
+            []
+
+          const generator = new OpenCodeCommitMessageGenerator()
+          const response = await generator.generate({
+            diff,
+            repositoryPath: repository.path,
+            commitMessageRules,
+            signal,
+          })
+
+          this._setCommitMessage(repository, {
+            summary: response.title,
+            description: response.description,
+            timestamp: Date.now(),
+            generatedByCopilot: true,
+          })
+
+          this.statsStore.increment('generateCommitMessageCount')
+        } catch (e) {
+          if (e instanceof CommitMessageGenerationCancelledError) {
+            return false
+          }
+
+          this.emitError(
+            new ErrorWithMetadata(e, {
+              repository,
+            })
+          )
+          return false
+        }
+
+        return true
+      })
+    }
+
     const account = getAccountForCommitMessageGeneration(
       this.accounts,
       repository
@@ -7571,21 +7671,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
         }
 
         const response = enableCopilotSdkCommitMessageGeneration(account)
-          ? await this.copilotStore.generateCommitMessage(
+          ? await new CopilotCommitMessageGenerator(
+              this.copilotStore,
               account,
-              diff,
-              repository.path,
               await this.resolveCopilotModelRequest(
                 this.getSelectedCopilotModels(account)[
                   'commit-message-generation'
                 ] ?? null
-              ),
-              this.repositoryStateCache
-                .get(repository)
-                ?.changesState.currentRepoRulesInfo?.commitMessagePatterns.getRules() ??
+              )
+            ).generate({
+              diff,
+              repositoryPath: repository.path,
+              commitMessageRules:
+                this.repositoryStateCache
+                  .get(repository)
+                  ?.changesState.currentRepoRulesInfo?.commitMessagePatterns.getRules() ??
                 [],
-              signal
-            )
+              signal,
+            })
           : await API.fromAccount(account).getDiffChangesCommitMessage(diff)
 
         this._setCommitMessage(repository, {
@@ -8870,7 +8973,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
         if (match === null) {
           this.emitError(
             new ExternalEditorError(
-              `No suitable editors installed for Desktop Plus to launch. Install ${suggestedExternalEditor.name} for your platform and restart Desktop Plus to try again.`,
+              `No suitable editors installed for Desktop Claw to launch. Install ${suggestedExternalEditor.name} for your platform and restart Desktop Claw to try again.`,
               { suggestDefaultEditor: true }
             )
           )
@@ -8904,7 +9007,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       if (match === null) {
         this.emitError(
           new ExternalEditorError(
-            `No suitable editors installed for Desktop Plus to launch. Install ${suggestedExternalEditor.name} for your platform and restart Desktop Plus to try again.`,
+            `No suitable editors installed for Desktop Claw to launch. Install ${suggestedExternalEditor.name} for your platform and restart Desktop Claw to try again.`,
             { suggestDefaultEditor: true }
           )
         )
@@ -9377,6 +9480,28 @@ export class AppStore extends TypedBaseStore<IAppState> {
     await this.repositoriesStore.updateRepositoryWorkflowPreferences(
       repository,
       workflowPreferences
+    )
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _updateRepositoryFtpDeployments(
+    repository: Repository,
+    ftpDeployments: ReadonlyArray<IFtpDeployment>
+  ): Promise<void> {
+    await this.repositoriesStore.updateRepositoryFtpDeployments(
+      repository,
+      ftpDeployments
+    )
+  }
+
+  /** This shouldn't be called directly. See 'Dispatcher'. */
+  public async _updateRepositoryCommitMessageProvider(
+    repository: Repository,
+    commitMessageProvider: CommitMessageProvider | null
+  ): Promise<void> {
+    await this.repositoriesStore.updateRepositoryCommitMessageProvider(
+      repository,
+      commitMessageProvider
     )
   }
 
@@ -11747,6 +11872,14 @@ export class AppStore extends TypedBaseStore<IAppState> {
     if (underlineLinks !== this.underlineLinks) {
       this.underlineLinks = underlineLinks
       setBoolean(underlineLinksKey, underlineLinks)
+      this.emitUpdate()
+    }
+  }
+
+  public _updateEnableMarkdownWysiwyg(enableMarkdownWysiwyg: boolean) {
+    if (enableMarkdownWysiwyg !== this.enableMarkdownWysiwyg) {
+      this.enableMarkdownWysiwyg = enableMarkdownWysiwyg
+      setBoolean(enableMarkdownWysiwygKey, enableMarkdownWysiwyg)
       this.emitUpdate()
     }
   }

@@ -18,6 +18,19 @@ import { NotificationCallback } from 'desktop-notifications'
 import { DesktopAliveEvent } from './stores/alive-store'
 import { CLIAction } from './cli-action'
 import { MainProcessConfig } from './main-process-config'
+import { IOpenCodeAvailability, IOpenCodeRunRequest } from '../models/opencode'
+import type { IFtpDeployment } from '../models/ftp-deployment'
+import {
+  IFtpUploadRequest,
+  IFtpUploadProgressEvent,
+  IFtpTestConnectionResult,
+  IFtpUploadResultData,
+} from '../models/ftp-upload'
+
+export interface IMarkdownPdfExportRequest {
+  readonly html: string
+  readonly outputPath: string
+}
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -92,6 +105,9 @@ export type RequestChannels = {
   'show-installing-update': () => void
   'install-windows-cli': () => void
   'uninstall-windows-cli': () => void
+  'opencode-cancel': (requestId: string) => void
+  'ftp-cancel-upload': (uploadId: string) => void
+  'ftp-upload-progress': (progress: IFtpUploadProgressEvent) => void
 }
 
 /**
@@ -145,4 +161,21 @@ export type RequestResponseChannels = {
   ) => Promise<string | null>
   'get-notifications-permission': () => Promise<DesktopNotificationPermission>
   'request-notifications-permission': () => Promise<boolean>
+  'opencode-check-availability': (
+    command: string
+  ) => Promise<IOpenCodeAvailability>
+  'opencode-list-models': (
+    command: string
+  ) => Promise<ReadonlyArray<string>>
+  'opencode-run-prompt': (
+    request: IOpenCodeRunRequest
+  ) => Promise<string>
+  'ftp-test-connection': (
+    deployment: IFtpDeployment,
+    password: string
+  ) => Promise<IFtpTestConnectionResult>
+  'ftp-upload': (request: IFtpUploadRequest) => Promise<IFtpUploadResultData>
+  'export-markdown-pdf': (
+    request: IMarkdownPdfExportRequest
+  ) => Promise<void>
 }

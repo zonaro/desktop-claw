@@ -53,6 +53,7 @@ export function buildDefaultMenuTemplate({
   gitHubRepositoryType,
   gitHubRepositoryEndpoint,
   isChangesFilterVisible = true,
+  ftpDeployments = [],
 }: MenuLabelsEvent): Electron.MenuItemConstructorOptions[] {
   contributionTargetDefaultBranch = truncateWithEllipsis(
     contributionTargetDefaultBranch,
@@ -75,10 +76,10 @@ export function buildDefaultMenuTemplate({
 
   if (__DARWIN__) {
     template.push({
-      label: 'Desktop Plus',
+      label: 'Desktop Claw',
       submenu: [
         {
-          label: 'About Desktop Plus',
+          label: 'About Desktop Claw',
           click: emit('show-about'),
           id: 'about',
         },
@@ -438,6 +439,8 @@ export function buildDefaultMenuTemplate({
         label: __DARWIN__ ? 'Manage Remotes…' : 'Manage remotes…',
         click: emit('manage-remotes'),
       },
+      separator,
+      buildFtpDeploymentsSubmenu(ftpDeployments ?? []),
     ],
   })
 
@@ -639,7 +642,7 @@ export function buildDefaultMenuTemplate({
         ...helpItems,
         separator,
         {
-          label: '&About Desktop Plus',
+          label: '&About Desktop Claw',
           click: emit('show-about'),
           id: 'about',
         },
@@ -650,6 +653,43 @@ export function buildDefaultMenuTemplate({
   ensureItemIds(template)
 
   return template
+}
+
+/**
+ * Builds the FTP Deployments submenu item for the Repository menu.
+ * Includes dynamic per-deployment "Upload to …" items for active deployments
+ * (max 10) and a "Configure FTP Deployments…" item.
+ */
+function buildFtpDeploymentsSubmenu(
+  ftpDeployments: ReadonlyArray<{ readonly id: string; readonly name: string }>
+): Electron.MenuItemConstructorOptions {
+  const submenu = new Array<Electron.MenuItemConstructorOptions>()
+
+  for (const d of ftpDeployments.slice(0, 10)) {
+    submenu.push({
+      id: `ftp-upload:${d.id}`,
+      label: `Upload to ${truncateWithEllipsis(d.name, 30)}`,
+      click: emit(`ftp-upload:${d.id}`),
+    })
+  }
+
+  if (submenu.length > 0) {
+    submenu.push(separator)
+  }
+
+  submenu.push({
+    id: 'configure-ftp-deployments',
+    label: __DARWIN__
+      ? 'Configure FTP Deployments…'
+      : 'Configure FTP deployments…',
+    click: emit('show-ftp-deployments'),
+  })
+
+  return {
+    id: 'ftp-deployments',
+    label: __DARWIN__ ? 'FTP Deployments' : 'FTP &deployments',
+    submenu,
+  }
 }
 
 function getPushLabel(

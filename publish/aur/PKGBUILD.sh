@@ -6,7 +6,7 @@
 # Contributor: Jiawen Geng
 
 
-_pkgname='desktop-plus'
+_pkgname='desktop-claw'
 pkgname="${_pkgname}"
 pkgver=[[APP_VERSION]]
 pkgrel=1
@@ -94,19 +94,19 @@ package() {
         aarch64) suffix="arm64" ;;
         *) echo "Unsupported architecture: $CARCH"; exit 1 ;;
     esac
-    cp -r --preserve=mode "dist/desktop-plus-linux-$suffix/"* "$INSTALL_DIR/"
+    cp -r --preserve=mode "dist/desktop-claw-linux-$suffix/"* "$INSTALL_DIR/"
 
     cd "$INSTALL_DIR/resources/app/static/logos"
-    # Icon is named "gh-desktop-plus" rather than "desktop-plus" to avoid the freedesktop dash-stripping fallback
+    # Icon is named "gh-desktop-claw" rather than "desktop-claw" to avoid the freedesktop dash-stripping fallback
     # ('desktop' exists in many icon themes, so that icon would be used instead of ours).
-    install -Dm0644 "1024x1024.png" "$pkgdir/usr/share/icons/hicolor/1024x1024/apps/gh-desktop-plus.png"
-    install -Dm0644 "512x512.png" "$pkgdir/usr/share/icons/hicolor/512x512/apps/gh-desktop-plus.png"
-    install -Dm0644 "256x256.png" "$pkgdir/usr/share/icons/hicolor/256x256/apps/gh-desktop-plus.png"
+    install -Dm0644 "1024x1024.png" "$pkgdir/usr/share/icons/hicolor/1024x1024/apps/gh-desktop-claw.png"
+    install -Dm0644 "512x512.png" "$pkgdir/usr/share/icons/hicolor/512x512/apps/gh-desktop-claw.png"
+    install -Dm0644 "256x256.png" "$pkgdir/usr/share/icons/hicolor/256x256/apps/gh-desktop-claw.png"
 
     install -Dm755 "$srcdir/launch-app.sh" "$pkgdir/usr/bin/${_pkgname}"
 
-    chmod +x "$INSTALL_DIR/resources/app/static/desktop-plus-cli"
-    ln -s "/opt/${_pkgname}/resources/app/static/desktop-plus-cli" "$pkgdir/usr/bin/desktop-plus-cli"
+    chmod +x "$INSTALL_DIR/resources/app/static/desktop-claw-cli"
+    ln -s "/opt/${_pkgname}/resources/app/static/desktop-claw-cli" "$pkgdir/usr/bin/desktop-claw-cli"
 
     install -Dm0644 "$srcdir/${_pkgname}.desktop" "$pkgdir/usr/share/applications/${_pkgname}.desktop"
 }

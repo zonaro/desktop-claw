@@ -75,10 +75,10 @@ const options: DebianOptions = {
   dest: distRoot,
   arch: getArchitecture(),
   version: getVersion(),
-  name: 'desktop-plus',
+  name: 'desktop-claw',
   description:
     'GitHub Desktop fork with advanced functionality and improvements.',
-  productName: 'Desktop Plus',
+  productName: 'Desktop Claw',
   productDescription:
     'GitHub Desktop fork with advanced functionality and improvements.',
   genericName: 'Git Client',
@@ -132,7 +132,7 @@ export async function packageDebian(): Promise<string> {
   } finally {
     restoreIconName()
   }
-  const installersPath = `${distRoot}/desktop-plus*.deb`
+  const installersPath = `${distRoot}/desktop-claw*.deb`
 
   const files = await globPromise(installersPath)
 
@@ -144,7 +144,7 @@ export async function packageDebian(): Promise<string> {
 
   const oldPath = files[0]
 
-  const newFileName = `DesktopPlus-v${getVersion()}-linux-${getArchitectureForFileName()}.deb`
+  const newFileName = `DesktopClaw-v${getVersion()}-linux-${getArchitectureForFileName()}.deb`
   const newPath = join(distRoot, newFileName)
   await rename(oldPath, newPath)
 
@@ -175,8 +175,8 @@ export async function packageTransitionalDebian(): Promise<string> {
       `Section: devel`,
       `Priority: optional`,
       `Homepage: ${options.homepage}`,
-      `Description: Transitional package for Desktop Plus`,
-      ` GitHub Desktop Plus has been renamed to Desktop Plus. This dummy package`,
+      `Description: Transitional package for Desktop Claw`,
+      ` GitHub Desktop Plus has been renamed to Desktop Claw. This dummy package`,
       ` depends on the new "${options.name}" package and can be safely removed`,
       ` once the migration is complete.`,
     ].join('\n') + '\n'

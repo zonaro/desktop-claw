@@ -73,6 +73,8 @@ interface IAppearanceProps {
   readonly onSelectedNumberFormatChanged: (format: INumberFormat) => void
   readonly preferAbsoluteDates: boolean
   readonly onPreferAbsoluteDatesChanged: (value: boolean) => void
+  readonly enableMarkdownWysiwyg: boolean
+  readonly onEnableMarkdownWysiwygChanged: (value: boolean) => void
 }
 
 interface IAppearanceState {
@@ -87,12 +89,13 @@ interface IAppearanceState {
   readonly showWorktreesInRepoList: boolean
   readonly showCompareTab: boolean
   readonly showConventionalCommitBadges: boolean
+  readonly enableMarkdownWysiwyg: boolean
 }
 
 function getTitleBarStyleDescription(titleBarStyle: TitleBarStyle): string {
   switch (titleBarStyle) {
     case 'custom':
-      return 'Uses the menu system provided by Desktop Plus, hiding the default chrome provided by your window manager.'
+      return 'Uses the menu system provided by Desktop Claw, hiding the default chrome provided by your window manager.'
     case 'native':
       return 'Uses the menu system and chrome provided by your window manager.'
     case 'native-without-menu-bar':
@@ -126,6 +129,7 @@ export class Appearance extends React.Component<
       showWorktreesInRepoList: props.showWorktreesInRepoList,
       showCompareTab: props.showCompareTab,
       showConventionalCommitBadges: props.showConventionalCommitBadges,
+      enableMarkdownWysiwyg: props.enableMarkdownWysiwyg,
     }
 
     if (!usePropTheme) {
@@ -297,6 +301,14 @@ export class Appearance extends React.Component<
     event: React.FormEvent<HTMLInputElement>
   ) => {
     this.props.onPreferAbsoluteDatesChanged(event.currentTarget.checked)
+  }
+
+  private onEnableMarkdownWysiwygChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const enable = event.currentTarget.checked
+    this.setState({ enableMarkdownWysiwyg: enable })
+    this.props.onEnableMarkdownWysiwygChanged(enable)
   }
 
   public renderThemeSwatch = (theme: ApplicationTheme) => {
@@ -633,6 +645,27 @@ export class Appearance extends React.Component<
     )
   }
 
+  private renderMarkdownSettings() {
+    return (
+      <div className="advanced-section">
+        <h2>Markdown</h2>
+        <Checkbox
+          label="Enable WYSIWYG markdown editor for .md files"
+          value={
+            this.state.enableMarkdownWysiwyg
+              ? CheckboxValue.On
+              : CheckboxValue.Off
+          }
+          onChange={this.onEnableMarkdownWysiwygChanged}
+        />
+        <p className="settings-description">
+          When enabled, double-clicking a markdown file opens it in a built-in
+          WYSIWYG editor with export to HTML and PDF.
+        </p>
+      </div>
+    )
+  }
+
   public render() {
     return (
       <DialogContent className="appearance-tab">
@@ -642,6 +675,7 @@ export class Appearance extends React.Component<
         {this.renderBranchSortOrder()}
         {this.renderWorktreeVisibility()}
         {this.renderDiffSettings()}
+        {this.renderMarkdownSettings()}
         {this.renderTitleBarStyleDropdown()}
       </DialogContent>
     )

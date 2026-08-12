@@ -116,6 +116,8 @@ import { DiffFontFamily } from '../../models/diff-font'
 import { CopyPathNormalization } from '../../models/copy-path-normalization'
 import { IStashEntry } from '../../models/stash-entry'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
+import { IFtpDeployment } from '../../models/ftp-deployment'
+import type { CommitMessageProvider } from '../../lib/opencode/commit-message-provider-pref'
 import { resolveWithin } from '../../lib/path'
 import { CherryPickResult } from '../../lib/git/cherry-pick'
 import { sleep } from '../../lib/promise'
@@ -1867,6 +1869,17 @@ export class Dispatcher {
   }
 
   /**
+   * Opens a markdown file in the built-in WYSIWYG editor.
+   */
+  public openMarkdownEditor(repository: Repository, filePath: string) {
+    this.appStore._showPopup({
+      type: PopupType.MarkdownEditor,
+      repository,
+      filePath,
+    })
+  }
+
+  /**
    * Opens a path in a selected external editor without changing preferences.
    */
   public async openInSelectedExternalEditor(
@@ -2172,6 +2185,32 @@ export class Dispatcher {
     await this.appStore._updateRepositoryWorkflowPreferences(
       repository,
       workflowPreferences
+    )
+  }
+
+  /**
+   * Change the FTP deployments for the specified repository.
+   *
+   * @param repository       The repository to update.
+   * @param ftpDeployments   The array of FTP deployment configurations to use.
+   */
+  public updateRepositoryFtpDeployments(
+    repository: Repository,
+    ftpDeployments: ReadonlyArray<IFtpDeployment>
+  ) {
+    return this.appStore._updateRepositoryFtpDeployments(
+      repository,
+      ftpDeployments
+    )
+  }
+
+  public updateRepositoryCommitMessageProvider(
+    repository: Repository,
+    commitMessageProvider: CommitMessageProvider | null
+  ) {
+    return this.appStore._updateRepositoryCommitMessageProvider(
+      repository,
+      commitMessageProvider
     )
   }
 
@@ -4633,6 +4672,10 @@ export class Dispatcher {
 
   public setDiffCheckMarksSetting(diffCheckMarks: boolean) {
     return this.appStore._updateShowDiffCheckMarks(diffCheckMarks)
+  }
+
+  public setEnableMarkdownWysiwygSetting(enableMarkdownWysiwyg: boolean) {
+    return this.appStore._updateEnableMarkdownWysiwyg(enableMarkdownWysiwyg)
   }
 
   public setShowBranchNameInRepoList(

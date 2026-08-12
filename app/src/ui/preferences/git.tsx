@@ -106,7 +106,7 @@ export class Git extends React.Component<IGitProps> {
           onChange={this.onEnableGitHookEnvChanged}
         />
         <p id="git-hooks-env-description" className="settings-description">
-          When enabled, Desktop Plus will attempt to load environment variables
+          When enabled, Desktop Claw will attempt to load environment variables
           from your shell when executing Git hooks. This is useful if your Git
           hooks depend on environment variables set in your shell configuration
           files, a common practice for version managers such as nvm, rbenv,

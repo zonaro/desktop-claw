@@ -1,4 +1,4 @@
-Desktop Plus v3.6.4-alpha4
+Desktop Claw v3.6.4-alpha4
 
 ## **Changes and improvements:**
 
@@ -24,7 +24,7 @@ Desktop Plus v3.6.4-alpha4
   Consider contacting your instance administrator to see if they can whitelist the application's `User-Agent` in the API paths. For example, if using Anubis, add the following to your policy YAML file:
   ```yaml
   bots:
-  - name: desktop-plus
+  - name: desktop-claw
     action: ALLOW
     expression:
       all:

@@ -464,6 +464,9 @@ export interface IAppState {
 
   readonly underlineLinks: boolean
 
+  /** Whether or not the markdown WYSIWYG editor is enabled for .md files */
+  readonly enableMarkdownWysiwyg: boolean
+
   readonly updateState: IUpdateState
 
   readonly commitMessageGenerationDisclaimerLastSeen: number | null

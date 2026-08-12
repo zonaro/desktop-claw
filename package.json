@@ -3,7 +3,7 @@
     "type": "git",
     "url": "https://github.com/pol-rivero/desktop-plus.git"
   },
-  "description": "Desktop Plus build dependencies",
+  "description": "Desktop Claw build dependencies",
   "scripts": {
     "cli": "ts-node app/src/cli/main.ts",
     "check:eslint": "tsc -P eslint-rules/",
@@ -74,6 +74,7 @@
     "@typescript-eslint/parser": "^6.13.2",
     "@typescript-eslint/typescript-estree": "^6.13.2",
     "awesome-node-loader": "^1.1.1",
+    "basic-ftp": "^6.2.0",
     "chalk": "^5.3.0",
     "cross-env": "^7.0.3",
     "css-loader": "^7.1.2",
@@ -165,8 +166,8 @@
     "markdownlint-cli": "^0.32.2",
     "node-test-github-reporter": "^1.2.0",
     "patch-package": "^8.0.0",
-    "postinstall-postinstall": "^2.1.0",
     "playwright": "^1.60.0",
+    "postinstall-postinstall": "^2.1.0",
     "reserved-words": "^0.1.2",
     "tsconfig-paths": "^3.9.0",
     "tsx": "^4.19.3",

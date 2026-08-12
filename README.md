@@ -1,4 +1,4 @@
-# GH Desktop Plus
+# GH Desktop Claw
 
 This is an **up-to-date** fork of [GitHub Desktop](https://desktop.github.com) with additional features and improvements.
 
@@ -8,15 +8,15 @@ This is an **up-to-date** fork of [GitHub Desktop](https://desktop.github.com) w
 ## Highlights 👀
 | <h4>Search commits by title, message, tag, or hash</h4> | <h4>Rich integration with all major Git platforms [^1]</h4> |
 | :---: | :---: |
-| <img src="docs/assets/desktop-plus-demo-search.webp" alt="Commit search" width="450"> | <img src="docs/assets/desktop-plus-demo-multiaccount.webp" alt="Multiple accounts" width="450"> |
+| <img src="docs/assets/desktop-claw-demo-search.webp" alt="Commit search" width="450"> | <img src="docs/assets/desktop-claw-demo-multiaccount.webp" alt="Multiple accounts" width="450"> |
 | <h4>Create multiple stashes per branch</h4> | <h4>Visualize the Commit Graph</h4> |
-| <img src="docs/assets/desktop-plus-demo-stashes.webp" alt="Multiple stashes" width="450"> | <img src="docs/assets/desktop-plus-demo-commit-graph.webp" alt="Commit Graph" width="450"> |
+| <img src="docs/assets/desktop-claw-demo-stashes.webp" alt="Multiple stashes" width="450"> | <img src="docs/assets/desktop-claw-demo-commit-graph.webp" alt="Commit Graph" width="450"> |
 | <h4>Buttons optimized for visual recognition</h4> | <h4>Quickly find unpushed branches</h4> |
-| <img src="docs/assets/desktop-plus-demo-stash-header.webp" alt="Stash header" width="450"> | <img src="docs/assets/desktop-plus-demo-push-indicator.webp" alt="Branch push indicator" width="450"> |
+| <img src="docs/assets/desktop-claw-demo-stash-header.webp" alt="Stash header" width="450"> | <img src="docs/assets/desktop-claw-demo-push-indicator.webp" alt="Branch push indicator" width="450"> |
 
 [^1]: Rich integration with GitHub, GitHub Enterprise, Bitbucket Cloud, GitLab Cloud, self-hosted GitLab, Codeberg Cloud, self-hosted Forgejo, Gitea Cloud, and self-hosted Gitea. Multi-account support is available for all of them (e.g., sign in to multiple GitHub accounts at the same time).
 
-## Additional Features in Desktop Plus ✨
+## Additional Features in Desktop Claw ✨
 
 **See the [full list of features here](https://desktop-plus.org/#feature-list).**
 
@@ -37,10 +37,10 @@ This is an **up-to-date** fork of [GitHub Desktop](https://desktop.github.com) w
 #### Option 1: Using Winget (Recommended)
 
 ```powershell
-winget install DesktopPlus.DesktopPlus
+winget install DesktopClaw.DesktopClaw
 ```
 
-To update, run `winget upgrade DesktopPlus.DesktopPlus` or `winget upgrade --all` to update all your winget packages. Make sure to update regularly to get the latest features and fixes.
+To update, run `winget upgrade DesktopClaw.DesktopClaw` or `winget upgrade --all` to update all your winget packages. Make sure to update regularly to get the latest features and fixes.
 
 #### Option 2: Manual download (Not recommended)
 
@@ -68,15 +68,15 @@ For this reason, **I recommend using Winget instead of the manual download**.
 #### Option 1: Using Homebrew (Recommended)
 
 ```bash
-brew install desktop-plus/tap/desktop-plus
+brew install desktop-plus/tap/desktop-claw
 ```
 
-Make sure to run `brew update` + `brew upgrade` regularly to get the latest updates for Desktop Plus.
+Make sure to run `brew update` + `brew upgrade` regularly to get the latest updates for Desktop Claw.
 
 #### Option 2: Manual download (Not recommended)
 
 Download and extract the ZIP file from the [releases page](https://github.com/desktop-plus/desktop-plus/releases/latest). Click the app file to run it.  
-If you encounter the error "Apple could not verify this app is free of malware", go to "System Settings" > "Privacy & Security", scroll down to "Security" and click "Open Anyway" on "Desktop Plus".
+If you encounter the error "Apple could not verify this app is free of malware", go to "System Settings" > "Privacy & Security", scroll down to "Security" and click "Open Anyway" on "Desktop Claw".
 
 | **64-bit x86** | **64-bit ARM (Apple Silicon)** |
 | --- | --- |
@@ -99,14 +99,14 @@ For this reason, I recommend using Homebrew instead of the manual download.
 Create the repository file:
 
 ```bash
-sudo curl https://gpg.desktop-plus.org/public.key | sudo gpg --dearmor -o /usr/share/keyrings/desktop-plus.gpg
-echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/desktop-plus.gpg] https://apt.desktop-plus.org/ stable main" | sudo tee /etc/apt/sources.list.d/desktop-plus.list
+sudo curl https://gpg.desktop-plus.org/public.key | sudo gpg --dearmor -o /usr/share/keyrings/desktop-claw.gpg
+echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/desktop-claw.gpg] https://apt.desktop-plus.org/ stable main" | sudo tee /etc/apt/sources.list.d/desktop-claw.list
 ```
 
 Update the package list and install:
 ```bash
 sudo apt update
-sudo apt install desktop-plus
+sudo apt install desktop-claw
 ```
 
 ---
@@ -125,21 +125,21 @@ Create the repository file:
 
 ```bash
 sudo rpm --import https://gpg.desktop-plus.org/public.key
-echo -e "[desktop-plus]\nname=Desktop Plus\nbaseurl=https://rpm.desktop-plus.org/\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://gpg.desktop-plus.org/public.key" | sudo tee /etc/yum.repos.d/desktop-plus.repo
+echo -e "[desktop-claw]\nname=Desktop Claw\nbaseurl=https://rpm.desktop-plus.org/\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://gpg.desktop-plus.org/public.key" | sudo tee /etc/yum.repos.d/desktop-claw.repo
 ```
 
 Update the package list and install:
 
 ```bash
 sudo dnf check-update --refresh
-sudo dnf install desktop-plus
+sudo dnf install desktop-claw
 ```
 
 #### Option 2: Using [Terra](https://terrapkg.com/)
 
 Make sure you have [installed](https://docs.terrapkg.com/usage/installing/) or enabled the Terra repository. Then, run:
 ```bash
-sudo dnf install desktop-plus-bin
+sudo dnf install desktop-claw-bin
 ```
 
 > **Note:** The Terra package is unofficial. Use at your own risk.
@@ -159,14 +159,14 @@ Create the repository file:
 
 ```bash
 sudo rpm --import https://gpg.desktop-plus.org/public.key
-echo -e "[desktop-plus]\nname=Desktop Plus\nbaseurl=https://rpm.desktop-plus.org/\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://gpg.desktop-plus.org/public.key" | sudo tee /etc/zypp/repos.d/desktop-plus.repo
+echo -e "[desktop-claw]\nname=Desktop Claw\nbaseurl=https://rpm.desktop-plus.org/\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://gpg.desktop-plus.org/public.key" | sudo tee /etc/zypp/repos.d/desktop-claw.repo
 ```
 
 Update the package list and install:
 
 ```bash
 sudo zypper refresh
-sudo zypper install desktop-plus
+sudo zypper install desktop-claw
 ```
 
 ---
@@ -180,13 +180,13 @@ sudo zypper install desktop-plus
 <summary>Click to expand</summary>
 <br>
 
-Simply install `desktop-plus-bin` from the AUR using your preferred AUR helper.
+Simply install `desktop-claw-bin` from the AUR using your preferred AUR helper.
 
 ```sh
-yay -S desktop-plus-bin
+yay -S desktop-claw-bin
 ```
 
-You can also build from source by installing `desktop-plus` or `desktop-plus-git` from the AUR.
+You can also build from source by installing `desktop-claw` or `desktop-claw-git` from the AUR.
 
 > `gnome-keyring` is required and the daemon must be launched either at login or when the X server / Wayland compositor is started. Normally this is handled by a display manager, but in other cases following the instructions found on the [Arch Wiki](https://wiki.archlinux.org/index.php/GNOME/Keyring#Using_the_keyring_outside_GNOME) will fix the issue of not being able to save login credentials.
 
@@ -201,7 +201,7 @@ You can also build from source by installing `desktop-plus` or `desktop-plus-git
 <summary>Click to expand</summary>
 <br>
 
-Simply install Desktop Plus from [Flathub](https://flathub.org/en/apps/org.desktop_plus.desktop-plus):
+Simply install Desktop Claw from [Flathub](https://flathub.org/en/apps/org.desktop_plus.desktop-plus):
 
 ```bash
 flatpak install flathub org.desktop_plus.desktop-plus
@@ -222,10 +222,10 @@ flatpak install flathub org.desktop_plus.desktop-plus
 
 **IMPORTANT:** I strongly recommend using your distribution's native package (APT, RPM, and AUR packages above) or Flatpak instead of the AppImage, as it requires some manual setup for the sign-in feature to work.  
 If you need to use the AppImage, follow these steps:
-1. Manually [create a `desktop-plus.desktop` entry](https://wiki.archlinux.org/title/Desktop_entries).
+1. Manually [create a `desktop-claw.desktop` entry](https://wiki.archlinux.org/title/Desktop_entries).
 2. Link the MIME type:
    ```sh
-   xdg-mime default desktop-plus.desktop x-scheme-handler/x-github-desktop-auth
+   xdg-mime default desktop-claw.desktop x-scheme-handler/x-github-desktop-auth
    ```
 
 #### Option 1: Using ["AM"/"AppMan"](https://github.com/ivan-hc/AM)
@@ -250,7 +250,7 @@ Download the AppImage from the [releases page](https://github.com/desktop-plus/d
 Then, make it executable:
 
 ```bash
-chmod +x DesktopPlus-*-linux-*.AppImage
+chmod +x DesktopClaw-*-linux-*.AppImage
 ```
 
 Finally, double-click the .AppImage file to run it.
@@ -265,7 +265,7 @@ Before opening a new issue, please check the [Known Issues](docs/known-issues.md
 
 ## Command Line Interface 💻
 
-Desktop Plus includes a CLI (`desktop-plus-cli`) for opening and cloning repositories from the terminal. See the [CLI documentation](docs/cli.md) for usage details and instructions on creating a shorter alias.
+Desktop Claw includes a CLI (`desktop-claw-cli`) for opening and cloning repositories from the terminal. See the [CLI documentation](docs/cli.md) for usage details and instructions on creating a shorter alias.
 
 ## Running the app locally 🏗️
 

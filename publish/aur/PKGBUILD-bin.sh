@@ -3,7 +3,7 @@
 # Contributor: Jake <aur@ja-ke.tech>
 # Contributor: Ian MacKay <immackay0@gmail.com>
 
-_pkgname='desktop-plus'
+_pkgname='desktop-claw'
 pkgname="${_pkgname}-bin"
 pkgver=[[APP_VERSION]]
 pkgrel=1
@@ -30,7 +30,7 @@ source=(
     'launch-app.sh'
 )
 
-_common_download_url="${url}/releases/download/v${pkgver}/DesktopPlus-v${pkgver}-linux"
+_common_download_url="${url}/releases/download/v${pkgver}/DesktopClaw-v${pkgver}-linux"
 source_x86_64=(${_common_download_url}-x86_64.deb)
 source_aarch64=(${_common_download_url}-arm64.deb)
 
@@ -46,15 +46,15 @@ package() {
     tar --zstd -xf data.tar.zst -C "$pkgdir"
     install -d "$INSTALL_DIR"
 
-    mv "$pkgdir/usr/lib/desktop-plus/"* "$INSTALL_DIR/"
-    rmdir "$pkgdir/usr/lib/desktop-plus"
+    mv "$pkgdir/usr/lib/desktop-claw/"* "$INSTALL_DIR/"
+    rmdir "$pkgdir/usr/lib/desktop-claw"
     rmdir "$pkgdir/usr/lib"
 
-    rm "$pkgdir/usr/share/applications/desktop-plus.desktop"
+    rm "$pkgdir/usr/share/applications/desktop-claw.desktop"
     install -Dm644 "${_pkgname}.desktop" "$pkgdir/usr/share/applications/${_pkgname}.desktop"
 
     install -Dm755 "$srcdir/launch-app.sh" "$pkgdir/usr/bin/${_pkgname}"
 
-    chmod +x "$INSTALL_DIR/resources/app/static/desktop-plus-cli"
-    ln -s "/opt/${_pkgname}/resources/app/static/desktop-plus-cli" "$pkgdir/usr/bin/desktop-plus-cli"
+    chmod +x "$INSTALL_DIR/resources/app/static/desktop-claw-cli"
+    ln -s "/opt/${_pkgname}/resources/app/static/desktop-claw-cli" "$pkgdir/usr/bin/desktop-claw-cli"
 }

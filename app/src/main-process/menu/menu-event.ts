@@ -49,6 +49,8 @@ export type MenuEvent =
   | 'find-text'
   | 'create-issue-in-repository-on-github'
   | 'preview-pull-request'
+  | 'show-ftp-deployments'
+  | `ftp-upload:${string}`
   | 'test-app-error'
   | 'decrease-active-resizable-width'
   | 'increase-active-resizable-width'
@@ -102,4 +104,10 @@ export type TestMenuEvent = typeof TestMenuEvents[number]
 
 export function isTestMenuEvent(value: any): value is TestMenuEvent {
   return TestMenuEvents.includes(value)
+}
+
+export function isFtpUploadEvent(
+  value: string
+): value is `ftp-upload:${string}` {
+  return value.startsWith('ftp-upload:')
 }

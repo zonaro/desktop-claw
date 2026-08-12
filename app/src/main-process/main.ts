@@ -65,6 +65,21 @@ import {
   getConfigMigrationResult,
   migrateLegacyConfigDir,
 } from './migrate-config-dir'
+import {
+  checkOpenCodeAvailability,
+  runOpenCodePrompt,
+  cancelOpenCodeRun,
+  listOpenCodeModels,
+} from './opencode-runner'
+import {
+  uploadFtpDeployment,
+  testFtpConnection,
+  FtpUploadCancelledError,
+} from '../lib/ftp/ftp-uploader'
+import { isFtpDeployment } from '../models/ftp-deployment'
+import type { IFtpUploadRequest } from '../models/ftp-upload'
+import type { IOpenCodeRunRequest } from '../models/opencode'
+import * as ipcWebContents from './ipc-webcontents'
 
 // Migrate the config directory from a previous app name (if needed) before
 // anything touches the userData directory.
@@ -81,7 +96,7 @@ if (__LINUX__) {
 }
 
 app.userAgentFallback = app.userAgentFallback.replace(
-  'DesktopPlus',
+  'DesktopClaw',
   'GitHubDesktop'
 )
 
@@ -147,7 +162,7 @@ if (__DARWIN__) {
 // On Windows, in order to get notifications properly working for dev builds,
 // we'll want to set the right App User Model ID from production builds.
 if (__WIN32__ && __DEV__) {
-  app.setAppUserModelId('com.squirrel.DesktopPlus.DesktopPlus')
+  app.setAppUserModelId('com.squirrel.DesktopClaw.DesktopClaw')
 }
 
 app.on('window-all-closed', () => {
@@ -874,6 +889,28 @@ app.on('ready', () => {
   )
 
   /**
+   * An event sent by the renderer asking to export markdown HTML content to a
+   * PDF file at the given path. Uses Electron's webContents.printToPDF API.
+   */
+  ipcMain.handle(
+    'export-markdown-pdf',
+    async (event, request: { html: string; outputPath: string }) => {
+      const { html, outputPath } = request
+
+      if (typeof html !== 'string' || typeof outputPath !== 'string') {
+        throw new Error('Invalid markdown PDF export request')
+      }
+
+      const window = getAppWindowFromWebContents(event.sender)
+      if (window == null) {
+        throw new Error('No app window found for PDF export')
+      }
+
+      await exportHtmlToPdf(window, html, outputPath)
+    }
+  )
+
+  /**
    * An event sent by the renderer asking obtain whether the window is focused
    */
   ipcMain.handle(
@@ -929,8 +966,129 @@ app.on('ready', () => {
     requestNotificationsPermission()
   )
 
-  ipcMain.on('will-quit', event => {
-    for (const window of getAppWindows()) {
+  /** Validates the shape of an OpenCode run request from the renderer. */
+  function isOpenCodeRunRequest(value: unknown): value is IOpenCodeRunRequest {
+    if (typeof value !== 'object' || value === null) {
+      return false
+    }
+    const r = value as Record<string, unknown>
+    return (
+      typeof r.requestId === 'string' &&
+      r.requestId.length > 0 &&
+      typeof r.command === 'string' &&
+      r.command.trim() !== '' &&
+      (r.model === null || typeof r.model === 'string') &&
+      typeof r.timeoutMs === 'number' &&
+      Number.isFinite(r.timeoutMs) &&
+      r.timeoutMs > 0 &&
+      typeof r.cwd === 'string' &&
+      r.cwd.length > 0 &&
+      typeof r.prompt === 'string'
+    )
+  }
+
+  /** Validates the shape of an FTP upload request from the renderer. */
+  function isFtpUploadRequest(value: unknown): value is IFtpUploadRequest {
+    if (typeof value !== 'object' || value === null) {
+      return false
+    }
+    const r = value as Record<string, unknown>
+    return (
+      typeof r.uploadId === 'string' &&
+      r.uploadId.length > 0 &&
+      typeof r.repositoryPath === 'string' &&
+      r.repositoryPath.length > 0 &&
+      isFtpDeployment(r.deployment) &&
+      typeof r.password === 'string'
+    )
+  }
+
+  ipcMain.handle('opencode-check-availability', (_, command) => {
+    if (typeof command !== 'string' || command.trim() === '') {
+      return Promise.resolve({ available: false, version: null })
+    }
+    return checkOpenCodeAvailability(command)
+  })
+
+  ipcMain.handle('opencode-list-models', (_, command) => {
+    if (typeof command !== 'string' || command.trim() === '') {
+      return Promise.resolve([])
+    }
+    return listOpenCodeModels(command)
+  })
+
+  ipcMain.handle('opencode-run-prompt', (_, request: unknown) => {
+    if (!isOpenCodeRunRequest(request)) {
+      throw new Error('Invalid OpenCode run request')
+    }
+    return runOpenCodePrompt(request)
+  })
+
+  ipcMain.on('opencode-cancel', (_, requestId) => {
+    if (typeof requestId === 'string' && requestId.length > 0) {
+      cancelOpenCodeRun(requestId)
+    }
+  })
+
+  const activeFtpUploads = new Map<string, AbortController>()
+
+  ipcMain.handle(
+    'ftp-test-connection',
+    async (_, deployment: unknown, password: unknown) => {
+      if (!isFtpDeployment(deployment) || typeof password !== 'string') {
+        return { ok: false, error: 'Invalid FTP deployment configuration' }
+      }
+      try {
+        await testFtpConnection(deployment, password)
+        return { ok: true, error: null }
+      } catch (e) {
+        return {
+          ok: false,
+          error: e instanceof Error ? e.message : String(e),
+        }
+      }
+    }
+  )
+
+  ipcMain.handle('ftp-upload', (event, request: unknown) => {
+    if (!isFtpUploadRequest(request)) {
+      throw new Error('Invalid FTP upload request')
+    }
+
+    const controller = new AbortController()
+    activeFtpUploads.set(request.uploadId, controller)
+
+    return uploadFtpDeployment({
+      repositoryPath: request.repositoryPath,
+      deployment: request.deployment,
+      password: request.password,
+      signal: controller.signal,
+      onProgress: p => {
+        ipcWebContents.send(event.sender, 'ftp-upload-progress', {
+          uploadId: request.uploadId,
+          ...p,
+        })
+      },
+    })
+      .catch(e => {
+        if (e instanceof FtpUploadCancelledError) {
+          throw new Error('FTP upload was cancelled')
+        }
+        throw e
+      })
+      .finally(() => {
+        activeFtpUploads.delete(request.uploadId)
+      })
+  })
+
+  ipcMain.on('ftp-cancel-upload', (_, uploadId) => {
+    if (typeof uploadId === 'string' && uploadId.length > 0) {
+      activeFtpUploads.get(uploadId)?.abort()
+      activeFtpUploads.delete(uploadId)
+    }
+  })
+
+  ipcMain.on('will-quit', event => {    for (const window of getAppWindows()) {
       window.markWillQuit()
     }
     event.returnValue = true
@@ -1039,6 +1197,44 @@ function createWindow(onWindowDidLoad?: OnDidLoadFn) {
   window.load()
 
   return window
+}
+
+/**
+ * Renders the given HTML string to a PDF file at the given path using
+ * Electron's webContents.printToPDF API. Uses a hidden BrowserWindow to
+ * load the HTML offscreen so it doesn't disrupt the user's workspace.
+ */
+async function exportHtmlToPdf(
+  appWindow: AppWindow,
+  html: string,
+  outputPath: string
+): Promise<void> {
+  const parentWindow = BrowserWindow.getFocusedWindow()
+
+  const window = new BrowserWindow({
+    parent: parentWindow ?? undefined,
+    show: false,
+    width: 800,
+    height: 600,
+    webPreferences: {
+      offscreen: true,
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  })
+
+  try {
+    await window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+
+    const data = await window.webContents.printToPDF({
+      printBackground: true,
+      pageSize: 'A4',
+    })
+
+    await Fs.promises.writeFile(outputPath, data)
+  } finally {
+    window.destroy()
+  }
 }
 
 /**

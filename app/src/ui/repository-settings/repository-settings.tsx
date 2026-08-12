@@ -41,6 +41,11 @@ import {
 } from '../../lib/custom-integration'
 import { getAvailableEditors } from '../../lib/editors/lookup'
 import { UpdateBranchStrategy } from '../../lib/update-branch-strategy'
+import { FtpDeploymentsManager } from '../ftp-deployments/ftp-deployments-manager'
+import { Select } from '../lib/select'
+import { Row } from '../lib/row'
+import type { CommitMessageProvider } from '../../lib/opencode/commit-message-provider-pref'
+import { DialogContent } from '../dialog'
 
 interface IRepositorySettingsProps {
   readonly initialSelectedTab?: RepositorySettingsTab
@@ -58,6 +63,7 @@ export enum RepositorySettingsTab {
   GitConfig,
   Integrations,
   ForkSettings,
+  FtpDeployments,
 }
 
 interface IRepositorySettingsState {
@@ -88,6 +94,7 @@ interface IRepositorySettingsState {
   readonly useCustomEditor: boolean
   readonly customEditor: ICustomIntegration
   readonly repositoryAccount: Account | null
+  readonly commitMessageProvider: string
 }
 
 export class RepositorySettings extends React.Component<
@@ -130,6 +137,7 @@ export class RepositorySettings extends React.Component<
         arguments: TargetPathArgument,
       },
       repositoryAccount: props.repositoryAccount,
+      commitMessageProvider: props.repository.commitMessageProvider ?? '',
     }
   }
 
@@ -258,6 +266,10 @@ export class RepositorySettings extends React.Component<
                 {__DARWIN__ ? 'Fork Behavior' : 'Fork behavior'}
               </span>
             )}
+            <span>
+              <Octicon className="icon" symbol={octicons.upload} />
+              FTP
+            </span>
           </TabBar>
 
           <div className="active-tab">{this.renderActiveTab()}</div>
@@ -321,7 +333,28 @@ export class RepositorySettings extends React.Component<
 
       case RepositorySettingsTab.GitConfig: {
         return (
-          <GitConfig
+          <>
+            <DialogContent className="git-config-tab">
+              <div className="advanced-section">
+                <h2>Commit message provider</h2>
+                <Row>
+                  <Select
+                    label="Provider"
+                    value={this.state.commitMessageProvider}
+                    onChange={this.onCommitMessageProviderChanged}
+                  >
+                    <option value="">Use global preference</option>
+                    <option value="copilot">GitHub Copilot</option>
+                    <option value="openCode">OpenCode</option>
+                  </Select>
+                </Row>
+                <p className="settings-description">
+                  Which AI tool generates commit messages for this repository.
+                  The global preference is set in Preferences &gt; Copilot.
+                </p>
+              </div>
+            </DialogContent>
+            <GitConfig
             account={this.props.repositoryAccount}
             gitConfigLocation={this.state.gitConfigLocation}
             updateBranchStrategy={this.state.updateBranchStrategy}
@@ -338,6 +371,7 @@ export class RepositorySettings extends React.Component<
             emailOrigin={this.state.emailOrigin}
             repositoryPath={this.props.repository.path}
           />
+          </>
         )
       }
 
@@ -353,6 +387,15 @@ export class RepositorySettings extends React.Component<
             onSelectedEditorChanged={this.onSelectedEditorChanged}
             onUseCustomEditorChanged={this.onUseCustomEditorChanged}
             onCustomEditorChanged={this.onCustomEditorChanged}
+          />
+        )
+      }
+
+      case RepositorySettingsTab.FtpDeployments: {
+        return (
+          <FtpDeploymentsManager
+            repository={this.props.repository}
+            dispatcher={this.props.dispatcher}
           />
         )
       }
@@ -521,6 +564,20 @@ export class RepositorySettings extends React.Component<
       )
     }
 
+    if (
+      this.state.commitMessageProvider === ''
+        ? this.props.repository.commitMessageProvider !== null
+        : this.state.commitMessageProvider !==
+            this.props.repository.commitMessageProvider
+    ) {
+      this.props.dispatcher.updateRepositoryCommitMessageProvider(
+        this.props.repository,
+        this.state.commitMessageProvider === ''
+          ? null
+          : (this.state.commitMessageProvider as CommitMessageProvider)
+      )
+    }
+
     if (!errors.length) {
       this.props.onDismissed()
     } else {
@@ -602,5 +659,11 @@ export class RepositorySettings extends React.Component<
 
   private onCustomEditorChanged = (customEditor: ICustomIntegration) => {
     this.setState({ customEditor })
+  }
+
+  private onCommitMessageProviderChanged = (
+    event: React.FormEvent<HTMLSelectElement>
+  ) => {
+    this.setState({ commitMessageProvider: event.currentTarget.value })
   }
 }

@@ -120,6 +120,7 @@ function createProps(
     onConfirmCommitWithUnknownCoAuthors: () => {},
     onGenerateCommitMessage: () => {},
     onCancelGenerateCommitMessage: () => {},
+    commitMessageProvider: 'copilot',
     onCommitMessageFocusSet: () => {},
     onRefreshAuthor: () => {},
     onShowPopup: () => {},

@@ -136,8 +136,8 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
   private renderTitle() {
     const message =
       this.state.type === 'launch'
-        ? 'Desktop Plus failed to launch'
-        : 'Desktop Plus encountered an error'
+        ? 'Desktop Claw failed to launch'
+        : 'Desktop Claw encountered an error'
 
     return (
       <header>
@@ -151,18 +151,18 @@ export class CrashApp extends React.Component<ICrashAppProps, ICrashAppState> {
     if (this.state.type === 'launch') {
       return (
         <p>
-          Desktop Plus encountered a catastrophic error that prevents it from
+          Desktop Claw encountered a catastrophic error that prevents it from
           launching. This has been reported to the team, but if you encounter
-          this repeatedly please report this issue to the Desktop Plus{' '}
+          this repeatedly please report this issue to the Desktop Claw{' '}
           <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )
     } else {
       return (
         <p>
-          Desktop Plus has encountered an unrecoverable error and will need to
+          Desktop Claw has encountered an unrecoverable error and will need to
           restart. This has been reported to the team, but if you encounter this
-          repeatedly please report this issue to the Desktop Plus{' '}
+          repeatedly please report this issue to the Desktop Claw{' '}
           <LinkButton uri={issuesUri}>issue tracker</LinkButton>.
         </p>
       )

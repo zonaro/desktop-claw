@@ -92,4 +92,183 @@
       }
     }
   }
+
+  // FTP Deployments tab styles — reused from _ftp-deployments.scss but scoped
+  // under #repository-settings so the manager renders correctly when embedded
+  // in the settings dialog rather than its own Dialog.
+  .ftp-deployments-empty {
+    padding: var(--spacing-double) var(--spacing);
+    text-align: center;
+    color: var(--text-secondary-color);
+
+    p {
+      margin-bottom: var(--spacing);
+    }
+  }
+
+  .ftp-deployment-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+  }
+
+  .ftp-deployment-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    min-width: 0;
+    margin: 0;
+    padding: var(--spacing-half) var(--spacing);
+
+    &:not(:last-child) {
+      border-bottom: var(--base-border);
+    }
+  }
+
+  .ftp-deployment-info {
+    flex-grow: 1;
+    min-width: 0;
+    margin-right: var(--spacing-half);
+  }
+
+  .ftp-deployment-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .name {
+      font-weight: var(--font-weight-semibold);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ftp-active-toggle {
+      flex-shrink: 0;
+      margin-left: var(--spacing-half);
+      padding: 0 var(--spacing-half);
+      min-width: 0;
+      height: auto;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+      background: transparent;
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+      box-shadow: none;
+
+      &.active {
+        color: var(--color-new);
+        border-color: var(--color-new);
+      }
+    }
+  }
+
+  .ftp-deployment-summary {
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ftp-row-status {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: var(--spacing-half);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+
+    &.success {
+      color: var(--color-new);
+    }
+
+    &.error {
+      color: var(--color-deleted);
+    }
+
+    .spin {
+      margin-right: var(--spacing-half);
+    }
+  }
+
+  .ftp-upload-progress {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-top: var(--spacing-half);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+
+    .ftp-upload-file {
+      flex-grow: 1;
+      min-width: 0;
+      margin-right: var(--spacing-half);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ftp-upload-count,
+    .ftp-upload-bytes {
+      flex-shrink: 0;
+      margin-right: var(--spacing-half);
+    }
+  }
+
+  .ftp-deployment-actions,
+  .ftp-delete-confirmation {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+
+    .button-component {
+      min-width: 0;
+      margin-right: var(--spacing-half);
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  .ftp-delete-confirmation {
+    span {
+      margin-right: var(--spacing-half);
+      font-size: var(--font-size-sm);
+      white-space: nowrap;
+    }
+  }
+
+  .ftp-deployments-footer {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    .button-component {
+      margin-right: 0;
+    }
+  }
+
+  .ftp-helper-text {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+  }
+
+  .ftp-host-port-row {
+    .ftp-host-field {
+      flex-grow: 1;
+      margin-right: var(--spacing);
+    }
+
+    .ftp-port-field {
+      width: 90px;
+      flex-shrink: 0;
+    }
+  }
 }

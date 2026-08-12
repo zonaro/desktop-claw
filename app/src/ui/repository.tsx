@@ -39,6 +39,7 @@ import { Emoji } from '../lib/emoji'
 import { PopupType } from '../models/popup'
 import { Branch } from '../models/branch'
 import { BranchSortOrder } from '../models/branch-sort-order'
+import type { CommitMessageProvider } from '../lib/opencode/commit-message-provider-pref'
 
 interface IRepositoryViewProps {
   readonly repository: Repository
@@ -77,6 +78,12 @@ interface IRepositoryViewProps {
    * selecting "None" as the model. When true, the Copilot button is hidden.
    */
   readonly commitMessageGenerationDisabled: boolean
+
+  /**
+   * The commit-message provider to use for this repository, resolved from
+   * the per-repository override (if any) or the global preference.
+   */
+  readonly commitMessageProvider: CommitMessageProvider
 
   /**
    * A value indicating whether or not the application is currently presenting
@@ -155,6 +162,9 @@ interface IRepositoryViewProps {
    * This option resets to false after each commit.
    */
   readonly allowEmptyCommit: boolean
+
+  /** Whether or not the markdown WYSIWYG editor is enabled */
+  readonly enableMarkdownWysiwyg: boolean
 
   /** Callback to set commit options for the given repository */
   readonly onUpdateCommitOptions: (
@@ -372,6 +382,7 @@ export class RepositoryView extends React.Component<
         commitMessageGenerationDisabled={
           this.props.commitMessageGenerationDisabled
         }
+        commitMessageProvider={this.props.commitMessageProvider}
         commitToAmend={this.props.state.commitToAmend}
         isPushPullFetchInProgress={this.props.state.isPushPullFetchInProgress}
         focusCommitMessage={this.props.focusCommitMessage}
@@ -401,6 +412,7 @@ export class RepositoryView extends React.Component<
         skipCommitHooks={this.props.skipCommitHooks}
         signOffCommits={this.props.signOffCommits}
         allowEmptyCommit={this.props.allowEmptyCommit}
+        enableMarkdownWysiwyg={this.props.enableMarkdownWysiwyg}
         onUpdateCommitOptions={this.props.onUpdateCommitOptions}
       />
     )

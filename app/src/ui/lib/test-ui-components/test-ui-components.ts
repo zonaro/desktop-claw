@@ -343,7 +343,7 @@ export function showTestUI(
   function showTestNoExternalEditor() {
     dispatcher.postError(
       new ExternalEditorError(
-        `No suitable editors installed for Desktop Plus to launch. Install ${suggestedExternalEditor.name} for your platform and restart Desktop Plus to try again.`,
+        `No suitable editors installed for Desktop Claw to launch. Install ${suggestedExternalEditor.name} for your platform and restart Desktop Claw to try again.`,
         { suggestDefaultEditor: true }
       )
     )

@@ -147,6 +147,8 @@ const allMenuIds: ReadonlyArray<MenuIDs> = [
   'toggle-stashed-changes',
   'create-worktree',
   'show-worktrees-list',
+  'ftp-deployments',
+  'configure-ftp-deployments',
 ]
 
 function getAllMenusDisabledBuilder(): MenuStateBuilder {
@@ -263,6 +265,8 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'compare-to-branch',
     'toggle-changes-filter',
     'create-worktree',
+    'ftp-deployments',
+    'configure-ftp-deployments',
   ]
 
   const menuStateBuilder = new MenuStateBuilder()

@@ -77,7 +77,11 @@ import {
   setGitHookEnvShell,
   setHooksEnvEnabled,
 } from '../../lib/hooks/config'
-import { enableCopilotSdkCommitMessageGeneration } from '../../lib/feature-flag'
+import {
+  enableCopilotSdkCommitMessageGeneration,
+  enableFormattingPreferences,
+  enableOpenCodeCommitMessages,
+} from '../../lib/feature-flag'
 import {
   DateFormat,
   TimeFormat,
@@ -90,7 +94,6 @@ import {
   setTimeFormatPreference,
   setNumberFormatPreference,
 } from '../../models/formatting-preferences'
-import { enableFormattingPreferences } from '../../lib/feature-flag'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -145,6 +148,7 @@ interface IPreferencesProps {
   readonly copilotQuotaSnapshotsByAccount: CopilotQuotaSnapshotsByAccount
   readonly byokProviders: ReadonlyArray<IBYOKProvider>
   readonly alwaysUseCopilotForConflictResolution: boolean
+  readonly enableMarkdownWysiwyg: boolean
 }
 
 interface IPreferencesState {
@@ -227,6 +231,7 @@ interface IPreferencesState {
   readonly selectedTimeFormat?: TimeFormat
   readonly selectedNumberFormat?: INumberFormat
   readonly preferAbsoluteDates?: boolean
+  readonly enableMarkdownWysiwyg: boolean
 }
 
 /**
@@ -314,6 +319,7 @@ export class Preferences extends React.Component<
       selectedTimeFormat: getTimeFormatPreference(),
       selectedNumberFormat: getNumberFormatPreference(),
       preferAbsoluteDates: getPreferAbsoluteDates(),
+      enableMarkdownWysiwyg: this.props.enableMarkdownWysiwyg,
     }
   }
 
@@ -468,7 +474,7 @@ export class Preferences extends React.Component<
               <Octicon className="icon" symbol={octicons.person} />
               Integrations
             </span>
-            {this.isCopilotSdkEnabled && (
+            {this.isCopilotTabVisible && (
               <span id={this.getTabId(PreferencesTab.Copilot)}>
                 <Octicon className="icon" symbol={octicons.copilot} />
                 Copilot
@@ -805,6 +811,10 @@ export class Preferences extends React.Component<
               this.state.preferAbsoluteDates ?? getPreferAbsoluteDates()
             }
             onPreferAbsoluteDatesChanged={this.onPreferAbsoluteDatesChanged}
+            enableMarkdownWysiwyg={this.state.enableMarkdownWysiwyg}
+            onEnableMarkdownWysiwygChanged={
+              this.onEnableMarkdownWysiwygChanged
+            }
           />
         )
         break
@@ -1088,6 +1098,12 @@ export class Preferences extends React.Component<
 
   private onShowDiffCheckMarksChanged = (showDiffCheckMarks: boolean) => {
     this.setState({ showDiffCheckMarks })
+  }
+
+  private onEnableMarkdownWysiwygChanged = (
+    enableMarkdownWysiwyg: boolean
+  ) => {
+    this.setState({ enableMarkdownWysiwyg })
   }
 
   private onShowBranchNameInRepoListChanged = (
@@ -1424,6 +1440,10 @@ export class Preferences extends React.Component<
 
     dispatcher.setDiffCheckMarksSetting(this.state.showDiffCheckMarks)
 
+    dispatcher.setEnableMarkdownWysiwygSetting(
+      this.state.enableMarkdownWysiwyg
+    )
+
     dispatcher.setShowBranchNameInRepoList(this.state.showBranchNameInRepoList)
     dispatcher.setBranchSortOrder(this.state.branchSortOrder)
 
@@ -1467,15 +1487,19 @@ export class Preferences extends React.Component<
     return this.props.accounts.some(enableCopilotSdkCommitMessageGeneration)
   }
 
+  private get isCopilotTabVisible(): boolean {
+    return this.isCopilotSdkEnabled || enableOpenCodeCommitMessages()
+  }
+
   private tabToVisualIndex(tab: PreferencesTab): number {
-    if (!this.isCopilotSdkEnabled && tab > PreferencesTab.Copilot) {
+    if (!this.isCopilotTabVisible && tab > PreferencesTab.Copilot) {
       return tab - 1
     }
     return tab
   }
 
   private visualIndexToTab(index: number): PreferencesTab {
-    if (!this.isCopilotSdkEnabled && index >= PreferencesTab.Copilot) {
+    if (!this.isCopilotTabVisible && index >= PreferencesTab.Copilot) {
       return index + 1
     }
     return index

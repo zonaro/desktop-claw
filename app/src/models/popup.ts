@@ -135,6 +135,8 @@ export enum PopupType {
   AddRemote = 'AddRemote',
   DeleteWorktreeFailed = 'DeleteWorktreeFailed',
   PullBranchDeleted = 'PullBranchDeleted',
+  FtpDeployments = 'FtpDeployments',
+  MarkdownEditor = 'MarkdownEditor',
 }
 
 interface IBasePopup {
@@ -626,5 +628,15 @@ export type PopupDetail =
       repository: Repository
       /** The name of the branch whose remote branch no longer exists. */
       branchName: string
+    }
+  | {
+      type: PopupType.FtpDeployments
+      repository: Repository
+      initialUploadDeploymentId?: string
+    }
+  | {
+      type: PopupType.MarkdownEditor
+      repository: Repository
+      filePath: string
     }
 export type Popup = IBasePopup & PopupDetail

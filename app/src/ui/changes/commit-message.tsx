@@ -72,9 +72,12 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import {
   enableCommitMessageGeneration,
   enableCopilotSdkCommitMessageGeneration,
+  enableOpenCodeCommitMessages,
   enableHooksEnvironment,
 } from '../../lib/feature-flag'
 import { getAccountForCommitMessageGeneration } from '../../lib/get-account-for-repository'
+import { loadOpenCodeConfig } from '../../lib/opencode/opencode-config'
+import type { CommitMessageProvider } from '../../lib/opencode/commit-message-provider-pref'
 import { AriaLiveContainer } from '../accessibility/aria-live-container'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { showItemInFolder } from '../main-process-proxy'
@@ -241,6 +244,9 @@ interface ICommitMessageProps {
     filesSelected: ReadonlyArray<WorkingDirectoryFileChange>,
     mustOverrideExistingMessage: boolean
   ) => void
+
+  /** The commit-message provider to use for this repository. */
+  readonly commitMessageProvider: CommitMessageProvider
 
   readonly onCancelGenerateCommitMessage?: () => void
 
@@ -1034,10 +1040,17 @@ export class CommitMessage extends React.Component<
       isCommitting,
       isGeneratingCommitMessage,
       commitToAmend,
+      commitMessageProvider,
     } = this.props
 
+    const hasCopilotAccess = accounts.some(enableCommitMessageGeneration)
+    const hasOpenCodeAccess =
+      commitMessageProvider === 'openCode' &&
+      enableOpenCodeCommitMessages() &&
+      loadOpenCodeConfig().enabled
+
     if (
-      !accounts.some(enableCommitMessageGeneration) ||
+      (!hasCopilotAccess && !hasOpenCodeAccess) ||
       onGenerateCommitMessage === undefined
     ) {
       return null
@@ -1046,10 +1059,17 @@ export class CommitMessage extends React.Component<
     const noFilesSelected = filesSelected.length === 0
     const noChangesAvailable = !commitToAmend && noFilesSelected
 
+    const label =
+      commitMessageProvider === 'openCode'
+        ? __DARWIN__
+          ? 'Generate Commit Message with OpenCode'
+          : 'Generate commit message with OpenCode'
+        : __DARWIN__
+          ? 'Generate Commit Message with Copilot'
+          : 'Generate commit message with Copilot'
+
     return {
-      label: __DARWIN__
-        ? 'Generate Commit Message with Copilot'
-        : 'Generate commit message with Copilot',
+      label,
       action: () => {
         const { commitMessage } = this.state
         onGenerateCommitMessage(
@@ -1157,12 +1177,15 @@ export class CommitMessage extends React.Component<
       isGeneratingCommitMessage,
       commitToAmend,
       shouldShowGenerateCommitMessageCallOut,
+      commitMessageProvider,
     } = this.props
 
     const noFilesSelected = filesSelected.length === 0
     const noChangesAvailable = !commitToAmend && noFilesSelected
 
-    let ariaLabel = 'Generate commit message with Copilot'
+    const providerName =
+      commitMessageProvider === 'openCode' ? 'OpenCode' : 'Copilot'
+    let ariaLabel = `Generate commit message with ${providerName}`
     const canCancelGenerateCommitMessage = this.canCancelGenerateCommitMessage
     const showCancelGenerateCommitMessage =
       isGeneratingCommitMessage === true && canCancelGenerateCommitMessage
@@ -1174,6 +1197,11 @@ export class CommitMessage extends React.Component<
     } else if (isGeneratingCommitMessage) {
       ariaLabel = 'Generating commit details…'
     }
+
+    const generateIcon =
+      commitMessageProvider === 'openCode'
+        ? octicons.sparkle
+        : octicons.copilot
 
     return (
       <>
@@ -1199,7 +1227,7 @@ export class CommitMessage extends React.Component<
             symbol={
               showCancelGenerateCommitMessage
                 ? octicons.squareCircle
-                : octicons.copilot
+                : generateIcon
             }
           />
           {shouldShowGenerateCommitMessageCallOut && (
@@ -1365,9 +1393,17 @@ export class CommitMessage extends React.Component<
    * Whether the Copilot button should be available
    */
   private get isCopilotButtonEnabled() {
-    const { accounts, onGenerateCommitMessage } = this.props
+    const { accounts, onGenerateCommitMessage, commitMessageProvider } =
+      this.props
+
+    const hasCopilotAccess = accounts.some(enableCommitMessageGeneration)
+    const hasOpenCodeAccess =
+      commitMessageProvider === 'openCode' &&
+      enableOpenCodeCommitMessages() &&
+      loadOpenCodeConfig().enabled
+
     return (
-      accounts.some(enableCommitMessageGeneration) &&
+      (hasCopilotAccess || hasOpenCodeAccess) &&
       onGenerateCommitMessage !== undefined
     )
   }
@@ -1376,6 +1412,15 @@ export class CommitMessage extends React.Component<
    * Whether an in-flight commit message generation can be cancelled.
    */
   private get canCancelGenerateCommitMessage() {
+    const { commitMessageProvider } = this.props
+
+    if (
+      commitMessageProvider === 'openCode' &&
+      enableOpenCodeCommitMessages()
+    ) {
+      return this.props.onCancelGenerateCommitMessage !== undefined
+    }
+
     const account = getAccountForCommitMessageGeneration(
       this.props.accounts,
       this.props.repository

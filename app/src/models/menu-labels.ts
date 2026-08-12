@@ -78,4 +78,14 @@ export type MenuLabelsEvent = {
    * says "Show changes filter" or "Hide changes filter".
    */
   readonly isChangesFilterVisible?: boolean
+
+  /**
+   * Active FTP deployments for the selected repository, used to
+   * dynamically populate the Repository > FTP Deployments submenu.
+   * Defaults to an empty array when omitted.
+   */
+  readonly ftpDeployments?: ReadonlyArray<{
+    readonly id: string
+    readonly name: string
+  }>
 }

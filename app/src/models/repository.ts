@@ -13,6 +13,8 @@ import { createEqualityHash } from './equality-hash'
 import { memoizedGetRemotesFromPath } from '../lib/git'
 import { findDefaultRemote } from '../lib/stores/helpers/find-default-remote'
 import { EditorOverride } from './editor-override'
+import type { IFtpDeployment } from './ftp-deployment'
+import type { CommitMessageProvider } from '../lib/opencode/commit-message-provider-pref'
 
 export enum LoginSpecialValue {
   ForceNullLogin = 1,
@@ -83,7 +85,13 @@ export class Repository {
      * it, so the worktree set is not always discoverable after the fact. This
      * records the main worktree while it is still known.
      */
-    public readonly mainWorktreePath: string | undefined = undefined
+    public readonly mainWorktreePath: string | undefined = undefined,
+    public readonly ftpDeployments: ReadonlyArray<IFtpDeployment> = [],
+    /**
+     * Overrides the global commit-message provider for this repository.
+     * `null` means "use the global preference" (default).
+     */
+    public readonly commitMessageProvider: CommitMessageProvider | null = null
   ) {
     this.name = (gitHubRepository && gitHubRepository.name) || getBaseName(path)
 
@@ -99,7 +107,9 @@ export class Repository {
       this.workflowPreferences.forkContributionTarget,
       this.workflowPreferences.updateBranchStrategy,
       this.isTutorialRepository,
-      this.overrideLogin
+      this.overrideLogin,
+      JSON.stringify(this.ftpDeployments),
+      this.commitMessageProvider
     )
   }
 

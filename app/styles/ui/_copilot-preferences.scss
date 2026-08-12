@@ -380,6 +380,56 @@
       margin-bottom: var(--spacing-third);
     }
   }
+
+  .opencode-settings {
+    .select-component {
+      margin-bottom: var(--spacing-half);
+    }
+
+    .text-box-component {
+      margin-top: var(--spacing);
+      margin-bottom: var(--spacing-half);
+    }
+
+    .opencode-availability-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing);
+      margin-top: var(--spacing);
+    }
+
+    .opencode-availability-success {
+      color: var(--status-success-color);
+      font-size: var(--font-size-sm);
+    }
+
+    .opencode-availability-error {
+      color: var(--status-error-color);
+      font-size: var(--font-size-sm);
+    }
+
+    .opencode-model-picker {
+      margin-top: var(--spacing);
+    }
+
+    .opencode-model-picker-row {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--spacing-half);
+    }
+
+    .opencode-models-refresh-row {
+      margin-top: var(--spacing-half);
+    }
+
+    .opencode-models-refresh-button {
+      margin-bottom: 1px;
+    }
+
+    .opencode-models-error {
+      color: var(--status-error-color);
+    }
+  }
 }
 
 #copilot-custom-providers-dialog {

@@ -17,6 +17,7 @@ import { CommitOptions, Foldout } from '../../lib/app-state'
 import { Account } from '../../models/account'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import { IAheadBehind } from '../../models/branch'
+import { loadCommitMessageProvider } from '../../lib/opencode/commit-message-provider-pref'
 
 interface ICommitMessageDialogProps {
   /**
@@ -194,6 +195,10 @@ export class CommitMessageDialog extends React.Component<
               this.onCommitSpellcheckEnabledChanged
             }
             repositoryAccount={this.props.repositoryAccount}
+            commitMessageProvider={
+              this.props.repository.commitMessageProvider ??
+              loadCommitMessageProvider()
+            }
             onStopAmending={this.onStopAmending}
             onShowCreateForkDialog={this.onShowCreateForkDialog}
             accounts={this.props.accounts}

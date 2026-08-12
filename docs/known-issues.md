@@ -43,7 +43,7 @@ Related issue: [#33](https://github.com/desktop-plus/desktop-plus/issues/33)
 This error is caused by the app not being notarized by Apple, as notarization requires a paid Apple Developer account.
 
 When installing from Homebrew, this error should not appear as the app will automatically be added to the list of allowed apps.
-However, if you insist on installing manually, simply go to "System Settings" > "Privacy & Security", scroll down to "Security" and click "Open Anyway" on "Desktop Plus".
+However, if you insist on installing manually, simply go to "System Settings" > "Privacy & Security", scroll down to "Security" and click "Open Anyway" on "Desktop Claw".
 
 ### 'The username or passphrase you entered is not correct' error after signing into account
 
@@ -247,23 +247,23 @@ Related issue: [#54](https://github.com/desktop-plus/desktop-plus/issues/54)
 
 First of all, make sure you are not using the AppImage package, as it requires some manual setup for the sign-in feature to work. Instead, I strongly recommend using your distribution's native package manager (APT, RPM and AUR packages above) or Flatpak.
 
-If the app remains stuck on the "Continue with browser" screen after following the instructions in your web browser, the most likely cause is that the URI scheme used by Desktop Plus for authorization (`x-github-desktop-auth://`) is not linked to the correct program. You can verify if this is the case by fully closing Desktop Plus (Menu: **File** -> **Exit**) and running the following command in your terminal:
+If the app remains stuck on the "Continue with browser" screen after following the instructions in your web browser, the most likely cause is that the URI scheme used by Desktop Claw for authorization (`x-github-desktop-auth://`) is not linked to the correct program. You can verify if this is the case by fully closing Desktop Claw (Menu: **File** -> **Exit**) and running the following command in your terminal:
 
 ```bash
 xdg-open "x-github-desktop-auth://test"
 ```
 
-This should open the Desktop Plus app. If it doesn't, it means the URI scheme is not linked to the app, and you can fix it by running the following command:
+This should open the Desktop Claw app. If it doesn't, it means the URI scheme is not linked to the app, and you can fix it by running the following command:
 
 ```bash
 # Prints the current default app for the URI scheme
 xdg-mime query default x-scheme-handler/x-github-desktop-auth
 
-# Set Desktop Plus as the default app for the URI scheme
-xdg-mime default desktop-plus.desktop x-scheme-handler/x-github-desktop-auth
+# Set Desktop Claw as the default app for the URI scheme
+xdg-mime default desktop-claw.desktop x-scheme-handler/x-github-desktop-auth
 
 # Alternatively, if you are using the flatpak:
-xdg-mime default org.desktop_plus.desktop-plus.desktop x-scheme-handler/x-github-desktop-auth
+xdg-mime default org.desktop_claw.desktop-claw.desktop x-scheme-handler/x-github-desktop-auth
 ```
 
 

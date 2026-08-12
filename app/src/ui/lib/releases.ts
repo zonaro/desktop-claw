@@ -3,5 +3,5 @@ export const UpstreamReleaseNotesUri =
     ? 'https://desktop.github.com/release-notes/?env=beta'
     : 'https://desktop.github.com/release-notes/'
 
-export const DesktopPlusReleaseNotesUri =
+export const DesktopClawReleaseNotesUri =
   'https://github.com/desktop-plus/desktop-plus/releases/'

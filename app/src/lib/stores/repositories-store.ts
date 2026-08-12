@@ -32,6 +32,8 @@ import { clearTagsToPush } from './helpers/tags-to-push-storage'
 import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
 import { EditorOverride } from '../../models/editor-override'
+import { IFtpDeployment } from '../../models/ftp-deployment'
+import type { CommitMessageProvider } from '../opencode/commit-message-provider-pref'
 import { Account } from '../../models/account'
 
 type AddRepositoryOptions = {
@@ -183,7 +185,9 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.isTutorialRepository,
       repo.login,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.ftpDeployments ?? [],
+      repo.commitMessageProvider ?? null
     )
   }
 
@@ -344,7 +348,9 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.isTutorialRepository,
       repository.overrideLogin,
       repository.gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.ftpDeployments,
+      repository.commitMessageProvider
     )
   }
 
@@ -374,7 +380,9 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.isTutorialRepository,
       repository.overrideLogin,
       gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.ftpDeployments,
+      repository.commitMessageProvider
     )
   }
 
@@ -443,7 +451,9 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.isTutorialRepository,
       repository.overrideLogin,
       repository.gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.ftpDeployments,
+      repository.commitMessageProvider
     )
   }
 
@@ -476,7 +486,9 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.isTutorialRepository,
       account?.login ?? LoginSpecialValue.ForceNullLogin,
       repository.gitDir,
-      repository.mainWorktreePath
+      repository.mainWorktreePath,
+      repository.ftpDeployments,
+      repository.commitMessageProvider
     )
   }
 
@@ -502,6 +514,37 @@ export class RepositoriesStore extends TypedBaseStore<
     workflowPreferences: WorkflowPreferences
   ): Promise<void> {
     await this.db.repositories.update(repository.id, { workflowPreferences })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Update the FTP deployments for the specified repository.
+   *
+   * @param repository       The repository to update.
+   * @param ftpDeployments   The array of FTP deployment configurations to use.
+   */
+  public async updateRepositoryFtpDeployments(
+    repository: Repository,
+    ftpDeployments: ReadonlyArray<IFtpDeployment>
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, { ftpDeployments })
+
+    this.emitUpdatedRepositories()
+  }
+
+  /**
+   * Update the commit-message provider override for the specified repository.
+   *
+   * @param repository             The repository to update.
+   * @param commitMessageProvider  The provider to use, or null to fall back
+   *                               to the global preference.
+   */
+  public async updateRepositoryCommitMessageProvider(
+    repository: Repository,
+    commitMessageProvider: CommitMessageProvider | null
+  ): Promise<void> {
+    await this.db.repositories.update(repository.id, { commitMessageProvider })
 
     this.emitUpdatedRepositories()
   }
@@ -542,7 +585,9 @@ export class RepositoriesStore extends TypedBaseStore<
       repository.isTutorialRepository,
       repository.overrideLogin,
       gitDir,
-      mainWorktreePath
+      mainWorktreePath,
+      repository.ftpDeployments,
+      repository.commitMessageProvider
     )
   }
 
@@ -607,7 +652,9 @@ export class RepositoriesStore extends TypedBaseStore<
         repository.isTutorialRepository,
         repository.overrideLogin,
         gitDir,
-        mainWorktreePath
+        mainWorktreePath,
+        repository.ftpDeployments,
+        repository.commitMessageProvider
       ),
       existingRepository: false,
     }
@@ -782,7 +829,9 @@ export class RepositoriesStore extends TypedBaseStore<
       newRepo.isTutorialRepository,
       oldRepo.overrideLogin,
       newRepo.gitDir,
-      newRepo.mainWorktreePath
+      newRepo.mainWorktreePath,
+      oldRepo.ftpDeployments,
+      oldRepo.commitMessageProvider
     )
   }
 
@@ -814,7 +863,9 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.isTutorialRepository,
       repo.overrideLogin,
       repo.gitDir,
-      repo.mainWorktreePath
+      repo.mainWorktreePath,
+      repo.ftpDeployments,
+      repo.commitMessageProvider
     )
 
     assertIsRepositoryWithGitHubRepository(updatedRepo)

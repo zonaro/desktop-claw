@@ -34,6 +34,7 @@ import { IAheadBehind } from '../../models/branch'
 import { Emoji } from '../../lib/emoji'
 import { FilterChangesList } from './filter-changes-list'
 import { HookProgress } from '../../lib/git'
+import type { CommitMessageProvider } from '../../lib/opencode/commit-message-provider-pref'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -64,6 +65,7 @@ interface IChangesSidebarProps {
   readonly isGeneratingCommitMessage: boolean
   readonly shouldShowGenerateCommitMessageCallOut: boolean
   readonly commitMessageGenerationDisabled: boolean
+  readonly commitMessageProvider: CommitMessageProvider
   readonly commitToAmend: Commit | null
   readonly isPushPullFetchInProgress: boolean
   // Used in receiveProps, no-unused-prop-types doesn't know that
@@ -121,6 +123,9 @@ interface IChangesSidebarProps {
    * This option resets to false after each commit.
    */
   readonly allowEmptyCommit: boolean
+
+  /** Whether or not the markdown WYSIWYG editor is enabled */
+  readonly enableMarkdownWysiwyg: boolean
 
   /** Callback to set commit options for the given repository */
   readonly onUpdateCommitOptions: (
@@ -485,6 +490,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           commitMessageGenerationDisabled={
             this.props.commitMessageGenerationDisabled
           }
+          commitMessageProvider={this.props.commitMessageProvider}
           commitToAmend={this.props.commitToAmend}
           showCoAuthoredBy={showCoAuthoredBy}
           coAuthors={coAuthors}
@@ -511,6 +517,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, {}> {
           skipCommitHooks={this.props.skipCommitHooks}
           signOffCommits={this.props.signOffCommits}
           allowEmptyCommit={this.props.allowEmptyCommit}
+          enableMarkdownWysiwyg={this.props.enableMarkdownWysiwyg}
           onUpdateCommitOptions={this.props.onUpdateCommitOptions}
         />
         {this.renderUndoCommit(rebaseConflictState)}

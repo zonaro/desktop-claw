@@ -135,3 +135,6 @@ export const enableFormattingPreferences = () => true
 
 /** Should the app enable worktree support? */
 export const enableWorktreeSupport = () => true
+
+/** Should the app enable OpenCode as a commit-message provider? */
+export const enableOpenCodeCommitMessages = () => true
