@@ -24,31 +24,47 @@ interface IGitRemoteURL {
   readonly name: string
 }
 
+// A hostname, either an IPv6 literal in brackets or anything that isn't a path
+// or port separator.
+const hostnamePattern = '(\\[[^\\]]+\\]|[^/:]+)'
+
+// The owner, followed by the repository name. The owner is allowed to span
+// several path components, since a repository can live in a nested group.
+const ownerAndNamePattern = '(.+)/([^/]+?)'
+
+// The optional `.git` and/or trailing slash.
+const gitSuffixPattern = '(?:\\.git)?/?'
+
 // Examples:
 // https://github.com/octocat/Hello-World.git
 // https://github.com/octocat/Hello-World.git/
 // git@github.com:octocat/Hello-World.git
 // git:github.com/octocat/Hello-World.git
+// git@gitlab.example.com:group/subgroup/Hello-World.git
 const remoteRegexes: ReadonlyArray<{ protocol: GitProtocol; regex: RegExp }> = [
   {
     protocol: 'https',
     regex: new RegExp(
-      '^https?://(?:.+@)?(\\[[^\\]]+\\]|[^/:]+)(?::\\d+)?/(.+)/([^/]+?)(?:/|\\.git/?)?$'
+      `^https?://(?:.+@)?${hostnamePattern}(?::\\d+)?/${ownerAndNamePattern}${gitSuffixPattern}$`
     ),
-  },
-  {
-    protocol: 'ssh',
-    regex: new RegExp('^git@(.+):([^/]+)/([^/]+?)(?:/|\\.git)?$'),
   },
   {
     protocol: 'ssh',
     regex: new RegExp(
-      '^(?:.+)@(.+\\.ghe\\.com):([^/]+)/([^/]+?)(?:/|\\.git)?$'
+      `^git@${hostnamePattern}:${ownerAndNamePattern}${gitSuffixPattern}$`
     ),
   },
   {
     protocol: 'ssh',
-    regex: new RegExp('^git:(.+)/([^/]+)/([^/]+?)(?:/|\\.git)?$'),
+    regex: new RegExp(
+      `^(?:.+)@(.+\\.ghe\\.com):${ownerAndNamePattern}${gitSuffixPattern}$`
+    ),
+  },
+  {
+    protocol: 'ssh',
+    regex: new RegExp(
+      `^git:(?://)?${hostnamePattern}/${ownerAndNamePattern}${gitSuffixPattern}$`
+    ),
   },
   {
     // Self-hosted SSH URLs like ssh://git@git.example.com:2222/owner/name.git
@@ -56,21 +72,27 @@ const remoteRegexes: ReadonlyArray<{ protocol: GitProtocol; regex: RegExp }> = [
     // says nothing about the port the instance serves its web UI and API on.
     protocol: 'ssh',
     regex: new RegExp(
-      '^ssh://git@(\\[[^\\]]+\\]|[^/:]+):\\d+/(.+)/(.+?)(?:/|\\.git)?$'
+      `^ssh://git@${hostnamePattern}:\\d+/${ownerAndNamePattern}${gitSuffixPattern}$`
     ),
   },
   {
     protocol: 'ssh',
-    regex: new RegExp('^ssh://git@(.+)/(.+)/(.+?)(?:/|\\.git)?$'),
+    regex: new RegExp(
+      `^ssh://git@${hostnamePattern}/${ownerAndNamePattern}${gitSuffixPattern}$`
+    ),
   },
 ]
 
-function parseWebPort(url: string): string | null {
+function tryParseUrl(url: string): URL | null {
   try {
-    return new URL(url).port || null
+    return new URL(url)
   } catch (e) {
     return null
   }
+}
+
+function parseWebPort(url: string): string | null {
+  return tryParseUrl(url)?.port || null
 }
 
 /** Parse the remote information from URL. */
@@ -89,6 +111,55 @@ export function parseRemote(url: string): IGitRemoteURL | null {
   }
 
   return null
+}
+
+/**
+ * scp-like remotes ([user@]host:path) aren't URLs, so they have to be matched
+ * before anything reaches the URL parser. The two character minimum keeps
+ * Windows paths (C:\repos\name) from passing as a host, and the lookahead keeps
+ * a scheme (https://...) from passing as one.
+ */
+const scpLikeRemoteRegex = /^(?:[^/@:]+@)?([^/:]{2,}):(?!\/\/)(.+)$/
+
+function buildWebUrl(host: string, path: string, protocol = 'https:') {
+  const normalized = path
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '')
+    .replace(/\.git$/, '')
+
+  return normalized.length === 0
+    ? `${protocol}//${host}`
+    : `${protocol}//${host}/${normalized}`
+}
+
+/**
+ * Convert a remote URL into a URL that can be opened in a browser, or null if
+ * the remote doesn't point at a web host (e.g. a local path).
+ * The instance is assumed to live on the host the remote points at.
+ */
+export function remoteUrlToWebUrl(remoteUrl: string): string | null {
+  const url = remoteUrl.trim()
+
+  const scpLike = scpLikeRemoteRegex.exec(url)
+  if (scpLike !== null) {
+    return buildWebUrl(scpLike[1], scpLike[2])
+  }
+
+  const parsed = tryParseUrl(url)
+  if (parsed === null) {
+    return null
+  }
+  switch (parsed.protocol) {
+    case 'https:':
+    case 'http:':
+      return buildWebUrl(parsed.host, parsed.pathname, parsed.protocol)
+    case 'ssh:':
+    case 'git+ssh:':
+    case 'git:':
+      return buildWebUrl(parsed.hostname, parsed.pathname)
+    default:
+      return null
+  }
 }
 
 export function asHost(remote: IGitRemoteURL): string {
