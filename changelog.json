@@ -4,6 +4,13 @@
       "[Improved] Update Git for Windows to v2.53.0.windows.4",
       "[Improved] Update Git Credential Manager to 2.9.0"
     ],
+    "3.6.4-beta3": [
+      "[Added] Worktree file tree and preview with read-only markdown rendering and interactive checkboxes",
+      "[Added] Quill-based WYSIWYG markdown editor with HTML/PDF export",
+      "[Added] FTP deployment support with commit review and git ls-files helpers",
+      "[Improved] Copilot provider preferences and popup menu updates",
+      "[Improved] Best-effort web URLs for unsupported remotes and hooks environment fixes from upstream"
+    ],
     "3.6.4-beta2": [
       "[Fixed] Restore keyboard focus to the control that opened a nested dialog after that nested dialog is dismissed, fixing an accessibility focus-order issue",
       "[Fixed] Persist the main worktree path so Desktop can recover a repository after a linked worktree is removed, even after git prunes its worktree metadata. Thanks @francisrath!"
