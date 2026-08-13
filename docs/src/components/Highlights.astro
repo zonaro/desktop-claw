@@ -1,0 +1,138 @@
+---
+import { withBase } from "../consts";
+
+interface Highlight {
+  title: string;
+  body: string;
+  img: string;
+  alt: string;
+  w: number;
+  h: number;
+}
+
+const highlights: Highlight[] = [
+  {
+    title: "Search your history",
+    body: "Find any commit by title, message, tag, or hash, right in the History tab, no terminal required.",
+    img: "/screenshots/search.webp",
+    alt: "Searching commits by keyword in the History tab",
+    w: 508,
+    h: 364,
+  },
+  {
+    title: "Multiple accounts & hosts",
+    body: "Sign in to multiple GitHub, Bitbucket, GitLab, Codeberg/Forgejo, or Gitea accounts at once. Clone, open pull requests, and see check status across all of them.",
+    img: "/screenshots/multiaccount.webp",
+    alt: "Accounts settings showing multiple GitHub, Bitbucket and GitLab accounts",
+    w: 458,
+    h: 332,
+  },
+  {
+    title: "Visualize the commit graph",
+    body: "Switch the history into a graph view to see how branches and merges actually fit together.",
+    img: "/screenshots/commit-graph.webp",
+    alt: "Commit graph view showing branch and merge lines",
+    w: 489,
+    h: 351,
+  },
+  {
+    title: "Keep multiple stashes",
+    body: "Create and rename several stashes per branch, instead of being limited to a single slot.",
+    img: "/screenshots/stashes.webp",
+    alt: "A list of four separate stashes on a branch",
+    w: 442,
+    h: 218,
+  },
+  {
+    title: "Spot unpushed branches",
+    body: "Local-only branches (never pushed, or auto-deleted after a merged PR) get a clear warning indicator so nothing slips through.",
+    img: "/screenshots/push-indicator.webp",
+    alt: "Branch list with a warning icon on a branch that was never pushed",
+    w: 423,
+    h: 190,
+  },
+  {
+    title: "Built for recognition",
+    body: "Speeds up your clicks with distinct icons for similar-looking buttons and red backgrounds on destructive actions.",
+    img: "/screenshots/stash-header.webp",
+    alt: "Stashed changes header with clearly colored Restore and Discard buttons",
+    w: 379,
+    h: 188,
+  },
+];
+---
+
+<section id="features" class="mx-auto max-w-6xl scroll-mt-20 px-5 py-20 sm:px-8">
+  <div class="mx-auto max-w-4xl text-center text-balance">
+    <h2 class="text-3xl font-semibold tracking-tight text-white sm:text-3xl">
+      The same familiar workflow as GitHub Desktop, <span class="text-gradient">with the improvements</span> power users kept asking for.
+    </h2>
+  </div>
+
+  <div class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      highlights.map((h) => (
+        <article class="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface/60 transition hover:border-brand-500/40 hover:bg-surface">
+          <button
+            type="button"
+            class="js-lightbox-trigger flex max-h-44 cursor-zoom-in items-start justify-center overflow-hidden border-b border-border/60 bg-canvas-inset"
+            aria-label={`View ${h.title} screenshot fullscreen`}
+          >
+            <img src={withBase(h.img)} alt={h.alt} width={h.w} height={h.h} loading="lazy" decoding="async" class="h-auto w-full" />
+          </button>
+          <div class="flex flex-col gap-2 p-5">
+            <h3 class="text-base font-semibold text-white">{h.title}</h3>
+            <p class="text-sm leading-relaxed text-fg-muted">{h.body}</p>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+
+  <div
+    id="lightbox"
+    class="fixed inset-0 z-50 hidden cursor-zoom-out items-center justify-center bg-black/80 p-5 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Screenshot fullscreen view"
+  >
+    <img id="lightbox-img" src="" alt="" class="max-h-full max-w-full rounded-lg shadow-2xl" />
+  </div>
+</section>
+
+<script>
+  const lightbox = document.getElementById("lightbox");
+  const lightboxImg = document.getElementById("lightbox-img") as HTMLImageElement | null;
+
+  function openLightbox(img: HTMLImageElement) {
+    if (!lightbox || !lightboxImg) return;
+    lightboxImg.src = img.currentSrc || img.src;
+    lightboxImg.alt = img.alt;
+    lightbox.classList.remove("hidden");
+    lightbox.classList.add("flex");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeLightbox() {
+    if (!lightbox || !lightboxImg) return;
+    lightbox.classList.add("hidden");
+    lightbox.classList.remove("flex");
+    lightboxImg.src = "";
+    document.body.style.overflow = "";
+  }
+
+  document.querySelectorAll<HTMLButtonElement>(".js-lightbox-trigger").forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      const img = trigger.querySelector("img");
+      if (img) openLightbox(img);
+    });
+  });
+
+  // Clicking outside the image (on the overlay backdrop) closes it.
+  lightbox?.addEventListener("click", (e) => {
+    if (e.target !== lightboxImg) closeLightbox();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && lightbox && !lightbox.classList.contains("hidden")) closeLightbox();
+  });
+</script>

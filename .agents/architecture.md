@@ -75,4 +75,4 @@ Classes/registros puros sem lógica de IO: `repository.ts`, `commit.ts`, `branch
 
 ## CLI (`app/src/cli/`)
 
-`main.ts` — comando `desktop-claw-cli`; entry webpack próprio. Uso documentado em `docs/cli.md`.
+`main.ts` — comando `desktop-claw-cli`; entry webpack próprio. Uso documentado em `docs/documentation/cli.md`.

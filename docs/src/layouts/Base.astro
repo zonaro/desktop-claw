@@ -1,0 +1,95 @@
+---
+import "../styles/global.css";
+import { REPO_URL, withBase } from "../consts";
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Prevent search engines from indexing the page (used for utility pages). */
+  noindex?: boolean;
+}
+
+const {
+  title = "Desktop Claw: GitHub Desktop fork for power users",
+  description = "An actively-maintained, open-source fork of GitHub Desktop with commit search, multiple accounts, worktrees, FTP deployments, a built-in file and markdown editor, OpenCode integration, a commit graph and more. Free for Windows, macOS and Linux.",
+  noindex = false,
+} = Astro.props;
+
+const site = Astro.site ?? new URL("https://zonaro.github.io/desktop-claw");
+const canonical = new URL(Astro.url.pathname, site).href;
+const ogImage = new URL(withBase("/og.png"), site).href;
+const iconHref = withBase("/icon.png");
+const faviconHref = withBase("/favicon.ico");
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Desktop Claw",
+  alternateName: "GH Desktop Claw",
+  description,
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Windows, macOS, Linux",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  isAccessibleForFree: true,
+  license: `${REPO_URL}/blob/main/LICENSE`,
+  url: site.href,
+  downloadUrl: `${REPO_URL}/releases/latest`,
+  image: new URL(iconHref, site).href,
+  softwareHelp: `${REPO_URL}#readme`,
+  author: {
+    "@type": "Person",
+    name: "Kaizonaro",
+    url: "https://github.com/zonaro",
+  },
+  isBasedOn: {
+    "@type": "SoftwareApplication",
+    name: "Desktop Plus",
+    url: "https://desktop-plus.org/",
+  },
+};
+---
+
+<!doctype html>
+<html lang="en" class="bg-canvas">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta
+      name="keywords"
+      content="GitHub Desktop fork, GitHub Desktop Linux, Git GUI, git worktree GUI, FTP deploy from git, markdown editor git client, OpenCode, Bitbucket GUI client, GitLab desktop client, Codeberg, Forgejo, Gitea desktop client, open source git client, GitHub Desktop alternative"
+    />
+    <meta name="theme-color" content="#0d1117" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" type="image/png" href={iconHref} />
+    <link rel="icon" type="image/x-icon" href={faviconHref} sizes="any" />
+    <link rel="canonical" href={canonical} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="GH Desktop Claw" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:alt" content="GH Desktop Claw" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {!noindex && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} is:inline />}
+  </head>
+  <body class="min-h-dvh bg-canvas text-fg antialiased selection:bg-brand-500/30 selection:text-white">
+    <slot />
+  </body>
+</html>

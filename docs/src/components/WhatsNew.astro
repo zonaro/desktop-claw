@@ -1,0 +1,106 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface NewFeature {
+  title: string;
+  icon: string; // astro-icon name
+  body: string;
+  points: string[];
+}
+
+const features: NewFeature[] = [
+  {
+    title: "Worktree tab",
+    icon: "octicon:git-branch-16",
+    body: "Git worktrees get first-class treatment: a toolbar dropdown to switch between them, and a dedicated Worktree tab that browses the checked-out tree as a file tree.",
+    points: [
+      "Create, rename, lock and delete linked worktrees from the app.",
+      "Switch worktrees from the toolbar, or open one in a new window.",
+      "Browse the working tree file by file, with syntax highlighting.",
+    ],
+  },
+  {
+    title: "File editing",
+    icon: "octicon:pencil-16",
+    body: "Open any file from the Worktree tab and edit it in place. No round trip through an external editor for a one-line fix.",
+    points: [
+      "Read-only preview with syntax highlighting, one click away from editing.",
+      "Save straight back to disk, so the change lands in your next commit.",
+    ],
+  },
+  {
+    title: "Markdown editing & export",
+    icon: "octicon:markdown-16",
+    body: "Markdown files open in a WYSIWYG editor instead of a wall of syntax, and can be exported for sharing.",
+    points: [
+      "Rich-text editing for headings, lists, links, tables and code blocks.",
+      "Rendered preview with interactive task-list checkboxes that write back to the file.",
+      "Export the document to a standalone HTML file or to PDF.",
+    ],
+  },
+  {
+    title: "FTP deployments",
+    icon: "octicon:upload-16",
+    body: "Publish a repository to a web host over FTP or FTPS, straight from the app — handy for the static sites and small projects that never justified a CI pipeline.",
+    points: [
+      "Save multiple named targets per repository (host, port, user, remote path).",
+      "FTP or explicit TLS (FTPS), with credentials kept in the system keychain.",
+      "<code>.gitignore</code>-style exclude patterns so build junk stays local.",
+      "Live progress per file, and cancel an upload at any point.",
+    ],
+  },
+  {
+    title: "OpenCode integration",
+    icon: "octicon:sparkle-fill-16",
+    body: "Wire up the OpenCode CLI and let it draft your commit messages and review your work — running locally, against whichever model you have configured.",
+    points: [
+      "Generate commit messages from the staged diff.",
+      "Optionally produce a code review after each commit, written to the repository as Markdown.",
+      "Bring your own binary path, model and timeout. Disabled until you turn it on.",
+    ],
+  },
+];
+---
+
+<section id="whats-new" class="scroll-mt-20 border-t border-border/60">
+  <div class="mx-auto max-w-6xl px-5 py-20 sm:px-8">
+    <div class="mx-auto max-w-3xl text-center">
+      <span
+        class="inline-flex items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-3 py-1 text-xs font-medium text-brand-300"
+      >
+        <Icon name="octicon:sparkle-fill-16" class="h-3.5 w-3.5" />
+        New in Desktop Claw
+      </span>
+      <h2 class="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+        Everything Desktop Plus has, <span class="text-gradient">plus a few more claws</span>
+      </h2>
+      <p class="mt-4 text-balance text-fg-muted">
+        Desktop Claw tracks Desktop Plus upstream and adds its own features on top. These are the ones exclusive to this fork.
+      </p>
+    </div>
+
+    <div class="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((f) => (
+          <article class="flex flex-col rounded-xl border border-border bg-surface/50 p-6 transition hover:border-brand-500/40 hover:bg-surface">
+            <div class="mb-4 flex items-center gap-3">
+              <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-300">
+                <Icon name={f.icon} class="h-4.5 w-4.5" />
+              </span>
+              <h3 class="text-base font-semibold text-white">{f.title}</h3>
+            </div>
+            <p class="text-sm leading-relaxed text-fg-muted">{f.body}</p>
+            <ul class="mt-4 space-y-2.5 border-t border-border/60 pt-4">
+              {f.points.map((p) => (
+                <li class="flex gap-2.5 text-sm leading-relaxed text-fg-muted">
+                  <Icon name="octicon:check-16" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+                  <span set:html={p} />
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

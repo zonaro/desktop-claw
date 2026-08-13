@@ -1,6 +1,9 @@
 out/
 dist/
 vendor/
+# The website is a self-contained Astro project with its own prettier config
+# and plugins; format it with `npm run format` inside docs/.
+docs
 tslint-rules/*.js
 npm-debug.log
 yarn-error.log

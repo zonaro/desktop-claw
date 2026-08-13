@@ -11,7 +11,7 @@ yarn start        # roda o app em dev com watch
 
 - O primeiro start/build demora — é normal
 - VSCode: `F5` também funciona (breakpoints no devtools do app, não no editor)
-- Docs de setup por SO: `docs/contributing/setup.md`, `setup-linux.md`, `setup-macos.md`, `setup-windows.md`, `building-arm64.md`
+- Docs de setup por SO: `docs/documentation/contributing/setup.md`, `setup-linux.md`, `setup-macos.md`, `setup-windows.md`, `building-arm64.md`
 
 ## Loop de desenvolvimento
 

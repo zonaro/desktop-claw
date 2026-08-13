@@ -1,0 +1,66 @@
+---
+import { Icon } from "astro-icon/components";
+import { RELEASES_URL, REPO_URL, withBase } from "../consts";
+---
+
+<section id="top" class="relative overflow-hidden">
+  <!-- Background flourishes -->
+  <div class="pointer-events-none absolute inset-0 glow" aria-hidden="true"></div>
+  <div class="pointer-events-none absolute inset-x-0 top-0 h-130 bg-grid" aria-hidden="true"></div>
+
+  <div class="relative mx-auto max-w-6xl px-5 pb-16 pt-16 sm:px-8 sm:pt-24">
+    <div class="mx-auto max-w-4xl text-center">
+      <h1 class="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-6xl">
+        Your favorite Git client, <span class="text-gradient">plus the features</span> it was missing
+      </h1>
+
+      <p class="mx-auto mt-6 max-w-2xl text-balance text-base leading-relaxed text-fg-muted sm:text-lg">
+        An up-to-date fork of GitHub Desktop that keeps the interface you know and adds worktrees, FTP deployments, a built-in file and markdown
+        editor, commit search, multiple accounts, and <a href="#feature-list" class="text-brand-400 hover:text-brand-300">much more</a>.
+      </p>
+      <p class="mt-2 text-text-base">(And yes, Linux is fully supported.)</p>
+
+      <div class="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+        <a
+          href={RELEASES_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-900/40 transition hover:bg-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 sm:w-auto"
+        >
+          <Icon name="octicon:download-16" class="h-4.5 w-4.5" />
+          Download latest release
+        </a>
+        <a
+          href={REPO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-surface px-6 py-3 text-sm font-semibold text-fg transition hover:border-brand-500/60 hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-400 sm:w-auto"
+        >
+          <Icon name="octicon:mark-github-16" class="h-4.5 w-4.5" />
+          View on GitHub
+        </a>
+      </div>
+
+      <p class="mt-5 text-xs text-fg-subtle">
+        Windows · macOS · Linux &nbsp;•&nbsp; MIT-licensed &nbsp;•&nbsp; <a href="#install" class="underline underline-offset-2 hover:text-fg-muted"
+          >Which file do I need?</a>
+      </p>
+    </div>
+
+    <div class="relative mx-auto mt-14 max-w-5xl sm:mt-16">
+      <div class="overflow-hidden rounded-xl border border-border bg-canvas-inset shadow-2xl shadow-black/60 ring-1 ring-white/5">
+        <video
+          src={withBase("/screenshots/demo.mp4")}
+          width="1728"
+          height="1000"
+          autoplay
+          loop
+          muted
+          playsinline
+          preload="auto"
+          aria-label="Desktop Claw demo"
+          class="w-full"></video>
+      </div>
+    </div>
+  </div>
+</section>

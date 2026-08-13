@@ -55,7 +55,7 @@ Convenções seguidas pelo código (algumas reforçadas por regras eslint custom
 - Mudanças visíveis ao usuário entram em `changelog.json` (validado por `validate-changelog`)
 - **Nunca editar `version` em `app/package.json`** — vem de `env.APP_VERSION` (nota `$NOTE` no próprio arquivo)
 - Prettier + ESLint obrigatórios (`yarn lint:src`); markdownlint para docs
-- Styleguide completo do upstream: `docs/contributing/styleguide.md`
+- Styleguide completo do upstream: `docs/documentation/contributing/styleguide.md`
 
 ## Regras eslint custom (`eslint-rules/`)
 

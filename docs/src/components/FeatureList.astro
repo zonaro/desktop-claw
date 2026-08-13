@@ -1,0 +1,128 @@
+---
+import { Icon } from "astro-icon/components";
+
+interface Category {
+  title: string;
+  icon: string; // astro-icon name, e.g. "octicon:gear-16"
+  items: string[];
+}
+
+const categories: Category[] = [
+  {
+    title: "General improvements",
+    icon: "octicon:gear-16",
+    items: [
+      "Multi-account support (e.g. two GitHub accounts at once).",
+      "Rich integration with GitHub, Bitbucket, GitLab, Codeberg/Forgejo, and Gitea, including self-hosted instances. Basic git functionality in other platforms.",
+      "Multiple windows: open repositories side by side, or the same repo twice.",
+      "Allow overriding the external editor per repository.",
+      "Generate branch-name presets from an external script (e.g. append ticket number prefix).",
+      "Speeds up your clicks with distinct icons for similar-looking buttons and red backgrounds on destructive actions.",
+      "All GitHub / Microsoft telemetry is fully disabled.",
+      "Optional OpenCode CLI integration: generate commit messages from the staged diff, and optionally a Markdown code review after each commit.",
+    ],
+  },
+  {
+    title: "Worktrees",
+    icon: "octicon:git-branch-16",
+    items: [
+      "Dedicated Worktree tab that browses the checked-out tree as a file tree.",
+      "Toolbar dropdown to switch between the main worktree and every linked one.",
+      "Create, rename, lock, prune and delete linked worktrees without leaving the app.",
+      "Open any worktree in a new window to work on two branches side by side.",
+    ],
+  },
+  {
+    title: "Editing & deployment",
+    icon: "octicon:pencil-16",
+    items: [
+      "Preview any file with syntax highlighting, then edit and save it in place.",
+      "WYSIWYG markdown editor for <code>.md</code> files, with headings, lists, links, tables and code blocks.",
+      "Rendered markdown preview with interactive task-list checkboxes that write back to the file.",
+      "Export markdown to a standalone HTML file or to PDF.",
+      "Deploy a repository over FTP or FTPS, with multiple saved targets per repository.",
+      "<code>.gitignore</code>-style exclude patterns, per-file upload progress, and cancellable uploads. Credentials are stored in the system keychain.",
+    ],
+  },
+  {
+    title: "Repository list",
+    icon: "octicon:repo-16",
+    items: [
+      "“Pull all” button: fetch and pull every repository at once.",
+      "Allow showing the current branch name next to each repository.",
+      "Allow hiding the “Recent” section.",
+      "Customize the way repositories are grouped.",
+      "Pin repositories to the top of the list.",
+    ],
+  },
+  {
+    title: "Branch list",
+    icon: "octicon:git-branch-16",
+    items: [
+      "Warning indicator on local-only branches (never pushed, or deleted after a PR).",
+      "Allow manually setting a custom default branch (used as the base for new branches).",
+      "Sort branches by “Recently updated” or “Alphabetical”.",
+    ],
+  },
+  {
+    title: "History",
+    icon: "octicon:history-16",
+    items: [
+      "Search commits by title, message, tag, or hash.",
+      "Switch to a Commit Graph view to visualize merge history.",
+      "Distinct styling for merge commits so they stand out less.",
+      "Double-click a single-file commit to open the file.",
+      "Amend commits that have already been pushed (use with caution!).",
+      "Delete pushed commits and tags (use with caution!).",
+    ],
+  },
+  {
+    title: "Changes / Diff",
+    icon: "octicon:diff-16",
+    items: [
+      "Create and rename several stashes per branch, instead of being limited to a single slot.",
+      "Preview SVG files as images in the diff view.",
+      "Improved diff viewer with minimap and customizable font.",
+      "Option to permanently discard changes without using the trash, fast even with many files.",
+    ],
+  },
+];
+---
+
+<section id="feature-list" class="border-t border-border/60 bg-canvas-inset/40">
+  <div class="mx-auto max-w-6xl px-5 py-20 sm:px-8">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">The full list of additions</h2>
+      <p class="mt-4 text-balance text-fg-muted">Every extra feature on top of GitHub Desktop, grouped by where you'll find it.</p>
+    </div>
+
+    <div class="mt-14 grid gap-5 md:grid-cols-2">
+      {
+        categories.map((cat, i) => (
+          <div
+            class:list={[
+              "rounded-xl border border-border bg-surface/50 p-6",
+              // Let the tall "General" card span both rows on the left
+              i === 0 && "md:row-span-2",
+            ]}
+          >
+            <div class="mb-5 flex items-center gap-3">
+              <span class="grid h-9 w-9 place-items-center rounded-lg border border-brand-500/30 bg-brand-500/10 text-brand-300">
+                <Icon name={cat.icon} class="h-4.5 w-4.5" />
+              </span>
+              <h3 class="text-lg font-semibold text-white">{cat.title}</h3>
+            </div>
+            <ul class="space-y-3">
+              {cat.items.map((item) => (
+                <li class="flex gap-3 text-sm leading-relaxed text-fg-muted">
+                  <Icon name="octicon:check-16" class="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
+                  <span set:html={item} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

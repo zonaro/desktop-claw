@@ -157,9 +157,9 @@ yarn prettier --write
   - `app/styles/`: SASS stylesheets
 - **`script/`**: Build and utility scripts
 - **`docs/`**: Documentation
-  - `docs/contributing/`: Contributor guides
-  - `docs/process/`: Process documentation
-  - `docs/technical/`: Technical documentation
+  - `docs/documentation/contributing/`: Contributor guides
+  - `docs/documentation/process/`: Process documentation
+  - `docs/documentation/technical/`: Technical documentation
 - **`eslint-rules/`**: Custom ESLint rules
 - **`.github/`**: GitHub-specific files (workflows, issue templates, contributing guide)
 
@@ -172,10 +172,10 @@ yarn prettier --write
 ## Contributing
 
 - See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines
-- Follow the [Engineering Values](../docs/contributing/engineering-values.md)
+- Follow the [Engineering Values](../docs/documentation/contributing/engineering-values.md)
 - Check [help wanted](https://github.com/desktop/desktop/issues?q=is%3Aissue+is%3Aopen+label%3A%22help%20wanted%22) label for good first issues
-- Review [Style Guide](../docs/contributing/styleguide.md) before submitting code
-- Setup instructions: [../docs/contributing/setup.md](../docs/contributing/setup.md)
+- Review [Style Guide](../docs/documentation/contributing/styleguide.md) before submitting code
+- Setup instructions: [../docs/documentation/contributing/setup.md](../docs/documentation/contributing/setup.md)
 
 ## Code of Conduct
 
@@ -186,7 +186,7 @@ This project adheres to the Contributor Covenant [Code of Conduct](../CODE_OF_CO
 - [Official website](https://desktop.github.com)
 - [Getting started docs](https://docs.github.com/en/desktop/overview/getting-started-with-github-desktop)
 - [Release notes](https://desktop.github.com/release-notes/)
-- [Known issues](../docs/known-issues.md)
+- [Known issues](../docs/documentation/known-issues.md)
 
 ## When Making Changes
 

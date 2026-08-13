@@ -8,11 +8,11 @@ This is an **up-to-date** fork of [GitHub Desktop](https://desktop.github.com) w
 ## Highlights 👀
 | <h4>Search commits by title, message, tag, or hash</h4> | <h4>Rich integration with all major Git platforms [^1]</h4> |
 | :---: | :---: |
-| <img src="docs/assets/desktop-claw-demo-search.webp" alt="Commit search" width="450"> | <img src="docs/assets/desktop-claw-demo-multiaccount.webp" alt="Multiple accounts" width="450"> |
+| <img src="docs/documentation/assets/desktop-claw-demo-search.webp" alt="Commit search" width="450"> | <img src="docs/documentation/assets/desktop-claw-demo-multiaccount.webp" alt="Multiple accounts" width="450"> |
 | <h4>Create multiple stashes per branch</h4> | <h4>Visualize the Commit Graph</h4> |
-| <img src="docs/assets/desktop-claw-demo-stashes.webp" alt="Multiple stashes" width="450"> | <img src="docs/assets/desktop-claw-demo-commit-graph.webp" alt="Commit Graph" width="450"> |
+| <img src="docs/documentation/assets/desktop-claw-demo-stashes.webp" alt="Multiple stashes" width="450"> | <img src="docs/documentation/assets/desktop-claw-demo-commit-graph.webp" alt="Commit Graph" width="450"> |
 | <h4>Buttons optimized for visual recognition</h4> | <h4>Quickly find unpushed branches</h4> |
-| <img src="docs/assets/desktop-claw-demo-stash-header.webp" alt="Stash header" width="450"> | <img src="docs/assets/desktop-claw-demo-push-indicator.webp" alt="Branch push indicator" width="450"> |
+| <img src="docs/documentation/assets/desktop-claw-demo-stash-header.webp" alt="Stash header" width="450"> | <img src="docs/documentation/assets/desktop-claw-demo-push-indicator.webp" alt="Branch push indicator" width="450"> |
 
 [^1]: Rich integration with GitHub, GitHub Enterprise, Bitbucket Cloud, GitLab Cloud, self-hosted GitLab, Codeberg Cloud, self-hosted Forgejo, Gitea Cloud, and self-hosted Gitea. Multi-account support is available for all of them (e.g., sign in to multiple GitHub accounts at the same time).
 
@@ -261,11 +261,11 @@ Finally, double-click the .AppImage file to run it.
 
 ## Common issues 🛠️
 
-Before opening a new issue, please check the [Known Issues](docs/known-issues.md) document for common issues and their workarounds.
+Before opening a new issue, please check the [Known Issues](docs/documentation/known-issues.md) document for common issues and their workarounds.
 
 ## Command Line Interface 💻
 
-Desktop Claw includes a CLI (`desktop-claw-cli`) for opening and cloning repositories from the terminal. See the [CLI documentation](docs/cli.md) for usage details and instructions on creating a shorter alias.
+Desktop Claw includes a CLI (`desktop-claw-cli`) for opening and cloning repositories from the terminal. See the [CLI documentation](docs/documentation/cli.md) for usage details and instructions on creating a shorter alias.
 
 ## Running the app locally 🏗️
 
@@ -286,7 +286,7 @@ yarn start       # Start the app for development and watch for changes
 
 - Changes to the code inside `main-process` do require a full rebuild. Stop the app and run `yarn build:dev` again.
 
-- [Read this document](docs/contributing/setup.md) for more information on how to set up your development environment.
+- [Read this document](docs/documentation/contributing/setup.md) for more information on how to set up your development environment.
 
 ### From VSCode
 

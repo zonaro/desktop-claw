@@ -1,0 +1,65 @@
+---
+import { DESKTOP_PLUS_URL, REPO_URL, UPSTREAM_URL } from "../consts";
+---
+
+<section class="border-t border-border/60 bg-canvas-inset/40">
+  <div class="mx-auto max-w-4xl px-5 py-20 sm:px-8">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Good to know</h2>
+    </div>
+
+    <div class="mt-12 grid gap-4 sm:grid-cols-2">
+      <div class="rounded-xl border border-border bg-surface/50 p-6">
+        <h3 class="text-base font-semibold text-white">Not affiliated with GitHub</h3>
+        <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+          Desktop Claw is an independent community project. It is not an official GitHub product and is not endorsed by GitHub or Microsoft. GitHub
+          Desktop is a trademark of GitHub, Inc.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface/50 p-6">
+        <h3 class="text-base font-semibold text-white">A fork of a fork</h3>
+        <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+          Desktop Claw builds on{" "}
+          <a
+            href={DESKTOP_PLUS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-brand-400 underline underline-offset-2 hover:text-brand-300">Desktop Plus</a
+          >, which in turn forks{" "}
+          <a href={UPSTREAM_URL} target="_blank" rel="noopener noreferrer" class="text-brand-400 underline underline-offset-2 hover:text-brand-300"
+            >GitHub Desktop</a
+          >. It tracks both upstreams and adds its own features on top.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface/50 p-6">
+        <h3 class="text-base font-semibold text-white">No built-in updater</h3>
+        <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+          Unlike the official app, it doesn't update itself, and it isn't in any package manager. Watch the repository on GitHub so you know when a
+          new release is out.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface/50 p-6">
+        <h3 class="text-base font-semibold text-white">For devs and power users</h3>
+        <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+          It targets people comfortable with Git and a bit of setup. If you want the most polished, officially supported experience, the{" "}
+          <a href={UPSTREAM_URL} target="_blank" rel="noopener noreferrer" class="text-brand-400 underline underline-offset-2 hover:text-brand-300"
+            >official GitHub Desktop</a
+          > app is a better choice.
+        </p>
+      </div>
+
+      <div class="rounded-xl border border-border bg-surface/50 p-6">
+        <h3 class="text-base font-semibold text-white">No telemetry, fully open source</h3>
+        <p class="mt-2 text-sm leading-relaxed text-fg-muted">
+          All GitHub and Microsoft telemetry is removed from the build. The full source is MIT-licensed and available{" "}
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer" class="text-brand-400 underline underline-offset-2 hover:text-brand-300"
+            >on GitHub</a
+          >.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

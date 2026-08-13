@@ -1,49 +1,49 @@
-# GitHub Desktop Documentation
+# Desktop Claw website
 
-This is the [GitHub Desktop](https://github.com/desktop/desktop) development
-documentation.
+Marketing website for [**Desktop Claw**](https://github.com/zonaro/desktop-claw), built with [Astro](https://astro.build) and Tailwind CSS.
 
-## Contributing
+> Looking for the project documentation (setup guides, known issues, CLI, contributing)?
+> It lives in [`documentation/`](documentation/README.md).
 
-If you are interested in contributing to the project, you should read these
-resources to get familiar with how things work:
+## Commands
 
- - **[How Can I Contribute?](../.github/CONTRIBUTING.md#how-can-i-contribute)** -
-    details about how you can participate
- - **[Development Environment Setup](contributing/setup.md)** - everything
-    you need to know to get Desktop up and running
- - **[Engineering Values](contributing/engineering-values.md)** - our high-level engineering values
- - **[Style Guide](contributing/styleguide.md)** - notes on the coding style
- - **[Tooling](contributing/tooling.md)** - if you have a preferred IDE,
-    there's some enhancements to make your life easier
- - **[Troubleshooting](contributing/troubleshooting.md)** - some additional
-    known issues if you're having environment issues
+All commands are run from this directory (`docs/`):
 
-## Process
+| Command           | Action                                     |
+| :---------------- | :----------------------------------------- |
+| `npm install`     | Install dependencies                       |
+| `npm run dev`     | Start local dev server at `localhost:4321` |
+| `npm run build`   | Build the production site to `./dist/`     |
+| `npm run preview` | Preview the build locally                  |
 
-Details about how the team is organizing and shipping GitHub Desktop:
+## Deployment
 
- - **[Roadmap](process/roadmap.md)** - the future as planned so far
- - **[Release Planning](process/release-planning.md)** - how we plan and execute
-    releases
- - **[Issue Triage](process/issue-triage.md)** - how we address issues reported
-    by users
- - **[Pull Requests](process/pull-requests.md)** - how code contributions are submitted and reviewed
- - **[Releasing Updates](process/releasing-updates.md)** - how we deploy things
+The build target is configured in [`astro.config.mjs`](astro.config.mjs) and defaults to a GitHub Pages
+project site at `https://zonaro.github.io/desktop-claw`. Override it with environment variables when
+publishing elsewhere:
 
-## Technical
+```bash
+SITE_URL=https://desktop-claw.example BASE_PATH=/ npm run build
+```
 
-These documents contain more details about the internals of GitHub Desktop
-and how things work:
+Every internal link and public asset goes through the `withBase()` helper in
+[`src/consts.ts`](src/consts.ts), so both the subpath and domain-root layouts work without further changes.
 
- - **[Dialogs](technical/dialogs.md)** - details about the dialog component API
- - **[Windows menu bar](technical/windows-menu-bar.md)** - Electron doesn't
-    provide inbuilt support for styling the menu for Windows, so we've created
-    our own custom components to achieve this.
- - **[Developer OAuth App](technical/oauth.md)** - GitHub Desktop ships with
-    the ability to OAuth on behalf of a user. A developer OAuth app is bundled
-    to reduce the friction of getting started.
- - **[Building and Packaging Desktop](technical/packaging.md)** - Outlines how
-    Desktop is currently packaged for all platforms 
- - **[Automatic Git Proxy support](technical/proxies.md)** - A pre-launch overview
-    and troubleshooting guide for the Git automatic proxy support in GitHub Desktop.
+## Editing content
+
+Content lives in the components rather than in a CMS:
+
+| What                               | Where                              |
+| :--------------------------------- | :--------------------------------- |
+| Fork-only features ("New in Claw") | `src/components/WhatsNew.astro`    |
+| Screenshot highlights              | `src/components/Highlights.astro`  |
+| Full feature list                  | `src/components/FeatureList.astro` |
+| Download info per platform         | `src/components/Install.astro`     |
+| Brand colors (the red accent)      | `src/styles/global.css`            |
+| Repository / release links         | `src/consts.ts`                    |
+
+## Credits
+
+This site is derived from the [Desktop Plus website](https://github.com/desktop-plus/website),
+© Pol Rivero, used under the MIT License — see [LICENSE](LICENSE). It has been rebranded for
+Desktop Claw, restyled around the app's red accent color, and extended with this fork's features.
