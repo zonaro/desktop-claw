@@ -20,7 +20,7 @@ export class TutorialWelcome extends React.Component {
           <h1>Welcome to Desktop Claw</h1>
           <p>
             Use this tutorial to get comfortable with Git, GitHub, and Desktop
-            Plus.
+            Claw.
           </p>
         </div>
         <ul className="definitions">

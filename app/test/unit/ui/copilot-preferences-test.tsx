@@ -1447,9 +1447,9 @@ describe('CopilotPreferences', () => {
       }
       saveOpenCodeConfig(updatedConfig)
 
-      const { loadOpenCodeConfig } = require(
-        '../../../src/lib/opencode/opencode-config'
-      )
+      const {
+        loadOpenCodeConfig,
+      } = require('../../../src/lib/opencode/opencode-config')
       const loaded = loadOpenCodeConfig()
       assert.strictEqual(loaded.model, 'anthropic/claude-3-5-sonnet-20241022')
     })
@@ -1467,9 +1467,9 @@ describe('CopilotPreferences', () => {
       const updatedConfig = { ...config, model: null }
       saveOpenCodeConfig(updatedConfig)
 
-      const { loadOpenCodeConfig } = require(
-        '../../../src/lib/opencode/opencode-config'
-      )
+      const {
+        loadOpenCodeConfig,
+      } = require('../../../src/lib/opencode/opencode-config')
       const loaded = loadOpenCodeConfig()
       assert.strictEqual(loaded.model, null)
     })
