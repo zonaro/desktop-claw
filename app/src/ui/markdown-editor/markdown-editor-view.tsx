@@ -1,17 +1,23 @@
 import * as React from 'react'
 import * as Path from 'path'
+import Quill from 'quill'
+import TurndownService from 'turndown'
 
-import { Repository } from '../../models/repository'
-import { Dispatcher } from '../dispatcher'
 import { showSaveDialog } from '../main-process-proxy'
 import { writeFile, readFile } from 'fs/promises'
 import { exportMarkdownToHtml, exportMarkdownToPdf } from './markdown-export'
+import { marked } from 'marked'
 
-// Import the TOAST UI Editor CSS
-// eslint-disable-next-line import/first
-require('@toast-ui/editor/dist/toastui-editor.css')
+// Import the Quill snow theme styles
+require('quill/dist/quill.snow.css')
 
-const markdownExtensions = new Set(['.md', '.markdown', '.mdx', '.mdown', '.mkd'])
+const markdownExtensions = new Set([
+  '.md',
+  '.markdown',
+  '.mdx',
+  '.mdown',
+  '.mkd',
+])
 
 /**
  * Returns true if the given file path looks like a markdown file based on its
@@ -23,44 +29,33 @@ export function isMarkdownFilePath(filePath: string): boolean {
 }
 
 /**
- * Minimal interface for the @toast-ui/editor instance.
- * We use require() to avoid TypeScript type resolution issues with the
- * package's own type declarations.
+ * Converts markdown to HTML for the WYSIWYG editor. The editor renders this
+ * HTML through Quill's clipboard, which normalizes it into Quill's own
+ * delta-based content model.
  */
-interface IToastEditor {
-  getMarkdown(): string
-  setMarkdown(markdown: string, emitter?: { reset: boolean }): void
-  getHTML(): string
-  addHook(hook: string, handler: (...args: any[]) => any): void
-  removeHook(hook: string): void
-  exec(command: string, ...args: any[]): void
-  focus(): void
-  blur(): void
-  destroy(): void
-  getHeight(): string
-  setHeight(height: string): void
-  on(event: string, handler: (...args: any[]) => void): void
-  off(event: string, handler: (...args: any[]) => void): void
-  once(event: string, handler: (...args: any[]) => void): void
-  addPlugin(pluginInfo: { plugin: any; options?: Record<string, any> }): void
+function markdownToHtml(markdown: string): string {
+  return marked(markdown, { gfm: true, breaks: true }) as string
 }
 
-interface IToastEditorOptions {
-  el?: HTMLElement | string
-  height?: string
-  initialEditType?: 'markdown' | 'wysiwyg'
-  previewStyle?: 'tab' | 'vertical'
-  initialValue?: string
-  usageStatistics?: boolean
-  toolbarItems?: ReadonlyArray<ReadonlyArray<string>>
-}
+const turndownService = new TurndownService({
+  headingStyle: 'atx',
+  hr: '---',
+  bulletListMarker: '-',
+  codeBlockStyle: 'fenced',
+  fence: '```',
+  emDelimiter: '*',
+  strongDelimiter: '**',
+})
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const Editor: { new (options: IToastEditorOptions): IToastEditor } = require('@toast-ui/editor')
+/**
+ * Normalizes whitespace at the end of a markdown document so that trailing
+ * newlines (which turndown doesn't emit) don't cause a spurious dirty state.
+ */
+function normalizeMarkdown(content: string): string {
+  return content.replace(/\s+$/, '')
+}
 
 interface IMarkdownEditorViewProps {
-  readonly dispatcher: Dispatcher
-  readonly repository: Repository
   readonly filePath: string
   readonly onContentChanged: (dirty: boolean) => void
 }
@@ -71,18 +66,22 @@ interface IMarkdownEditorViewState {
 }
 
 /**
- * Wrapper around the @toast-ui/editor WYSIWYG markdown editor.
- * Handles loading the file content, tracking dirty state, saving back to disk,
- * and triggering HTML/PDF exports.
+ * Wrapper around the Quill WYSIWYG editor for markdown files.
+ *
+ * The file's markdown is rendered to HTML (via `marked`) and loaded into
+ * Quill. Edits are converted back to markdown (via `turndown`) for saving
+ * and for the HTML/PDF export actions.
  */
 export class MarkdownEditorView extends React.Component<
   IMarkdownEditorViewProps,
   IMarkdownEditorViewState
 > {
-  private editor: IToastEditor | null = null
-  private editorContainerRef = React.createRef<HTMLDivElement>()
+  private editor: Quill | null = null
+  private editorContainerEl: HTMLElement | null = null
   private originalContent: string = ''
   private debounceTimer: ReturnType<typeof setTimeout> | null = null
+  /** Markdown waiting to be loaded once the editor container is mounted. */
+  private pendingMarkdown: string | null = null
 
   public constructor(props: IMarkdownEditorViewProps) {
     super(props)
@@ -93,55 +92,123 @@ export class MarkdownEditorView extends React.Component<
     await this.loadFile()
   }
 
+  public componentDidUpdate(prevProps: IMarkdownEditorViewProps) {
+    if (prevProps.filePath !== this.props.filePath) {
+      this.loadFile()
+    }
+  }
+
   public componentWillUnmount() {
     if (this.debounceTimer != null) {
       clearTimeout(this.debounceTimer)
     }
-    this.editor?.destroy()
+    this.destroyEditor()
+  }
+
+  private destroyEditor() {
     this.editor = null
+
+    // Quill has no public teardown API (destroy was removed in v1.0), so
+    // strip the DOM it created and let garbage collection reclaim the
+    // instance. Without this, re-initializing into the same container
+    // would double-wrap it with a second ql-editor.
+    const container = this.editorContainerEl
+    if (container != null) {
+      const toolbar = container.previousElementSibling
+      if (
+        toolbar instanceof HTMLElement &&
+        toolbar.classList.contains('ql-toolbar')
+      ) {
+        toolbar.remove()
+      }
+      container.className = 'markdown-editor-container'
+      container.innerHTML = ''
+    }
+  }
+
+  /**
+   * Ref callback for the editor container. React invokes this synchronously
+   * with the DOM commit, so initializing the editor here is immune to the
+   * async race between `loadFile`'s `await readFile` and the actual mount.
+   */
+  private onEditorContainerRef = (el: HTMLDivElement | null) => {
+    this.editorContainerEl = el
+
+    if (el == null) {
+      this.destroyEditor()
+      return
+    }
+
+    if (this.pendingMarkdown != null) {
+      const markdown = this.pendingMarkdown
+      this.pendingMarkdown = null
+      this.initEditor(el, markdown)
+    }
   }
 
   private async loadFile() {
     const { filePath } = this.props
 
+    this.setState({ loading: true, error: null })
+
     try {
       const content = await readFile(filePath, 'utf8')
       this.originalContent = content
-      this.initEditor(content)
+
+      const container = this.editorContainerEl
+      if (container != null) {
+        this.initEditor(container, content)
+      } else {
+        // The container isn't mounted yet — the ref callback will consume
+        // the markdown as soon as the container commits to the DOM.
+        this.pendingMarkdown = content
+      }
+
       this.setState({ loading: false })
     } catch (e) {
+      this.destroyEditor()
       this.setState({
         loading: false,
-        error: `Failed to load file: ${e instanceof Error ? e.message : String(e)}`,
+        error: `Failed to load file: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
       })
     }
   }
 
-  private initEditor(initialValue: string) {
-    const container = this.editorContainerRef.current
-    if (container == null) {
-      return
+  private initEditor(container: HTMLElement, initialMarkdown: string) {
+    this.destroyEditor()
+
+    try {
+      const editor = new Quill(container, {
+        theme: 'snow',
+        placeholder: 'Write something…',
+        modules: {
+          toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            ['bold', 'italic', 'strike', 'code'],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            ['blockquote', 'code-block'],
+            ['link'],
+            ['clean'],
+          ],
+        },
+      })
+
+      editor.clipboard.dangerouslyPasteHTML(markdownToHtml(initialMarkdown))
+      editor.on('text-change', () => {
+        this.onEditorContentChanged()
+      })
+
+      this.editor = editor
+    } catch (e) {
+      this.destroyEditor()
+      this.setState({
+        error: `Failed to initialize editor: ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      })
     }
-
-    this.editor = new Editor({
-      el: container,
-      height: '500px',
-      initialEditType: 'wysiwyg',
-      previewStyle: 'vertical',
-      initialValue,
-      usageStatistics: false,
-      toolbarItems: [
-        ['heading', 'bold', 'italic', 'strike'],
-        ['hr', 'quote'],
-        ['ul', 'ol', 'task', 'indent', 'outdent'],
-        ['table', 'image', 'link'],
-        ['code', 'codeblock'],
-      ],
-    })
-
-    this.editor.addHook('change', () => {
-      this.onEditorContentChanged()
-    })
   }
 
   private onEditorContentChanged() {
@@ -150,14 +217,21 @@ export class MarkdownEditorView extends React.Component<
     }
 
     this.debounceTimer = setTimeout(() => {
-      const current = this.editor?.getMarkdown() ?? ''
-      this.props.onContentChanged(current !== this.originalContent)
+      const current = this.getMarkdown()
+      this.props.onContentChanged(
+        normalizeMarkdown(current) !== normalizeMarkdown(this.originalContent)
+      )
     }, 300)
   }
 
   /** Returns the current markdown content from the editor. */
   public getMarkdown(): string {
-    return this.editor?.getMarkdown() ?? this.originalContent
+    if (this.editor == null) {
+      return this.originalContent
+    }
+
+    const html = this.editor.getSemanticHTML()
+    return turndownService.turndown(html)
   }
 
   /** Saves the current editor content back to the original file. */
@@ -176,7 +250,8 @@ export class MarkdownEditorView extends React.Component<
     const markdown = this.getMarkdown()
     const html = exportMarkdownToHtml(markdown, Path.basename(filePath))
 
-    const defaultName = Path.basename(filePath, Path.extname(filePath)) + '.html'
+    const defaultName =
+      Path.basename(filePath, Path.extname(filePath)) + '.html'
     const outputPath = await showSaveDialog({
       buttonLabel: 'Export',
       nameFieldLabel: 'Export as:',
@@ -239,7 +314,10 @@ export class MarkdownEditorView extends React.Component<
 
     return (
       <div className="markdown-editor-view">
-        <div ref={this.editorContainerRef} className="markdown-editor-container" />
+        <div
+          ref={this.onEditorContainerRef}
+          className="markdown-editor-container"
+        />
       </div>
     )
   }

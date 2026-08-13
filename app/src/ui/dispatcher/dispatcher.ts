@@ -375,6 +375,14 @@ export class Dispatcher {
     return this.appStore._changeRepositorySection(repository, section)
   }
 
+  /** Set the selected file in the Worktree tab. */
+  public setSelectedWorktreeFile(
+    repository: Repository,
+    selectedFile: string | null
+  ): void {
+    this.appStore._setSelectedWorktreeFile(repository, selectedFile)
+  }
+
   /**
    * Changes the selection in the changes view to the working directory and
    * optionally selects one or more files from the working directory.
@@ -1877,6 +1885,13 @@ export class Dispatcher {
       repository,
       filePath,
     })
+  }
+
+  /**
+   * Deletes a tracked file from the working tree and the index.
+   */
+  public deleteFile(repository: Repository, filePath: string): Promise<void> {
+    return this.appStore._deleteFile(repository, filePath)
   }
 
   /**

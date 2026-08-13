@@ -7,10 +7,7 @@ import { invoke } from '../../lib/ipc-renderer'
  * styling. The output is suitable for saving as a .html file or for printing
  * to PDF.
  */
-export function exportMarkdownToHtml(
-  markdown: string,
-  title: string
-): string {
+export function exportMarkdownToHtml(markdown: string, title: string): string {
   const rawHtml = marked(markdown, {
     gfm: true,
     breaks: true,

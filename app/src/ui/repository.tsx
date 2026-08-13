@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as Path from 'path'
 import { Repository } from '../models/repository'
 import { Commit, CommitOneLine } from '../models/commit'
 import { TipState } from '../models/tip'
@@ -8,6 +9,7 @@ import { NoChanges } from './changes/no-changes'
 import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommits, CompareSidebar, CommitGraphSidebar } from './history'
+import { WorktreeFileTree, WorktreeFilePreview } from './worktree'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -182,6 +184,7 @@ const enum Tab {
   Changes = 0,
   History = 1,
   Compare = 2,
+  Worktree = 3,
 }
 
 export class RepositoryView extends React.Component<
@@ -270,6 +273,10 @@ export class RepositoryView extends React.Component<
             <span>Compare</span>
           </div>
         )}
+
+        <div className="with-indicator" id="worktree-tab">
+          <span>Worktree</span>
+        </div>
       </TabBar>
     )
   }
@@ -282,6 +289,8 @@ export class RepositoryView extends React.Component<
         return Tab.History
       case RepositorySectionTab.Compare:
         return Tab.Compare
+      case RepositorySectionTab.Worktree:
+        return Tab.Worktree
       default:
         return assertNever(section, 'Unknown repository section')
     }
@@ -295,6 +304,8 @@ export class RepositoryView extends React.Component<
         return RepositorySectionTab.History
       case Tab.Compare:
         return RepositorySectionTab.Compare
+      case Tab.Worktree:
+        return RepositorySectionTab.Worktree
       default:
         return assertNever(tab, 'Unknown tab')
     }
@@ -307,6 +318,8 @@ export class RepositoryView extends React.Component<
       case RepositorySectionTab.History:
         return RepositorySectionTab.Compare
       case RepositorySectionTab.Compare:
+        return RepositorySectionTab.Worktree
+      case RepositorySectionTab.Worktree:
         return RepositorySectionTab.Changes
       default:
         return assertNever(section, 'Unknown repository section')
@@ -550,6 +563,8 @@ export class RepositoryView extends React.Component<
       return this.renderHistorySidebar()
     } else if (selectedSection === RepositorySectionTab.Compare) {
       return this.renderCompareSidebar()
+    } else if (selectedSection === RepositorySectionTab.Worktree) {
+      return this.renderWorktreeSidebar()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -809,9 +824,46 @@ export class RepositoryView extends React.Component<
       return this.renderContentForHistory()
     } else if (selectedSection === RepositorySectionTab.Compare) {
       return this.renderContentForHistory()
+    } else if (selectedSection === RepositorySectionTab.Worktree) {
+      return this.renderWorktreeContent()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
+  }
+
+  private renderWorktreeSidebar(): JSX.Element {
+    const { worktreeState } = this.props.state
+    const { files, selectedFile } = worktreeState
+
+    return (
+      <WorktreeFileTree
+        files={files ?? []}
+        selectedFile={selectedFile}
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        onFileSelected={this.onWorktreeFileSelected}
+      />
+    )
+  }
+
+  private renderWorktreeContent(): JSX.Element | null {
+    const { worktreeState } = this.props.state
+    const { selectedFile } = worktreeState
+
+    // selectedFile is stored relative to the repository root (as returned by
+    // git ls-files), but file readers/editors expect absolute paths.
+    const fullPath =
+      selectedFile != null
+        ? Path.join(this.props.repository.path, selectedFile)
+        : null
+
+    return <WorktreeFilePreview filePath={fullPath} />
+  }
+  private onWorktreeFileSelected = (filePath: string) => {
+    this.props.dispatcher.setSelectedWorktreeFile(
+      this.props.repository,
+      filePath
+    )
   }
 
   public render() {

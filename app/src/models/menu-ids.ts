@@ -24,6 +24,7 @@ export type MenuIDs =
   | 'show-changes'
   | 'show-history'
   | 'show-compare'
+  | 'show-worktree'
   | 'show-repository-list'
   | 'show-branches-list'
   | 'open-working-directory'

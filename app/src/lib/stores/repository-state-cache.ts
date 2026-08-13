@@ -393,6 +393,10 @@ function getInitialRepositoryState(): IRepositoryState {
         isExcludedFromCommit: false,
       },
     },
+    worktreeState: {
+      files: null,
+      selectedFile: null,
+    },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
       tip: { kind: TipState.Unknown },

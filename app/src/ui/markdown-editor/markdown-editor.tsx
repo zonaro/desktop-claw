@@ -1,14 +1,13 @@
 import * as React from 'react'
 
-import { Repository } from '../../models/repository'
-import { Dispatcher } from '../dispatcher'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { MarkdownEditorView } from './markdown-editor-view'
 import { OkCancelButtonGroup } from '../dialog/ok-cancel-button-group'
+import { Button } from '../lib/button'
+import { Octicon } from '../octicons'
+import * as octicons from '../octicons/octicons.generated'
 
 interface IMarkdownEditorProps {
-  readonly dispatcher: Dispatcher
-  readonly repository: Repository
   readonly filePath: string
   readonly onDismissed: () => void
 }
@@ -78,31 +77,21 @@ export class MarkdownEditor extends React.Component<
         <DialogContent>
           <MarkdownEditorView
             ref={this.editorViewRef}
-            dispatcher={this.props.dispatcher}
-            repository={this.props.repository}
             filePath={filePath}
             onContentChanged={this.onContentChanged}
           />
         </DialogContent>
         <DialogFooter>
-          <button
-            type="button"
-            className="button"
-            onClick={this.onExportHTML}
-            disabled={this.state.isSaving}
-          >
+          <Button onClick={this.onExportHTML} disabled={this.state.isSaving}>
+            <Octicon symbol={octicons.fileCode} className="mr" />
             Export HTML
-          </button>
-          <button
-            type="button"
-            className="button"
-            onClick={this.onExportPDF}
-            disabled={this.state.isSaving}
-          >
+          </Button>
+          <Button onClick={this.onExportPDF} disabled={this.state.isSaving}>
+            <Octicon symbol={octicons.download} className="mr" />
             Export PDF
-          </button>
+          </Button>
           <OkCancelButtonGroup
-            okButtonText={__DARWIN__ ? 'Save' : 'Save'}
+            okButtonText="Save"
             okButtonDisabled={!this.state.isDirty || this.state.isSaving}
             onOkButtonClick={this.onSave}
             onCancelButtonClick={this.props.onDismissed}

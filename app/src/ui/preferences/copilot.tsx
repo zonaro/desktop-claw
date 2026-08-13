@@ -245,6 +245,24 @@ export class CopilotPreferences extends React.Component<
         >
           <p>Requires the OpenCode CLI to be installed and available.</p>
         </div>
+        <Checkbox
+          label="Generate code review on commit"
+          value={
+            opencodeConfig.reviewOnCommit ? CheckboxValue.On : CheckboxValue.Off
+          }
+          onChange={this.onOpenCodeReviewOnCommitChanged}
+          ariaDescribedBy="opencode-review-on-commit-description"
+        />
+        <div
+          id="opencode-review-on-commit-description"
+          className="settings-description"
+        >
+          <p>
+            When enabled, Desktop Claw runs OpenCode after each commit to
+            analyze the code and writes a Markdown review report to{' '}
+            .desktop-claw/review-&lt;commit&gt;.md in the repository root.
+          </p>
+        </div>
         <TextBox
           label="Path to opencode executable"
           value={opencodeConfig.command}
@@ -387,6 +405,15 @@ export class CopilotPreferences extends React.Component<
   ) => {
     const enabled = event.currentTarget.checked
     const config = { ...this.state.opencodeConfig, enabled }
+    this.setState({ opencodeConfig: config })
+    saveOpenCodeConfig(config)
+  }
+
+  private onOpenCodeReviewOnCommitChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    const checked = event.currentTarget.checked
+    const config = { ...this.state.opencodeConfig, reviewOnCommit: checked }
     this.setState({ opencodeConfig: config })
     saveOpenCodeConfig(config)
   }

@@ -29,3 +29,16 @@ export async function removeConflictedFile(
 ) {
   await git(['rm', '--', file.path], repository.path, 'removeConflictedFile')
 }
+
+/**
+ * Remove a tracked file from the working tree and the index.
+ *
+ * The user has explicitly confirmed this action, so we force the removal
+ * even when the working directory copy differs from HEAD.
+ */
+export async function removeFile(
+  repository: Repository,
+  filePath: string
+): Promise<void> {
+  await git(['rm', '-f', '--', filePath], repository.path, 'removeFile')
+}

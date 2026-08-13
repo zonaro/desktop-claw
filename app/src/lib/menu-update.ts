@@ -258,6 +258,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     'show-changes',
     'show-history',
     'show-compare',
+    'show-worktree',
     'show-branches-list',
     'show-worktrees-list',
     'open-external-editor',

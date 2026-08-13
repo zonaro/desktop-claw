@@ -91,6 +91,7 @@ describe('OpenCode config', () => {
       command: '/usr/local/bin/opencode',
       model: 'deepseek/deepseek-chat',
       timeoutMs: 120000,
+      reviewOnCommit: false,
     }
     saveOpenCodeConfig(config)
     assert.deepStrictEqual(loadOpenCodeConfig(), config)
@@ -166,6 +167,7 @@ describe('OpenCodeCommitMessageGenerator', () => {
       command: '/opt/opencode/bin/opencode',
       model: 'deepseek/deepseek-chat',
       timeoutMs: 30000,
+      reviewOnCommit: false,
     }
     saveOpenCodeConfig(config)
 

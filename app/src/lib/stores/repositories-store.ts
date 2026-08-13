@@ -33,6 +33,10 @@ import { IMatchedGitHubRepository } from '../repository-matching'
 import { shallowEquals } from '../equality'
 import { EditorOverride } from '../../models/editor-override'
 import { IFtpDeployment } from '../../models/ftp-deployment'
+import {
+  readFtpDeploymentsFromFiles,
+  writeFtpDeploymentsToFiles,
+} from '../ftp/ftp-deployment-files'
 import type { CommitMessageProvider } from '../opencode/commit-message-provider-pref'
 import { Account } from '../../models/account'
 
@@ -170,6 +174,26 @@ export class RepositoriesStore extends TypedBaseStore<
 
   private async toRepository(repo: IDatabaseRepository) {
     assertNonNullable(repo.id, "can't convert to Repository without id")
+
+    // FTP deployment configs are persisted as JSON files inside the
+    // repository (.desktop-claw/ftp-deployments/*.json) so they can be
+    // shared and versioned with the repo. Passwords are never part of those
+    // files — they stay in the OS keychain keyed by repository and
+    // deployment ID (see lib/ftp/ftp-secrets.ts).
+    const fileDeployments = readFtpDeploymentsFromFiles(repo.path)
+
+    let ftpDeployments = repo.ftpDeployments ?? []
+    if (fileDeployments !== null) {
+      ftpDeployments = fileDeployments
+    } else if (ftpDeployments.length > 0) {
+      // One-time migration: persist database-only configs as files.
+      // `ifNotExists` guards against clobbering configs written by another
+      // process between the directory check above and this write.
+      writeFtpDeploymentsToFiles(repo.path, ftpDeployments, true).catch(e =>
+        log.error('Failed persisting FTP deployment config files', e)
+      )
+    }
+
     return new Repository(
       repo.path,
       repo.id,
@@ -186,7 +210,7 @@ export class RepositoriesStore extends TypedBaseStore<
       repo.login,
       repo.gitDir,
       repo.mainWorktreePath,
-      repo.ftpDeployments ?? [],
+      ftpDeployments,
       repo.commitMessageProvider ?? null
     )
   }
@@ -528,6 +552,15 @@ export class RepositoriesStore extends TypedBaseStore<
     repository: Repository,
     ftpDeployments: ReadonlyArray<IFtpDeployment>
   ): Promise<void> {
+    // Persist configs as JSON files inside the repository so they can be
+    // shared and versioned with the repo. Passwords are excluded from these
+    // files and continue to live in the OS keychain (see ftp-secrets.ts).
+    try {
+      await writeFtpDeploymentsToFiles(repository.path, ftpDeployments)
+    } catch (e) {
+      log.error('Failed persisting FTP deployment config files', e)
+    }
+
     await this.db.repositories.update(repository.id, { ftpDeployments })
 
     this.emitUpdatedRepositories()

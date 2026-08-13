@@ -24,6 +24,7 @@ import {
 } from '../../models/diff-font'
 import { EditorOverride } from '../../models/editor-override'
 import { stageResolvedConflictFiles } from '../git/stage'
+import { getTrackedFiles } from '../git/ls-files'
 import {
   AccountsStore,
   CloningRepositoriesStore,
@@ -278,6 +279,7 @@ import {
   IConfigValueOrigin,
   unstageAll,
   git,
+  removeFile,
 } from '../git'
 import {
   installGlobalLFSFilters,
@@ -400,6 +402,7 @@ import {
 } from '../opencode/commit-message-provider-pref'
 import { OpenCodeCommitMessageGenerator } from '../commit-message-generator/opencode-commit-message-generator'
 import { CopilotCommitMessageGenerator } from '../commit-message-generator/copilot-commit-message-generator'
+import { generateCommitReview } from '../opencode/commit-review'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
@@ -4003,6 +4006,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         includingStatus: true,
         clearPartialState: false,
       })
+    } else if (selectedSection === RepositorySectionTab.Worktree) {
+      await this.loadWorktreeFiles(repository)
     }
 
     if (forceButtonFocus) {
@@ -4011,6 +4016,66 @@ export class AppStore extends TypedBaseStore<IAppState> {
         '.tab-bar-item.selected'
       ) as HTMLButtonElement
       button?.focus()
+    }
+  }
+
+  /**
+   * Loads the list of tracked files for the Worktree tab.
+   * Called when the Worktree section is selected or when the repository is refreshed.
+   */
+  public async loadWorktreeFiles(repository: Repository): Promise<void> {
+    try {
+      const files = await getTrackedFiles(repository)
+      this.repositoryStateCache.update(repository, state => {
+        // Preserve the current selection when the file list refreshes, as long
+        // as the selected file still exists in the repository.
+        const selectedFile = state.worktreeState.selectedFile
+        const stillExists = selectedFile != null && files.includes(selectedFile)
+
+        return {
+          worktreeState: {
+            files,
+            selectedFile: stillExists ? selectedFile : null,
+          },
+        }
+      })
+      this.emitUpdate()
+    } catch (e) {
+      log.error('Failed to load worktree files', e)
+    }
+  }
+
+  /**
+   * Sets the selected file in the Worktree tab.
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public _setSelectedWorktreeFile(
+    repository: Repository,
+    selectedFile: string | null
+  ): void {
+    this.repositoryStateCache.update(repository, state => ({
+      worktreeState: {
+        ...state.worktreeState,
+        selectedFile,
+      },
+    }))
+    this.emitUpdate()
+  }
+
+  /**
+   * Deletes a tracked file from the working tree and the index.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _deleteFile(
+    repository: Repository,
+    filePath: string
+  ): Promise<void> {
+    try {
+      await removeFile(repository, filePath)
+      await this._refreshRepository(repository)
+    } catch (e) {
+      log.error(`Failed to delete file ${filePath}`, e)
     }
   }
 
@@ -4385,6 +4450,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
           selectedFiles,
           context.amend === true
         )
+
+        // Generate an AI code review report after a successful commit
+        // (non-blocking).
+        void generateCommitReview(repository, result).catch(err => {
+          log.error('Failed to generate commit review', err)
+        })
 
         this.repositoryStateCache.update(repository, () => {
           return {
@@ -4779,6 +4850,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
         includingStatus: false,
         clearPartialState: false,
       })
+    } else if (section === RepositorySectionTab.Worktree) {
+      refreshSectionPromise = this.loadWorktreeFiles(repository)
     } else {
       return assertNever(section, `Unknown section: ${section}`)
     }

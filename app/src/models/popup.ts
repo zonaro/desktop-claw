@@ -137,6 +137,7 @@ export enum PopupType {
   PullBranchDeleted = 'PullBranchDeleted',
   FtpDeployments = 'FtpDeployments',
   MarkdownEditor = 'MarkdownEditor',
+  ConfirmDeleteFile = 'ConfirmDeleteFile',
 }
 
 interface IBasePopup {
@@ -636,6 +637,11 @@ export type PopupDetail =
     }
   | {
       type: PopupType.MarkdownEditor
+      repository: Repository
+      filePath: string
+    }
+  | {
+      type: PopupType.ConfirmDeleteFile
       repository: Repository
       filePath: string
     }

@@ -534,6 +534,7 @@ export enum RepositorySectionTab {
   Changes,
   History,
   Compare,
+  Worktree,
 }
 
 /**
@@ -605,10 +606,28 @@ export type ConflictState =
   | RebaseConflictState
   | CherryPickConflictState
 
+/**
+ * State for the Worktree tab — a file tree browser with inline preview.
+ */
+export interface IWorktreeState {
+  /**
+   * All tracked file paths in the repository, relative to the repository root.
+   * `null` when the file list hasn't been loaded yet.
+   */
+  readonly files: ReadonlyArray<string> | null
+
+  /**
+   * The currently selected file path (relative to the repository root),
+   * or `null` when no file is selected.
+   */
+  readonly selectedFile: string | null
+}
+
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
   readonly compareState: ICompareState
+  readonly worktreeState: IWorktreeState
   readonly selectedSection: RepositorySectionTab
 
   /**

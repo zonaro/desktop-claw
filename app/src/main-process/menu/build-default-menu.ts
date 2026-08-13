@@ -223,6 +223,12 @@ export function buildDefaultMenuTemplate({
         click: emit('show-compare'),
       },
       {
+        label: __DARWIN__ ? 'Show Worktree' : 'Show &Worktree',
+        id: 'show-worktree',
+        accelerator: 'CmdOrCtrl+4',
+        click: emit('show-worktree'),
+      },
+      {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
         id: 'show-repository-list',
         accelerator: 'CmdOrCtrl+T',

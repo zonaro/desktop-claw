@@ -477,7 +477,7 @@ export class Preferences extends React.Component<
             {this.isCopilotTabVisible && (
               <span id={this.getTabId(PreferencesTab.Copilot)}>
                 <Octicon className="icon" symbol={octicons.copilot} />
-                Copilot
+                IA
               </span>
             )}
             <span id={this.getTabId(PreferencesTab.Git)}>

@@ -1437,6 +1437,7 @@ describe('CopilotPreferences', () => {
         command: 'opencode',
         model: null,
         timeoutMs: 60000,
+        reviewOnCommit: false,
       }
       saveOpenCodeConfig(config)
 
@@ -1459,6 +1460,7 @@ describe('CopilotPreferences', () => {
         command: 'opencode',
         model: 'anthropic/claude-3-5-sonnet-20241022',
         timeoutMs: 60000,
+        reviewOnCommit: false,
       }
       saveOpenCodeConfig(config)
 

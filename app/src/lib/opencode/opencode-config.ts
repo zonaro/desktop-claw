@@ -10,6 +10,8 @@ export interface IOpenCodeConfig {
   readonly model: string | null
   /** Maximum time (ms) the CLI may run before being killed. */
   readonly timeoutMs: number
+  /** Whether to generate a code review after each successful commit. */
+  readonly reviewOnCommit: boolean
 }
 
 /** The default OpenCode configuration. */
@@ -18,6 +20,7 @@ export const DefaultOpenCodeConfig: IOpenCodeConfig = {
   command: 'opencode',
   model: null,
   timeoutMs: 60000,
+  reviewOnCommit: false,
 }
 
 const StorageKey = 'opencode-config'
@@ -68,6 +71,9 @@ export function isOpenCodeConfig(value: unknown): value is IOpenCodeConfig {
     !Number.isFinite(v.timeoutMs) ||
     v.timeoutMs <= 0
   ) {
+    return false
+  }
+  if (typeof v.reviewOnCommit !== 'boolean') {
     return false
   }
   return true

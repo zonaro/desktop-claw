@@ -22,7 +22,11 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { matchExistingRepository } from '../lib/repository-matching'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS, isOSNoLongerSupportedByElectron } from '../lib/get-os'
-import { MenuEvent, isTestMenuEvent, isFtpUploadEvent } from '../main-process/menu'
+import {
+  MenuEvent,
+  isTestMenuEvent,
+  isFtpUploadEvent,
+} from '../main-process/menu'
 import {
   Repository,
   getGitHubHtmlUrl,
@@ -187,6 +191,7 @@ import { ConfirmForcePush } from './rebase/confirm-force-push'
 import { PullRequestChecksFailed } from './notifications/pull-request-checks-failed'
 import { CICheckRunRerunDialog } from './check-runs/ci-check-run-rerun-dialog'
 import { WarnForcePushDialog } from './multi-commit-operation/dialog/warn-force-push-dialog'
+import { ConfirmDeleteFileDialog } from './delete-file/delete-file-dialog'
 import { clamp } from '../lib/clamp'
 import { generateRepositoryListContextMenu } from './repositories-list/repository-list-item-context-menu'
 import * as ipcRenderer from '../lib/ipc-renderer'
@@ -496,6 +501,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showHistory(true)
       case 'show-compare':
         return this.showCompare(true)
+      case 'show-worktree':
+        return this.showWorktree()
       case 'choose-repository':
         return this.chooseRepository()
       case 'add-local-repository':
@@ -1046,6 +1053,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (shouldFocusCompare) {
       this.repositoryViewRef.current?.setFocusCompareNeeded()
     }
+  }
+
+  private async showWorktree() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.closeCurrentFoldout()
+
+    await this.props.dispatcher.changeRepositorySection(
+      state.repository,
+      RepositorySectionTab.Worktree
+    )
   }
 
   private chooseRepository() {
@@ -3360,6 +3381,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <MarkdownEditor
             key={`markdown-editor-${popup.filePath}`}
+            filePath={popup.filePath}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
+      case PopupType.ConfirmDeleteFile:
+        return (
+          <ConfirmDeleteFileDialog
+            key={`confirm-delete-file-${popup.repository.id}-${popup.filePath}`}
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             filePath={popup.filePath}
