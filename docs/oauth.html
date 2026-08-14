@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Authenticating&hellip; &middot; Desktop Claw</title>
+    <meta name="description" content="Redirecting to Desktop Claw." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0d1117" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" type="image/png" href="./icon.png" />
+    <link rel="icon" type="image/x-icon" href="./favicon.ico" sizes="any" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="status">
+      <img src="./icon.png" alt="Desktop Claw logo" width="80" height="80" />
+
+      <div id="redirect-view">
+        <h1>Opening Desktop Claw&hellip;</h1>
+        <p>
+          If nothing happens, <a id="fallback-link" class="link" href="#">click here</a> to open the
+          app.
+        </p>
+      </div>
+
+      <div id="error-view" hidden>
+        <h1>Authentication failed!</h1>
+        <p id="error-code-wrap" hidden><code id="error-code"></code></p>
+        <p id="error-description"></p>
+        <p class="subtle" style="margin-top: 2rem">
+          If the problem persists, please open a
+          <a
+            class="link"
+            href="https://github.com/zonaro/desktop-claw/issues/new/choose"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub issue</a
+          >.
+        </p>
+      </div>
+    </main>
+
+    <script>
+      // The app opens this page at the end of an OAuth flow. Hand the query
+      // string back to the desktop app through its custom URL scheme, or show
+      // whatever the provider complained about.
+      ;(function () {
+        'use strict'
+
+        var params = new URLSearchParams(window.location.search)
+        var error = params.get('error')
+        var errorDescription = params.get('error_description')
+
+        if (error || errorDescription) {
+          document.title = 'Authentication failed'
+          document.getElementById('redirect-view').hidden = true
+          document.getElementById('error-view').hidden = false
+
+          if (error) {
+            document.getElementById('error-code').textContent = error
+            document.getElementById('error-code-wrap').hidden = false
+          }
+
+          document.getElementById('error-description').textContent =
+            errorDescription || 'The authentication provider reported an error. Please try again.'
+          return
+        }
+
+        var isDev = params.get('dev') === '1'
+        params.delete('dev')
+
+        var scheme = isDev ? 'x-github-desktop-dev-auth' : 'x-github-desktop-auth'
+        var query = params.toString()
+        var target = scheme + '://oauth' + (query ? '?' + query : '')
+
+        document.getElementById('fallback-link').href = target
+        window.location.replace(target)
+      })()
+    </script>
+  </body>
+</html>

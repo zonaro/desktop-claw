@@ -1,49 +1,57 @@
 # Desktop Claw website
 
-Marketing website for [**Desktop Claw**](https://github.com/zonaro/desktop-claw), built with [Astro](https://astro.build) and Tailwind CSS.
+Marketing website for [**Desktop Claw**](https://github.com/zonaro/desktop-claw).
 
 > Looking for the project documentation (setup guides, known issues, CLI, contributing)?
 > It lives in [`documentation/`](documentation/README.md).
 
-## Commands
+Plain HTML, CSS and one small JavaScript file — **no build step and no dependencies**. GitHub Pages
+serves this folder directly from `main`, so whatever is committed here is what goes live at
+<https://zonaro.github.io/desktop-claw/>.
 
-All commands are run from this directory (`docs/`):
-
-| Command           | Action                                     |
-| :---------------- | :----------------------------------------- |
-| `npm install`     | Install dependencies                       |
-| `npm run dev`     | Start local dev server at `localhost:4321` |
-| `npm run build`   | Build the production site to `./dist/`     |
-| `npm run preview` | Preview the build locally                  |
-
-## Deployment
-
-The build target is configured in [`astro.config.mjs`](astro.config.mjs) and defaults to a GitHub Pages
-project site at `https://zonaro.github.io/desktop-claw`. Override it with environment variables when
-publishing elsewhere:
+To work on it, open `index.html` in a browser, or serve the folder:
 
 ```bash
-SITE_URL=https://desktop-claw.example BASE_PATH=/ npm run build
+python3 -m http.server --directory docs 4321
 ```
 
-Every internal link and public asset goes through the `withBase()` helper in
-[`src/consts.ts`](src/consts.ts), so both the subpath and domain-root layouts work without further changes.
+## Files
+
+| File               | What it is                                                              |
+| :----------------- | :---------------------------------------------------------------------- |
+| `index.html`       | The whole landing page: hero, what's new, highlights, features, download |
+| `ai-policy.html`   | AI contribution policy                                                   |
+| `oauth.html`       | Hands the OAuth callback back to the app via its custom URL scheme       |
+| `styles.css`       | All styling. The red accent lives in the `--brand-*` variables at the top |
+| `main.js`          | Platform tabs, screenshot viewer, footer year                            |
+| `icon.png`         | The app icon, also used as the favicon source                            |
+| `og.png`           | Social preview card                                                      |
+| `screenshots/`     | Feature screenshots and the hero demo video                              |
+| `.nojekyll`        | Stops GitHub Pages from running the files through Jekyll                 |
+
+Icons are inlined as an SVG sprite at the top of each page and referenced with
+`<use href="#i-...">`, so there are no icon requests and no icon library to install.
 
 ## Editing content
 
-Content lives in the components rather than in a CMS:
+Everything is in the markup — find the section and edit it:
 
-| What                               | Where                              |
-| :--------------------------------- | :--------------------------------- |
-| Fork-only features ("New in Claw") | `src/components/WhatsNew.astro`    |
-| Screenshot highlights              | `src/components/Highlights.astro`  |
-| Full feature list                  | `src/components/FeatureList.astro` |
-| Download info per platform         | `src/components/Install.astro`     |
-| Brand colors (the red accent)      | `src/styles/global.css`            |
-| Repository / release links         | `src/consts.ts`                    |
+| What                               | Where                                                    |
+| :--------------------------------- | :------------------------------------------------------- |
+| Fork-only features ("New in Claw") | `index.html`, `<section id="whats-new">`                  |
+| Screenshot highlights              | `index.html`, `<section id="features">`                   |
+| Full feature list                  | `index.html`, `<section id="feature-list">`               |
+| Download info per platform         | `index.html`, `<section id="install">`                    |
+| Brand colors (the red accent)      | `styles.css`, `:root { --brand-* }`                       |
+
+Links point at `github.com/zonaro/desktop-claw`; all internal paths are relative, so the site works
+from a subpath (`/desktop-claw/`) or a domain root without changes.
 
 ## Credits
 
-This site is derived from the [Desktop Plus website](https://github.com/desktop-plus/website),
-© Pol Rivero, used under the MIT License — see [LICENSE](LICENSE). It has been rebranded for
-Desktop Claw, restyled around the app's red accent color, and extended with this fork's features.
+Adapted from the [Desktop Plus website](https://github.com/desktop-plus/website), © Pol Rivero, used
+under the MIT License — see [LICENSE](LICENSE). Rebranded for Desktop Claw, restyled around the app's
+red accent, extended with this fork's features, and rebuilt as static HTML/CSS.
+
+Icons are [Octicons](https://primer.style/octicons/) (MIT) and
+[Simple Icons](https://simpleicons.org/) (CC0).

@@ -1,6 +1,6 @@
 User-agent: *
 Allow: /
-Disallow: /oauth
-Disallow: /ai-policy
+Disallow: /desktop-claw/oauth.html
+Disallow: /desktop-claw/ai-policy.html
 
 Sitemap: https://zonaro.github.io/desktop-claw/sitemap.xml

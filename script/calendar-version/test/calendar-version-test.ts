@@ -2,10 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import * as semver from 'semver'
 
-import {
-  formatCalendarVersion,
-  getDayOfYear,
-} from '../../calendar-version'
+import { formatCalendarVersion, getDayOfYear } from '../../calendar-version'
 
 describe('getDayOfYear', () => {
   it('treats January 1st as day 1', () => {

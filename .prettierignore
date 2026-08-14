@@ -1,8 +1,8 @@
 out/
 dist/
 vendor/
-# The website is a self-contained Astro project with its own prettier config
-# and plugins; format it with `npm run format` inside docs/.
+# The website is hand-written static HTML/CSS/JS with its own conventions,
+# which differ from the app's (double quotes, semicolons in markup contexts).
 docs
 tslint-rules/*.js
 npm-debug.log
