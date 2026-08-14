@@ -3,12 +3,12 @@ import * as Path from 'path'
 
 import { TransitionGroup, CSSTransition } from 'react-transition-group'
 import {
-    IAppState,
-    RepositorySectionTab,
-    FoldoutType,
-    SelectionType,
-    HistoryTabMode,
-    CommitOptions,
+  IAppState,
+  RepositorySectionTab,
+  FoldoutType,
+  SelectionType,
+  HistoryTabMode,
+  CommitOptions,
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { AppStore, GitHubUserStore, IssuesStore } from '../lib/stores'
@@ -23,22 +23,22 @@ import { matchExistingRepository } from '../lib/repository-matching'
 import { getVersion, getName } from './lib/app-proxy'
 import { getOS, isOSNoLongerSupportedByElectron } from '../lib/get-os'
 import {
-    MenuEvent,
-    isTestMenuEvent,
-    isFtpUploadEvent,
+  MenuEvent,
+  isTestMenuEvent,
+  isFtpUploadEvent,
 } from '../main-process/menu'
 import {
-    Repository,
-    getGitHubHtmlUrl,
-    getNonForkGitHubRepository,
-    getNonGitHubUrl,
-    getUpdateBranchStrategy,
-    isRepositoryWithGitHubRepository,
+  Repository,
+  getGitHubHtmlUrl,
+  getNonForkGitHubRepository,
+  getNonGitHubUrl,
+  getUpdateBranchStrategy,
+  isRepositoryWithGitHubRepository,
 } from '../models/repository'
 import { Branch } from '../models/branch'
 import {
-    getDiffFontFamilyCssValue,
-    getDiffLineHeight,
+  getDiffFontFamilyCssValue,
+  getDiffLineHeight,
 } from '../models/diff-font'
 import { PreferencesTab } from '../models/preferences'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
@@ -53,35 +53,35 @@ import { RepositoriesList, getKnownGroupNames } from './repositories-list'
 import { RepositoryView } from './repository'
 import { RenameBranch } from './rename-branch'
 import {
-    CantDeleteCurrentBranch,
-    CantDeleteCurrentBranchUncommittedChanges,
-    DeleteBranch,
-    DeleteUnusedLocalBranches,
-    DeleteRemoteBranch,
+  CantDeleteCurrentBranch,
+  CantDeleteCurrentBranchUncommittedChanges,
+  DeleteBranch,
+  DeleteUnusedLocalBranches,
+  DeleteRemoteBranch,
 } from './delete-branch'
 import { CantDeleteMainBranch } from './delete-branch/cant-delete-main-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import {
-    Toolbar,
-    ToolbarDropdown,
-    DropdownState,
-    PushPullButton,
-    BranchDropdown,
-    WorktreeDropdown,
-    RevertProgress,
+  Toolbar,
+  ToolbarDropdown,
+  DropdownState,
+  PushPullButton,
+  BranchDropdown,
+  WorktreeDropdown,
+  RevertProgress,
 } from './toolbar'
 import { iconForRepository, OcticonSymbol } from './octicons'
 import * as octicons from './octicons/octicons.generated'
 import {
-    showCertificateTrustDialog,
-    sendReady,
-    isInApplicationFolder,
-    selectAllWindowContents,
-    installWindowsCLI,
-    uninstallWindowsCLI,
-    openRepositoryInNewWindow,
-    setWindowTitle,
-    setWindowSelectedRepository,
+  showCertificateTrustDialog,
+  sendReady,
+  isInApplicationFolder,
+  selectAllWindowContents,
+  installWindowsCLI,
+  uninstallWindowsCLI,
+  openRepositoryInNewWindow,
+  setWindowTitle,
+  setWindowSelectedRepository,
 } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { Welcome } from './welcome'
@@ -145,8 +145,8 @@ import { CreateForkDialog } from './forks/create-fork-dialog'
 import { findContributionTargetDefaultBranch } from '../lib/branch'
 import { UpdateBranchStrategy } from '../lib/update-branch-strategy'
 import {
-    GitHubRepository,
-    hasWritePermission,
+  GitHubRepository,
+  hasWritePermission,
 } from '../models/github-repository'
 import { CreateTag } from './create-tag'
 import { DeleteTag } from './delete-tag'
@@ -156,9 +156,9 @@ import { LocalChangesOverwrittenDialog } from './local-changes-overwritten/local
 import memoizeOne from 'memoize-one'
 import { AheadBehindStore } from '../lib/stores/ahead-behind-store'
 import {
-    getAccountForCommitMessageGeneration,
-    getAccountForCopilotConflictResolution,
-    getAccountForRepository,
+  getAccountForCommitMessageGeneration,
+  getAccountForCopilotConflictResolution,
+  getAccountForRepository,
 } from '../lib/get-account-for-repository'
 import { CommitOneLine } from '../models/commit'
 import { CommitDragElement } from './drag-elements/commit-drag-element'
@@ -169,9 +169,9 @@ import { CreateRepositoryGroup } from './create-repository-group/create-reposito
 import { DeleteRepositoryGroup } from './delete-repository-group/delete-repository-group-dialog'
 import { ThankYou } from './thank-you'
 import {
-    getUserContributions,
-    hasUserAlreadyBeenCheckedOrThanked,
-    updateLastThankYou,
+  getUserContributions,
+  hasUserAlreadyBeenCheckedOrThanked,
+  updateLastThankYou,
 } from '../lib/thank-you'
 import { ReleaseNote } from '../models/release-notes'
 import { CommitMessageDialog } from './commit-message/commit-message-dialog'
@@ -224,27 +224,27 @@ import { AboutTestDialog } from './about/about-test-dialog'
 import { TestCLIActionDialog } from './cli-action/test-cli-action-dialog'
 import { TestCopilotSnapshotCardDialog } from './preferences/test-copilot-snapshot-card-dialog'
 import {
-    enableCopilotSdkCommitMessageGeneration,
-    enableOpenCodeCommitMessages,
-    enableWorktreeSupport,
+  enableCopilotSdkCommitMessageGeneration,
+  enableOpenCodeCommitMessages,
+  enableWorktreeSupport,
 } from '../lib/feature-flag'
 import { loadCommitMessageProvider } from '../lib/opencode/commit-message-provider-pref'
 import {
-    getCopilotAccountCacheKey,
-    type CopilotFeature,
+  getCopilotAccountCacheKey,
+  type CopilotFeature,
 } from '../lib/stores/copilot-store'
 import {
-    ISecretScanResult,
-    PushProtectionErrorDialog,
+  ISecretScanResult,
+  PushProtectionErrorDialog,
 } from './secret-scanning/push-protection-error-dialog'
 import { GenerateCommitMessageOverrideWarning } from './generate-commit-message/generate-commit-message-override-warning'
 import { CopilotDisclaimer } from './copilot/copilot-disclaimer'
 import { CopilotConflictResolutionAlwaysNudge } from './multi-commit-operation/dialog/copilot-conflict-resolution-always-nudge'
 import { IAPICreatePushProtectionBypassResponse } from '../lib/api'
 import {
-    BypassPushProtectionDialog,
-    BypassReason,
-    BypassReasonType,
+  BypassPushProtectionDialog,
+  BypassReason,
+  BypassReasonType,
 } from './secret-scanning/bypass-push-protection-dialog'
 import { HookFailed } from './hook-failed/hook-failed'
 import { CommitProgress } from './commit-progress/commit-progress'
