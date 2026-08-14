@@ -36,7 +36,7 @@ import { join } from 'path'
 import { assertNonNullable } from '../app/src/lib/fatal-error'
 
 import { packageElectronBuilder } from './package-electron-builder'
-import { packageDebian, packageTransitionalDebian } from './package-debian'
+import { packageDebian } from './package-debian'
 import { packageRedhat } from './package-redhat'
 
 const distPath = getDistPath()
@@ -236,15 +236,9 @@ async function packageLinux() {
   try {
     const appImagePackage = await packageElectronBuilder()
     const debianPackage = await packageDebian()
-    const transitionalDebianPackage = await packageTransitionalDebian()
     const redhatPackage = await packageRedhat()
 
-    const installers = [
-      appImagePackage,
-      debianPackage,
-      transitionalDebianPackage,
-      redhatPackage,
-    ]
+    const installers = [appImagePackage, debianPackage, redhatPackage]
 
     console.log(`Installers created:`)
     for (const installer of installers) {

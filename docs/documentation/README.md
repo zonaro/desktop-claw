@@ -23,13 +23,14 @@ resources to get familiar with how things work:
 
 Details about how the team is organizing and shipping GitHub Desktop:
 
+ - **[Releases](process/releases.md)** - how Desktop Claw is versioned, built and
+    published to GitHub Releases
  - **[Roadmap](process/roadmap.md)** - the future as planned so far
- - **[Release Planning](process/release-planning.md)** - how we plan and execute
-    releases
+ - **[Release Planning](process/release-planning.md)** - how upstream GitHub
+    Desktop plans and executes releases, kept for reference
  - **[Issue Triage](process/issue-triage.md)** - how we address issues reported
     by users
  - **[Pull Requests](process/pull-requests.md)** - how code contributions are submitted and reviewed
- - **[Releasing Updates](process/releasing-updates.md)** - how we deploy things
 
 ## Technical
 

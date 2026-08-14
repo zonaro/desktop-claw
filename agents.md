@@ -20,11 +20,12 @@ Toda a documentação técnica consultável vive em [`.agents/`](.agents/). Este
 
 1. **Node 24.15.0** é obrigatório (`.nvmrc`/`.node-version`/`.tool-versions`).
 2. **Yarn clássico 1.x** via `yarn-path` (`.yarnrc` aponta para `vendor/yarn-1.21.1.js`). Não use npm/yarn moderno.
-3. **Nunca edite o campo `version` em `app/package.json`** — causa merge conflicts com o upstream; a versão vem de `env.APP_VERSION`.
+3. **Nunca edite o campo `version` em `app/package.json`** — causa merge conflicts com o upstream e é ignorado no build. A versão real é carimbada a partir da data/hora UTC da compilação, no formato `{YY}.{diaDoAno}.{HHMM}` (ex.: `26.225.1942`), definido em [`script/calendar-version.ts`](script/calendar-version.ts). `env.APP_VERSION` sobrescreve, e é assim que o CI usa uma única versão em todas as plataformas.
 4. **Mudanças em código do main process exigem rebuild** (`yarn build:dev`); mudanças de renderer só precisam de reload (`Ctrl+Alt+R`).
 5. **Erro `Invalid header: Does not start with Cr24` no start é normal** — ignorar.
 6. **Credenciais nunca vão para Dexie/localStorage/logs** — sempre OS keychain via `TokenStore` (keytar).
 7. Para puxar commits novos do desktop-plus, siga [.agents/upstream-sync.md](.agents/upstream-sync.md).
+8. **A distribuição é só GitHub Releases** — nada de Winget, Homebrew, APT, DNF, AUR ou Flathub, e não existe auto-update. Push na `main` (ou workflow_dispatch) compila e publica; veja [docs/documentation/process/releases.md](docs/documentation/process/releases.md).
 
 ## Atalhos rápidos
 
@@ -35,6 +36,7 @@ yarn start      # rodar app com watch
 yarn test       # testes unitários (node --test + tsx)
 yarn test:docker# testes unitários isolados em Docker (recomendado)
 yarn lint:src   # eslint + prettier
+yarn version:calendar  # imprime a versão que um build feito agora receberia
 ```
 
 ## Manutenção desta documentação

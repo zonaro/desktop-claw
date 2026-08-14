@@ -42,8 +42,7 @@ Related issue: [#33](https://github.com/desktop-plus/desktop-plus/issues/33)
 
 This error is caused by the app not being notarized by Apple, as notarization requires a paid Apple Developer account.
 
-When installing from Homebrew, this error should not appear as the app will automatically be added to the list of allowed apps.
-However, if you insist on installing manually, simply go to "System Settings" > "Privacy & Security", scroll down to "Security" and click "Open Anyway" on "Desktop Claw".
+To get past it, go to "System Settings" > "Privacy & Security", scroll down to "Security" and click "Open Anyway" on "Desktop Claw".
 
 ### 'The username or passphrase you entered is not correct' error after signing into account
 
@@ -245,7 +244,7 @@ If you see an error that says "Not enough resources are available to process thi
 
 Related issue: [#54](https://github.com/desktop-plus/desktop-plus/issues/54)
 
-First of all, make sure you are not using the AppImage package, as it requires some manual setup for the sign-in feature to work. Instead, I strongly recommend using your distribution's native package manager (APT, RPM and AUR packages above) or Flatpak.
+First of all, make sure you are not using the AppImage package, as it requires some manual setup for the sign-in feature to work. Instead, I strongly recommend the `.deb` or `.rpm` package for your distribution.
 
 If the app remains stuck on the "Continue with browser" screen after following the instructions in your web browser, the most likely cause is that the URI scheme used by Desktop Claw for authorization (`x-github-desktop-auth://`) is not linked to the correct program. You can verify if this is the case by fully closing Desktop Claw (Menu: **File** -> **Exit**) and running the following command in your terminal:
 
@@ -261,9 +260,6 @@ xdg-mime query default x-scheme-handler/x-github-desktop-auth
 
 # Set Desktop Claw as the default app for the URI scheme
 xdg-mime default desktop-claw.desktop x-scheme-handler/x-github-desktop-auth
-
-# Alternatively, if you are using the flatpak:
-xdg-mime default org.desktop_claw.desktop-claw.desktop x-scheme-handler/x-github-desktop-auth
 ```
 
 

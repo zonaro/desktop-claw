@@ -37,7 +37,7 @@ Problemas recorrentes/esperados, para não perder tempo debugando o que é norma
 
 ## Plataformas
 
-- **Flatpak**: hooks git rodam dentro do sandbox e não acessam ferramentas do sistema (version managers, linters) — comportamento esperado
+- **AppImage**: exige setup manual (`.desktop` + MIME `x-scheme-handler/x-github-desktop-auth`) para o sign-in funcionar; prefira `.deb`/`.rpm`
 - **Linux e2e/CI**: CI roda `ci.yml` (lint, unit, e2e, package); builds Linux usam electron-builder + scripts de empacotamento (`script/package-debian.ts`, `package-redhat.ts`, `package-electron-builder.ts`)
 
 ## Dicas de debug

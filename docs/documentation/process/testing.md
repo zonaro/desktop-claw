@@ -1,14 +1,15 @@
-### Download Desktop
-  - [ ] [User can download latest (Mac & Windows) Desktop](https://desktop.github.com/) 
-    - [ ] [Mac](https://central.github.com/deployments/desktop/desktop/latest/darwin)
-      - [ ] Homebrew package manager: `brew cask install github-desktop`
-    - [ ] [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
-      - [ ] Chocolatey package manager: `choco install github-desktop`
-      - [ ] 64-bit and up
-    - [ ] Data is retained if you download and open a fresh copy
-  - [ ] Release notes page is up-to-date in app and can be accessed from [here](https://desktop.github.com/release-notes/)
-  - [ ] [Help page](https://help.github.com/desktop/) is accessible
-  - [ ] 'Please update' notification shown in Classic apps
+### Download Desktop Claw
+
+All builds come from [GitHub Releases](https://github.com/zonaro/desktop-claw/releases/latest); there
+is no other distribution channel and no auto-updater.
+
+  - [ ] Latest release is present, tagged `v{YY}.{dayOfYear}.{HHMM}`
+  - [ ] Every artifact is attached, for both `x86_64` and `arm64`
+    - [ ] Windows: `-windows-*.exe`, `-windows-*.msi`
+    - [ ] macOS: `-macOS-arm64.zip`, `-macOS-x64.zip`
+    - [ ] Linux: `.deb`, `.rpm`, `.AppImage`
+  - [ ] Version reported in the app matches the release tag
+  - [ ] Data is retained if you download and open a fresh copy
 
 ### Welcome Flow
   - [ ] Create your free account (`/join?source=github-desktop`)

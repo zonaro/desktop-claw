@@ -51,4 +51,4 @@ O app tem `package.json` próprio (`app/`), separado das deps de build na raiz.
 
 ## Referência de docs upstream (em `docs/`)
 
-`docs/documentation/technical/` (rebase-flow, feature-flagging, oauth, pull-requests, dialogs, e2e-smoke-tests...), `docs/documentation/contributing/` (setup, styleguide, linting, tooling...), `docs/documentation/process/` (release-planning, testing...), `docs/documentation/known-issues.md`, `docs/documentation/cli.md`. Úteis para consulta antes de mexer em área desconhecida.
+`docs/documentation/technical/` (rebase-flow, feature-flagging, oauth, pull-requests, dialogs, e2e-smoke-tests...), `docs/documentation/contributing/` (setup, styleguide, linting, tooling...), `docs/documentation/process/` (releases, testing...), `docs/documentation/known-issues.md`, `docs/documentation/cli.md`. Úteis para consulta antes de mexer em área desconhecida.

@@ -1,6 +1,7 @@
 import { getSHA } from './git-info'
 import { getUpdatesURL, getChannel } from '../script/dist-info'
-import { version, productName } from './package.json'
+import { productName } from './package.json'
+import { getVersion } from './package-info'
 
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
@@ -64,7 +65,7 @@ export function getReplacements() {
     __FLATPAK__:
       process.platform === 'linux' && process.env.FLATPAK_ID !== undefined,
     __APP_NAME__: s(productName),
-    __APP_VERSION__: s(process.env.APP_VERSION ?? version),
+    __APP_VERSION__: s(getVersion()),
     __DEV__: isDevBuild,
     __DEV_SECRETS__: isDevBuild || !process.env.DESKTOP_OAUTH_CLIENT_SECRET,
     __RELEASE_CHANNEL__: s(channel),

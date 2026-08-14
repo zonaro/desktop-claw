@@ -1,5 +1,10 @@
 # Release Planning
 
+> **Note:** this document describes the release process of the upstream
+> [GitHub Desktop](https://github.com/desktop/desktop) project, and is kept for reference. Desktop
+> Claw does not use milestones or a fixed release cadence — see [Releases](releases.md) for how this
+> fork builds, versions and publishes.
+
 This document outlines our process for planning and scheduling releases, so you
 can familiarize yourself with the flow of work from opening an issue to seeing
 it published in a release.

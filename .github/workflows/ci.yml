@@ -5,9 +5,9 @@ on:
     branches:
       - development
       - main
-    tags:
-      - 'v*.*.*'
   pull_request:
+  # Publishes a release on demand, without waiting for a push to main.
+  workflow_dispatch:
   workflow_call:
     inputs:
       repository:
@@ -90,32 +90,32 @@ jobs:
     permissions:
       contents: read
     outputs:
-      APP_VERSION: ${{ env.APP_VERSION }}
-      SEMVER_COMPATIBLE_VERSION: ${{ env.SEMVER_COMPATIBLE_VERSION }}
+      APP_VERSION: ${{ steps.compute.outputs.APP_VERSION }}
+      # The calendar version is already strict semver, which is what Squirrel
+      # (and therefore the Windows release) requires, so there's nothing to
+      # rewrite.
+      SEMVER_COMPATIBLE_VERSION: ${{ steps.compute.outputs.APP_VERSION }}
     steps:
-      - name: Compute app version
+      - uses: actions/checkout@v7
+        with:
+          repository: ${{ inputs.repository || github.repository }}
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Stamp version from the build date and time
+        id: compute
         run: |
-          VERSION="0.0.0"
-          if [[ "$GITHUB_REF" =~ ^refs/tags/ ]]; then
-            # 'refs/tags/v1.2.3' -> '1.2.3'
-            VERSION=$(echo "${GITHUB_REF/refs\/tags\//}" | sed -E "s/v(.*)/\\1/")
-          fi
+          # script/calendar-version.ts is the single source of truth for the
+          # format ({YY}.{dayOfYear}.{HHMM}, UTC). Node strips the types on its
+          # own and the file has no imports, so this runs without installing
+          # any dependencies.
+          #
+          # Computed once here and handed to every job below, so that all
+          # platforms in a release share one version.
+          VERSION=$(node script/calendar-version.ts)
           echo "Computed version: ${VERSION}"
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-
-          # Squirrel (and therefore the Windows release) requires strict semver
-          IFS='.' read -ra parts <<< "$VERSION"
-          if [ "${#parts[@]}" -gt 3 ]; then
-            major="${parts[0]}"
-            minor="${parts[1]}"
-            patch="${parts[2]}"
-            rest=$(IFS='-'; echo "${parts[*]:3}")
-            SEMVER_COMPATIBLE_VERSION="${major}.${minor}.${patch}-r${rest}"
-          else
-            SEMVER_COMPATIBLE_VERSION="$VERSION"
-          fi
-          echo "Semver compatible version: ${SEMVER_COMPATIBLE_VERSION}"
-          echo "SEMVER_COMPATIBLE_VERSION=$SEMVER_COMPATIBLE_VERSION" >> $GITHUB_ENV
+          echo "APP_VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
   build:
     name: ${{ matrix.friendlyName }} ${{ matrix.arch }}
@@ -214,10 +214,6 @@ jobs:
           AZURE_TENANT_ID: ${{ secrets.AZURE_CODE_SIGNING_TENANT_ID }}
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CODE_SIGNING_CLIENT_ID }}
 
-      - name: Generate AppImage zsync
-        if: ${{ runner.os == 'Linux' }}
-        run:
-          script/generate-appimage-zsync.sh dist/*.AppImage ${{ matrix.arch }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -228,7 +224,6 @@ jobs:
             dist/*.msi
             dist/*.nupkg
             dist/*.AppImage
-            dist/*.AppImage.zsync
             dist/*.deb
             dist/*.rpm
             dist/*.sha256
@@ -371,7 +366,12 @@ jobs:
     name: Create GitHub release
     needs: [build, compute_version]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    # Desktop Claw is distributed through GitHub Releases only. Every push to
+    # main publishes a release stamped with its build time; workflow_dispatch
+    # does the same on demand.
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     permissions:
       contents: write
     env:
@@ -391,10 +391,9 @@ jobs:
       - name: Read release notes
         id: release_notes
         run: |
-          RELEASE_NOTES_FILE=".github/desktop-claw-release-notes.md"
-          TITLE=$(head -n 1 "$RELEASE_NOTES_FILE")
-          BODY=$(tail -n +3 "$RELEASE_NOTES_FILE")
-          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          # The title is derived from the stamped version; the file holds the
+          # body only.
+          BODY=$(cat ".github/desktop-claw-release-notes.md")
           {
             echo 'body<<EOF'
             echo "$BODY"
@@ -404,16 +403,20 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ steps.release_notes.outputs.title }}
+          # Creates the tag on the commit being built, since versions are
+          # stamped at build time rather than tagged by hand beforehand.
+          tag_name: v${{ env.APP_VERSION }}
+          name: Desktop Claw v${{ env.APP_VERSION }}
           body: ${{ steps.release_notes.outputs.body }}
+          # Windows, macOS and Linux, distributed here and nowhere else:
+          # installers and OS-native packages, plus a portable AppImage.
           files: |
-            artifacts/**/DesktopClaw-*.AppImage
-            artifacts/**/DesktopClaw-*.AppImage.zsync
-            artifacts/**/DesktopClaw-*.deb
-            artifacts/**/DesktopClaw-*.rpm
             artifacts/**/DesktopClaw-*.exe
             artifacts/**/DesktopClaw-*.msi
             artifacts/**/DesktopClaw-*.zip
+            artifacts/**/DesktopClaw-*.deb
+            artifacts/**/DesktopClaw-*.rpm
+            artifacts/**/DesktopClaw-*.AppImage
           draft: false
           fail_on_unmatched_files: true
         env:

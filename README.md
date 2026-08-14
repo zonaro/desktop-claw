@@ -29,235 +29,54 @@ This is an **up-to-date** fork of [GitHub Desktop](https://desktop.github.com) w
 
 ## Download and Installation 📦
 
-### Windows
+Desktop Claw is distributed exclusively through
+**[GitHub Releases](https://github.com/zonaro/desktop-claw/releases/latest)**. It is not published to
+Winget, Homebrew, APT, DNF, the AUR, or Flathub.
 
-<details>
-<summary>Click to expand</summary>
+Download the file for your platform from the latest release and install it:
 
-#### Option 1: Using Winget (Recommended)
-
-```powershell
-winget install DesktopClaw.DesktopClaw
-```
-
-To update, run `winget upgrade DesktopClaw.DesktopClaw` or `winget upgrade --all` to update all your winget packages. Make sure to update regularly to get the latest features and fixes.
-
-#### Option 2: Manual download (Not recommended)
-
-Download and execute the installer from the [releases page](https://github.com/desktop-plus/desktop-plus/releases/latest).
-
-| | **64-bit x86** | **64-bit ARM** |
+| Platform | File | Notes |
 | --- | --- | --- |
-| **.EXE Installer** | `-win-x64.exe` | `-win-arm64.exe` |
-| **.MSI Installer ⚠️** | `-win-x64.msi` | `-win-arm64.msi` |
+| **Windows** (x86) | `-windows-x64.exe` | Recommended for most PCs. No admin rights needed. |
+| **Windows** (ARM) | `-windows-arm64.exe` | For Snapdragon / ARM devices. |
+| **Windows** (enterprise) | `-windows-*.msi` | ⚠️ Registers a hook that installs the app at next login, so it needs a reboot. Not recommended for regular users. |
+| **macOS** (Apple Silicon) | `-macOS-arm64.zip` | M1 and newer. Unzip and drag into Applications. |
+| **macOS** (Intel) | `-macOS-x64.zip` | Unzip and drag into Applications. |
+| **Linux** (Debian family) | `.deb` | Debian, Ubuntu, Mint, Pop!_OS, Zorin, elementary OS. |
+| **Linux** (RPM family) | `.rpm` | Fedora, RHEL, CentOS Stream, Rocky, AlmaLinux, openSUSE. |
+| **Linux** (any distro) | `.AppImage` | Portable. Mark it executable before running. |
 
-Please note that the app doesn't auto-update like the official GitHub Desktop, so you will need to manually download and install it every time you want to update.  
-For this reason, **I recommend using Winget instead of the manual download**.
+Each file is built for both `x86_64` and `arm64`.
 
-⚠️ The MSI installer is meant for enterprise deployments and is not recommended for regular users. If you want to use it, keep in mind that you will need to reboot your computer to finish the installation. The MSI installer only registers a hook that will install the app on login.
+> **macOS:** if the system reports it can't verify the app, open "System Settings" > "Privacy &
+> Security", scroll to "Security" and click "Open Anyway" on Desktop Claw.
 
----
+> **Linux:** `gnome-keyring` is required to store credentials, and its daemon must be running at
+> login. For the AppImage specifically, sign-in also needs a `desktop-claw.desktop` entry with the
+> `x-scheme-handler/x-github-desktop-auth` MIME type pointed at it — prefer the `.deb` or `.rpm`
+> when your distro supports them.
 
-</details>
+### Updating 🔄
 
-### macOS
+The app does **not** update itself. Watch the repository on GitHub, or check the
+[releases page](https://github.com/zonaro/desktop-claw/releases/latest) now and then, and install the
+newer file over your current version.
 
-<details>
-<summary>Click to expand</summary>
+### Versioning 🔢
 
-#### Option 1: Using Homebrew (Recommended)
+Releases are stamped from the build's UTC date and time rather than bumped by hand:
 
-```bash
-brew install desktop-plus/tap/desktop-claw
+```
+{YY}.{dayOfYear}.{HHMM}
 ```
 
-Make sure to run `brew update` + `brew upgrade` regularly to get the latest updates for Desktop Claw.
-
-#### Option 2: Manual download (Not recommended)
-
-Download and extract the ZIP file from the [releases page](https://github.com/desktop-plus/desktop-plus/releases/latest). Click the app file to run it.  
-If you encounter the error "Apple could not verify this app is free of malware", go to "System Settings" > "Privacy & Security", scroll down to "Security" and click "Open Anyway" on "Desktop Claw".
-
-| **64-bit x86** | **64-bit ARM (Apple Silicon)** |
-| --- | --- |
-| `-macOS-x64.zip` | `-macOS-arm64.zip` |
-
-Please note that the app doesn't auto-update like the official GitHub Desktop, so you will need to manually download it every time you want to update.  
-For this reason, I recommend using Homebrew instead of the manual download.
-
----
-
-</details>
-
-### Debian · Ubuntu · Mint · Pop!_OS · Zorin · elementary OS (APT)
-
-<details>
-
-<summary>Click to expand</summary>
-<br>
-
-Create the repository file:
-
-```bash
-sudo curl https://gpg.desktop-plus.org/public.key | sudo gpg --dearmor -o /usr/share/keyrings/desktop-claw.gpg
-echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/desktop-claw.gpg] https://apt.desktop-plus.org/ stable main" | sudo tee /etc/apt/sources.list.d/desktop-claw.list
-```
-
-Update the package list and install:
-```bash
-sudo apt update
-sudo apt install desktop-claw
-```
-
----
-
-</details>
-
-
-### Fedora · RHEL · CentOS Stream · Rocky Linux · AlmaLinux (RPM)
-
-<details>
-<summary>Click to expand</summary>
-
-#### Option 1: Using the official repository (Recommended)
-
-Create the repository file:
-
-```bash
-sudo rpm --import https://gpg.desktop-plus.org/public.key
-echo -e "[desktop-claw]\nname=Desktop Claw\nbaseurl=https://rpm.desktop-plus.org/\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://gpg.desktop-plus.org/public.key" | sudo tee /etc/yum.repos.d/desktop-claw.repo
-```
-
-Update the package list and install:
-
-```bash
-sudo dnf check-update --refresh
-sudo dnf install desktop-claw
-```
-
-#### Option 2: Using [Terra](https://terrapkg.com/)
-
-Make sure you have [installed](https://docs.terrapkg.com/usage/installing/) or enabled the Terra repository. Then, run:
-```bash
-sudo dnf install desktop-claw-bin
-```
-
-> **Note:** The Terra package is unofficial. Use at your own risk.
-
-
----
-
-</details>
-
-### OpenSUSE (RPM)
-
-<details>
-<summary>Click to expand</summary>
-<br>
-
-Create the repository file:
-
-```bash
-sudo rpm --import https://gpg.desktop-plus.org/public.key
-echo -e "[desktop-claw]\nname=Desktop Claw\nbaseurl=https://rpm.desktop-plus.org/\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://gpg.desktop-plus.org/public.key" | sudo tee /etc/zypp/repos.d/desktop-claw.repo
-```
-
-Update the package list and install:
-
-```bash
-sudo zypper refresh
-sudo zypper install desktop-claw
-```
-
----
-
-</details>
-
-
-### Arch Linux · EndeavourOS · Garuda Linux · Manjaro (AUR)
-
-<details>
-<summary>Click to expand</summary>
-<br>
-
-Simply install `desktop-claw-bin` from the AUR using your preferred AUR helper.
-
-```sh
-yay -S desktop-claw-bin
-```
-
-You can also build from source by installing `desktop-claw` or `desktop-claw-git` from the AUR.
-
-> `gnome-keyring` is required and the daemon must be launched either at login or when the X server / Wayland compositor is started. Normally this is handled by a display manager, but in other cases following the instructions found on the [Arch Wiki](https://wiki.archlinux.org/index.php/GNOME/Keyring#Using_the_keyring_outside_GNOME) will fix the issue of not being able to save login credentials.
-
----
-
-</details>
-
-
-### Flatpak (any distro)
-
-<details>
-<summary>Click to expand</summary>
-<br>
-
-Simply install Desktop Claw from [Flathub](https://flathub.org/en/apps/org.desktop_plus.desktop-plus):
-
-```bash
-flatpak install flathub org.desktop_plus.desktop-plus
-```
-
-> **NOTE:** Git hooks will run inside the Flatpak sandbox and cannot access programs installed on your system (such as version managers,
-> linters, or other tools your hooks rely on). If your hooks depend on such programs, install a native package instead.
-
----
-
-</details>
-
-### AppImage (any distro, not recommended)
-
-<details>
-<summary>Click to expand</summary>
-<br>
-
-**IMPORTANT:** I strongly recommend using your distribution's native package (APT, RPM, and AUR packages above) or Flatpak instead of the AppImage, as it requires some manual setup for the sign-in feature to work.  
-If you need to use the AppImage, follow these steps:
-1. Manually [create a `desktop-claw.desktop` entry](https://wiki.archlinux.org/title/Desktop_entries).
-2. Link the MIME type:
-   ```sh
-   xdg-mime default desktop-claw.desktop x-scheme-handler/x-github-desktop-auth
-   ```
-
-#### Option 1: Using ["AM"/"AppMan"](https://github.com/ivan-hc/AM)
-
-```bash
-# If using "AM":
-am install github-desktop-plus
-# If using "AppMan":
-appman install github-desktop-plus
-```
-
-> **Note:** The AM/AppMan package is unofficial. Use at your own risk.
-
-#### Option 2: Manual download (Not recommended)
-
-Download the AppImage from the [releases page](https://github.com/desktop-plus/desktop-plus/releases/latest):
-
-| **64-bit x86** | **64-bit ARM** |
-| --- | --- |
-| `-linux-x86_64.AppImage` | `-linux-arm64.AppImage` |
-
-Then, make it executable:
-
-```bash
-chmod +x DesktopClaw-*-linux-*.AppImage
-```
-
-Finally, double-click the .AppImage file to run it.
-
----
-
-</details>
+For example, a build made on 13 August 2026 at 19:42 UTC is version `26.225.1942`, released under the
+tag `v26.225.1942`. Each component is written without padding so the result is valid
+[semver](https://semver.org), which Squirrel and electron-builder require: a build on 5 January at
+09:05 UTC is `26.5.905`, not `26.005.0905`. Versions still sort in build order.
+
+The format lives in [`script/calendar-version.ts`](script/calendar-version.ts), and you can print the
+current one with `yarn version:calendar`.
 
 ## Common issues 🛠️
 

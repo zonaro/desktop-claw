@@ -30,6 +30,15 @@ yarn compile:prod # só webpack prod
 yarn package      # empacota distributivos (electron-builder/packager)
 ```
 
+- A versão é carimbada da data/hora UTC do build (`{YY}.{diaDoAno}.{HHMM}`). `build` e `package` são
+  processos separados: para empacotar release localmente, exporte `APP_VERSION` antes, senão cada
+  etapa carimba seu próprio horário e elas divergem se o minuto virar.
+
+```sh
+export APP_VERSION=$(yarn --silent version:calendar)
+yarn build:prod && yarn package
+```
+
 - Saída do webpack: `out/` na raiz
 - `yarn clean-slate` = rimraf `out`, `node_modules`, `app/node_modules` + `yarn` do zero
 - `yarn rebuild-hard:dev` / `rebuild-hard:prod` = clean-slate + build (último recurso para estado estranho)
@@ -66,14 +75,24 @@ yarn test:eslint    # testes das regras eslint custom
 yarn cli            # ts-node app/src/cli/main.ts (desktop-claw-cli)
 ```
 
-## Release (raro)
+## Release
+
+Distribuição é **só GitHub Releases** (sem Winget/Homebrew/APT/DNF/AUR/Flathub, sem auto-update).
+O `ci.yml` compila as 6 combinações (win/mac/linux × x64/arm64) e publica quando há push na `main`
+ou disparo manual (workflow_dispatch), criando a tag `v{versão}` no commit. Detalhes em
+[docs/documentation/process/releases.md](../docs/documentation/process/releases.md).
+
+Artefatos publicados: `.exe`, `.msi`, `.zip` (macOS), `.deb`, `.rpm`, `.AppImage`.
 
 ```sh
-yarn draft-release          # gera release a partir do changelog.json
-yarn draft-release:format   # formata + valida changelog/app version
-yarn draft-release:pr       # abre PR de release
+yarn version:calendar       # versão que um build feito agora receberia
 yarn validate-changelog     # valida changelog.json
 ```
+
+O corpo do release sai de `.github/desktop-claw-release-notes.md`; o título é gerado da versão.
+
+Os scripts `yarn draft-release*` são do fluxo do upstream (versões manuais via changelog.json) e não
+fazem parte do release deste fork.
 
 ## Manutenção
 

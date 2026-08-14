@@ -161,6 +161,16 @@ const platforms: Platform[] = [
         > now and then, or watch the repository on GitHub to get notified about new versions.
       </p>
     </div>
+
+    <div class="mt-4 flex gap-3 rounded-xl border border-border bg-surface/40 px-5 py-4">
+      <Icon name="octicon:tag-16" class="mt-0.5 h-4.5 w-4.5 shrink-0 text-brand-400" />
+      <p class="text-sm leading-relaxed text-fg-muted">
+        <span class="font-medium text-fg">Versions are dates, not milestones.</span> Each release is stamped from the moment it was built, in UTC, as
+        <code class="rounded bg-canvas-inset px-1.5 py-0.5 font-mono text-[13px] text-fg">{"{YY}.{dayOfYear}.{HHMM}"}</code> — so a build from 13 August
+        2026 at 19:42 is <code class="rounded bg-canvas-inset px-1.5 py-0.5 font-mono text-[13px] text-fg">26.225.1942</code>. A higher version is
+        always a newer build.
+      </p>
+    </div>
   </div>
 </section>
 
