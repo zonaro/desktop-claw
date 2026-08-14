@@ -1,18 +1,18 @@
 import * as React from 'react'
 
 import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    OkCancelButtonGroup,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  OkCancelButtonGroup,
 } from '../dialog'
 import { LinkButton } from '../lib/link-button'
 import { Loading } from '../lib/loading'
 import { IGitHubReleaseInfo } from '../../models/github-release'
 import {
-    DesktopClawReleasesUrl,
-    getLatestGitHubRelease,
-    isUpdateAvailable,
+  DesktopClawReleasesUrl,
+  getLatestGitHubRelease,
+  isUpdateAvailable,
 } from '../../lib/github-releases'
 import { getVersion } from '../lib/app-proxy'
 import { formatDate } from '../../lib/format-date'
