@@ -275,7 +275,7 @@ export class RepositoryView extends React.Component<
         )}
 
         <div className="with-indicator" id="worktree-tab">
-          <span>Worktree</span>
+          <span>Files</span>
         </div>
       </TabBar>
     )
