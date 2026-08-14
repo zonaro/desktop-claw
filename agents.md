@@ -25,7 +25,7 @@ Toda a documentação técnica consultável vive em [`.agents/`](.agents/). Este
 5. **Erro `Invalid header: Does not start with Cr24` no start é normal** — ignorar.
 6. **Credenciais nunca vão para Dexie/localStorage/logs** — sempre OS keychain via `TokenStore` (keytar).
 7. Para puxar commits novos do desktop-plus, siga [.agents/upstream-sync.md](.agents/upstream-sync.md).
-8. **A distribuição é só GitHub Releases** — nada de Winget, Homebrew, APT, DNF, AUR ou Flathub, e não existe auto-update. Push na `main` (ou workflow_dispatch) compila e publica; veja [docs/documentation/process/releases.md](docs/documentation/process/releases.md).
+8. **A distribuição é só GitHub Releases** — nada de Winget, Homebrew, APT, DNF, AUR ou Flathub, e não existe auto-update (o app tem "Help > Check for Updates" manual, que consulta a API de releases do GitHub e abre a página de release). Push na `main` (ou workflow_dispatch) compila e publica; veja [docs/documentation/process/releases.md](docs/documentation/process/releases.md).
 
 ## Atalhos rápidos
 

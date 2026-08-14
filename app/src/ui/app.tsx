@@ -107,6 +107,7 @@ import { SignIn } from './sign-in'
 import { InstallGit } from './install-git'
 import { EditorError } from './editor'
 import { About } from './about'
+import { CheckForUpdatesDialog } from './check-for-updates/check-for-updates-dialog'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 import { UntrustedCertificate } from './untrusted-certificate'
@@ -569,6 +570,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showCloneRepo()
       case 'show-about':
         return this.showAbout()
+      case 'check-for-updates':
+        return this.checkForUpdates()
       case 'go-to-commit-message':
         return this.goToCommitMessage()
       case 'open-pull-request':
@@ -986,6 +989,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private showAbout() {
     this.props.dispatcher.showPopup({ type: PopupType.About })
+  }
+
+  private checkForUpdates() {
+    this.props.dispatcher.showPopup({ type: PopupType.CheckForUpdates })
   }
 
   private async showHistory(shouldFocusHistory: boolean) {
@@ -2238,6 +2245,13 @@ export class App extends React.Component<IAppProps, IAppState> {
             onShowAcknowledgements={this.showAcknowledgements}
             onShowTermsAndConditions={this.showTermsAndConditions}
             updateState={this.state.updateState}
+          />
+        )
+      case PopupType.CheckForUpdates:
+        return (
+          <CheckForUpdatesDialog
+            key="check-for-updates"
+            onDismissed={onPopupDismissedFn}
           />
         )
       case PopupType.PublishRepository:

@@ -627,11 +627,18 @@ export function buildDefaultMenuTemplate({
     },
   }
 
+  const checkForUpdatesItem: Electron.MenuItemConstructorOptions = {
+    label: __DARWIN__ ? 'Check for Updates…' : 'Check for &updates…',
+    click: emit('check-for-updates'),
+    id: 'check-for-updates',
+  }
+
   const helpItems = [
     submitIssueItem,
     showUserGuides,
     showKeyboardShortcuts,
     showLogsItem,
+    checkForUpdatesItem,
   ]
 
   helpItems.push(...buildTestMenu())

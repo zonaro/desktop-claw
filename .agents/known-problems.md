@@ -33,6 +33,7 @@ Problemas recorrentes/esperados, para não perder tempo debugando o que é norma
 
 - **Worktree API**: há mudança fork-only no construtor (`mainWorktreePath`) — manter compatível ao mergear upstream (commit 0901cca2b1 documenta o padrão)
 - **FTP**: senhas só via keychain (service `"Desktop Claw - FTP Deployments"`); nunca gravar em DB/logs. Upload roda no main process com AbortSignal — não mover para renderer
+- **Check for Updates**: consulta a API pública do GitHub (`repos/zonaro/desktop-claw/releases/latest`) sem auth — sujeita a rate limit (60 req/h por IP); falha vira estado `error` no dialog. Não há auto-updater; o botão Download abre a página de release no navegador
 - Features do fork pendentes: ver `.agents/fork-features.md` (tab FTP em Repository Settings e seção OpenCode nas Preferences ainda não implementadas)
 
 ## Plataformas
