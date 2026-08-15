@@ -100,6 +100,33 @@ function runBatch(files) {
   })
 }
 
+// A handful of specific, unrelated test files have intermittently gone
+// silent for 20-140s and then failed or OOM'd on hosted CI runners —
+// reproduced across every combination of process concurrency and batch
+// layout we tried, on Windows, macOS and Linux, never locally. That pattern
+// (unreproducible, environment-dependent, not tied to any one file's
+// content once isolated) points at hosted-runner I/O/scheduling variance
+// rather than a bug in the tests themselves, so a failed batch gets a couple
+// of retries before it's treated as a real failure. A genuine regression
+// fails all attempts and still blocks CI; a transient stall gets a clean
+// pass on retry instead of taking the whole release down with it.
+async function runBatchWithRetries(files, attempts = 3) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const code = await runBatch(files)
+    if (code === 0) {
+      return 0
+    }
+    if (attempt < attempts) {
+      console.log(
+        `\n[test.mjs] batch failed (attempt ${attempt}/${attempts}), retrying: ${files
+          .slice(0, 3)
+          .join(', ')}${files.length > 3 ? `, +${files.length - 3} more` : ''}\n`
+      )
+    }
+  }
+  return 1
+}
+
 if (fileArgs.length > 0) {
   process.exit(await runBatch(await findTestFilesIn(fileArgs)))
 }
@@ -107,15 +134,15 @@ if (fileArgs.length > 0) {
 const defaultRoot = join(projectRoot, 'app', 'test', 'unit')
 
 if (!process.env.GITHUB_ACTIONS) {
-  // Local dev: one invocation, exactly as before — batching only exists to
-  // bound a single long-lived CI process's own memory growth.
+  // Local dev: one invocation, exactly as before — batching and retries only
+  // exist to work around hosted-runner flakiness in CI.
   process.exit(await runBatch(await findTestFilesIn([defaultRoot])))
 }
 
 const batches = await findTestFileBatchesIn(defaultRoot)
 let exitCode = 0
 for (const files of batches) {
-  const code = await runBatch(files)
+  const code = await runBatchWithRetries(files)
   exitCode = exitCode || code
 }
 process.exit(exitCode)
