@@ -26,17 +26,41 @@ down to "Security" and click "Open Anyway".
 
 ### Linux
 
-Three package formats are available, depending on your distribution:
+One command installs the latest release on any distribution, and updates an existing installation
+when run again:
 
- - Debian (`.deb`) — Debian, Ubuntu, Mint, Pop!_OS, Zorin, elementary OS
- - RPM (`.rpm`) — Fedora, RHEL, CentOS Stream, Rocky, AlmaLinux, openSUSE
- - AppImage (`.AppImage`) — any distro, portable
+```bash
+curl -fsSL https://zonaro.github.io/desktop-claw/install.sh | sh
+```
 
-`gnome-keyring` is required to store credentials, and its daemon must be running at login.
+Run as a regular user it installs under `~/.local` and needs no `sudo`; run with `sudo` it installs
+system-wide under `/opt/desktop-claw`. Either way it registers the desktop entry, the icons and the
+`x-scheme-handler/x-github-desktop-auth` MIME type that browser sign-in needs, and puts
+`desktop-claw` and `desktop-claw-cli` on the `PATH`.
 
-The AppImage must be marked executable before it will run. Signing in from an AppImage also needs a
-`desktop-claw.desktop` entry with the `x-scheme-handler/x-github-desktop-auth` MIME type pointed at
-it, so prefer the `.deb` or `.rpm` when your distribution supports them.
+| Flag | Effect |
+| --- | --- |
+| `--uninstall` | Remove the installation made by this script. |
+| `--version <tag>` | Install a specific release, e.g. `--version v26.226.437`. |
+| `--prefix <dir>` | Install the payload somewhere other than the default. |
+
+Pass flags through the pipe with `sh -s --`, for example:
+
+```bash
+curl -fsSL https://zonaro.github.io/desktop-claw/install.sh | sh -s -- --uninstall
+```
+
+Two Linux artifacts are published, both for `x86_64` and `arm64`:
+
+ - Tarball (`-linux-*.tar.gz`) — what the command above downloads. It ships the same `install.sh` at
+   its root, so an extracted release can be installed offline with `./install.sh`.
+ - AppImage (`-linux-*.AppImage`) — portable, installs nothing.
+
+Credentials are stored through libsecret, so a keyring daemon (`gnome-keyring`, KWallet with the
+libsecret bridge, …) must be running at login.
+
+The AppImage must be marked executable before it will run, and it registers no URL handler, so
+browser sign-in only works with the tarball install.
 
 ## Data Directories
 
@@ -57,7 +81,7 @@ On first launch the app migrates an existing profile from a previous name (`Desk
 
 ### Linux
 
- - `~/.config/Desktop Claw/` - for all three package formats.
+ - `~/.config/Desktop Claw/` - for both the tarball install and the AppImage.
 
 ## Log Files
 

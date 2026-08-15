@@ -7,7 +7,8 @@ is no other distribution channel and no auto-updater.
   - [ ] Every artifact is attached, for both `x86_64` and `arm64`
     - [ ] Windows: `-windows-*.exe`, `-windows-*.msi`
     - [ ] macOS: `-macOS-arm64.zip`, `-macOS-x64.zip`
-    - [ ] Linux: `.deb`, `.rpm`, `.AppImage`
+    - [ ] Linux: `-linux-*.tar.gz` (+ its `.sha256`), `-linux-*.AppImage`
+  - [ ] `curl -fsSL https://zonaro.github.io/desktop-claw/install.sh | sh` installs and updates
   - [ ] Version reported in the app matches the release tag
   - [ ] Data is retained if you download and open a fresh copy
 

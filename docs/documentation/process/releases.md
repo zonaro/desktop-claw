@@ -61,7 +61,7 @@ Every release carries Windows, macOS and Linux builds, each for `x86_64` and `ar
 | -------- | ----------------------------------------------- |
 | Windows  | `.exe` installer, `.msi` (enterprise)           |
 | macOS    | `.zip`                                          |
-| Linux    | `.deb`, `.rpm`, `.AppImage`                     |
+| Linux    | `.tar.gz` (any distro), `.AppImage` (portable)  |
 
 Desktop Claw is **not** published to Winget, Homebrew, APT, DNF, the AUR, or Flathub, and there is no
 auto-updater — `getUpdatesURL()` returns an empty string on purpose, so the app never phones home for

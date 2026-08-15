@@ -224,8 +224,7 @@ jobs:
             dist/*.msi
             dist/*.nupkg
             dist/*.AppImage
-            dist/*.deb
-            dist/*.rpm
+            dist/*.tar.gz
             dist/*.sha256
             dist/bundle-size.json
             dist/bundle-hash.json
@@ -408,15 +407,17 @@ jobs:
           tag_name: v${{ env.APP_VERSION }}
           name: Desktop Claw v${{ env.APP_VERSION }}
           body: ${{ steps.release_notes.outputs.body }}
-          # Windows, macOS and Linux, distributed here and nowhere else:
-          # installers and OS-native packages, plus a portable AppImage.
+          # Windows, macOS and Linux, distributed here and nowhere else.
+          # Linux ships two artifacts only: the tarball that docs/install.sh
+          # installs on any distribution, and a portable AppImage. The .sha256
+          # files let the install script verify what it downloaded.
           files: |
             artifacts/**/DesktopClaw-*.exe
             artifacts/**/DesktopClaw-*.msi
             artifacts/**/DesktopClaw-*.zip
-            artifacts/**/DesktopClaw-*.deb
-            artifacts/**/DesktopClaw-*.rpm
+            artifacts/**/DesktopClaw-*.tar.gz
             artifacts/**/DesktopClaw-*.AppImage
+            artifacts/**/DesktopClaw-*.tar.gz.sha256
           draft: false
           fail_on_unmatched_files: true
         env:

@@ -175,8 +175,6 @@
     "webpack-cli": "^6.0.1"
   },
   "optionalDependencies": {
-    "electron-installer-debian": "3.2.0",
-    "electron-installer-redhat": "3.4.0",
     "electron-winstaller": "^5.0.0"
   },
   "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"

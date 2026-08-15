@@ -716,6 +716,75 @@ ul {
   color: var(--fg-subtle);
 }
 
+/* The one-line Linux installer, with a copy button pinned to its right. */
+.install-cmd {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--canvas-inset);
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+}
+
+.install-cmd pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-x: auto;
+  align-self: center;
+}
+
+.install-cmd code {
+  /* The shared .panel-card code rule adds a chip background that would double
+     up on the block's own. */
+  background: none;
+  padding: 0;
+  color: var(--fg);
+  white-space: pre;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--canvas);
+  color: var(--fg-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  color: var(--fg);
+  border-color: var(--border-strong, var(--brand-400));
+}
+
+.copy-btn.is-copied {
+  color: var(--brand-400);
+}
+
+.files-head {
+  margin: 1.75rem 0 0.75rem;
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 560px) {
+  .install-cmd {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem;
+  }
+
+  .copy-btn {
+    justify-content: center;
+  }
+}
+
 /* Download table: filename on the left, who it's for on the right. */
 .files {
   overflow: hidden;

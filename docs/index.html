@@ -69,6 +69,7 @@
     <svg xmlns="http://www.w3.org/2000/svg" class="sprite" hidden aria-hidden="true">
       <symbol id="i-octicon-mark-github-16" viewBox="0 0 16 16"><path fill="currentColor" d="M6.766 11.328c-2.063-.25-3.516-1.734-3.516-3.656c0-.781.281-1.625.75-2.188c-.203-.515-.172-1.609.063-2.062c.625-.078 1.468.25 1.968.703c.594-.187 1.219-.281 1.985-.281c.765 0 1.39.094 1.953.265c.484-.437 1.344-.765 1.969-.687c.218.422.25 1.515.046 2.047c.5.593.766 1.39.766 2.203c0 1.922-1.453 3.375-3.547 3.64c.531.344.89 1.094.89 1.954v1.625c0 .468.391.734.86.547C13.781 14.359 16 11.53 16 8.03C16 3.61 12.406 0 7.984 0C3.563 0 0 3.61 0 8.031a7.88 7.88 0 0 0 5.172 7.422c.422.156.828-.125.828-.547v-1.25c-.219.094-.5.156-.75.156c-1.031 0-1.64-.562-2.078-1.609c-.172-.422-.36-.672-.719-.719c-.187-.015-.25-.093-.25-.187c0-.188.313-.328.625-.328c.453 0 .844.281 1.25.86c.313.452.64.655 1.031.655s.641-.14 1-.5c.266-.265.47-.5.657-.656"/></symbol>
       <symbol id="i-octicon-download-16" viewBox="0 0 16 16"><path fill="currentColor" d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path fill="currentColor" d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06z"/></symbol>
+      <symbol id="i-octicon-copy-16" viewBox="0 0 16 16"><path fill="currentColor" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path fill="currentColor" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></symbol>
       <symbol id="i-octicon-sparkle-fill-16" viewBox="0 0 16 16"><path fill="currentColor" d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"/></symbol>
       <symbol id="i-octicon-git-branch-16" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.5 2.5 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25m-6 0a.75.75 0 1 0 1.5 0a.75.75 0 0 0-1.5 0m8.25-.75a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5M4.25 12a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5"/></symbol>
       <symbol id="i-octicon-check-16" viewBox="0 0 16 16"><path fill="currentColor" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 .018-1.042a.75.75 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0"/></symbol>
@@ -676,29 +677,65 @@
 
           <div class="panel" data-panel="linux" role="tabpanel" hidden>
             <div class="panel-card">
-              <h3>Linux</h3>
-              <p>Look for these files under &ldquo;Assets&rdquo; on the release.</p>
-              <ul class="files">
-                <li><code>.deb</code><span>x86_64 &middot; ARM64 <span class="subtle">&middot; Debian, Ubuntu, Mint, Pop!_OS, Zorin, elementary OS</span></span></li>
-                <li><code>.rpm</code><span>x86_64 &middot; ARM64 <span class="subtle">&middot; Fedora, RHEL, CentOS Stream, Rocky, AlmaLinux, openSUSE</span></span></li>
-                <li><code>.AppImage</code><span>x86_64 &middot; ARM64 <span class="subtle">&middot; Any distro</span></span></li>
-              </ul>
+              <h3>Any distribution</h3>
+              <p>
+                One command installs the latest release &mdash; and updates an existing installation
+                when you run it again.
+              </p>
+              <div class="install-cmd">
+                <pre><code>curl -fsSL https://zonaro.github.io/desktop-claw/install.sh | sh</code></pre>
+                <button class="copy-btn js-copy" type="button" aria-label="Copy the install command">
+                  <svg class="icon-sm icon"><use href="#i-octicon-copy-16" /></svg>
+                  <span>Copy</span>
+                </button>
+              </div>
               <ul class="notes">
                 <li>
-                  <svg class="icon-sm icon"><use href="#i-octicon-info-16" /></svg>
+                  <svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg>
                   <span>
-                    <code>gnome-keyring</code> is required to store your credentials, and its daemon
-                    must be running at login.
+                    Installs into <code>~/.local</code> &mdash; no <code>sudo</code>, nothing outside
+                    your home directory. Run it with <code>sudo</code> instead to install
+                    system-wide under <code>/opt/desktop-claw</code>.
+                  </span>
+                </li>
+                <li>
+                  <svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg>
+                  <span>
+                    Sets up the desktop entry, the icons and the
+                    <code>x-github-desktop-auth</code> URL handler that browser sign-in needs, and
+                    puts <code>desktop-claw</code> and <code>desktop-claw-cli</code> on your
+                    <code>PATH</code>.
                   </span>
                 </li>
                 <li>
                   <svg class="icon-sm icon"><use href="#i-octicon-info-16" /></svg>
                   <span>
-                    The AppImage needs to be marked as executable before it will run, and it takes
-                    some manual setup for sign-in to work: create a
-                    <code>desktop-claw.desktop</code> entry and point the
-                    <code>x-scheme-handler/x-github-desktop-auth</code> MIME type at it. Prefer the
-                    <code>.deb</code> or <code>.rpm</code> if your distro supports them.
+                    To remove it:
+                    <code>curl -fsSL https://zonaro.github.io/desktop-claw/install.sh | sh -s -- --uninstall</code>
+                  </span>
+                </li>
+              </ul>
+
+              <h4 class="files-head">Or download it yourself</h4>
+              <ul class="files">
+                <li><code>-linux-*.tar.gz</code><span>x86_64 &middot; ARM64 <span class="subtle">&middot; What the command above downloads &mdash; extract it and run <code>./install.sh</code></span></span></li>
+                <li><code>-linux-*.AppImage</code><span>x86_64 &middot; ARM64 <span class="subtle">&middot; Portable, installs nothing</span></span></li>
+              </ul>
+              <ul class="notes">
+                <li>
+                  <svg class="icon-sm icon"><use href="#i-octicon-info-16" /></svg>
+                  <span>
+                    Credentials are stored through libsecret, so a keyring daemon
+                    (<code>gnome-keyring</code>, KWallet with the libsecret bridge, &hellip;) must be
+                    running at login.
+                  </span>
+                </li>
+                <li>
+                  <svg class="icon-sm icon"><use href="#i-octicon-info-16" /></svg>
+                  <span>
+                    The AppImage needs to be marked as executable before it will run, and it
+                    registers no URL handler &mdash; browser sign-in only works with the tarball
+                    install.
                   </span>
                 </li>
               </ul>

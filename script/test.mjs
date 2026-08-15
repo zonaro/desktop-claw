@@ -51,6 +51,12 @@ const args = [
   ...['--import', './app/test/globals.mts'],
   ...switchArgs,
   '--test',
+  // Node's default test-file concurrency (CPU cores - 1) runs every heavy
+  // React/jsdom suite in its own process at once. On memory-constrained CI
+  // runners that peaks high enough to OOM (observed as a V8 "Committing semi
+  // space failed" crash); capping it trades a bit of wall time for headroom.
+  // Left uncapped locally so dev runs stay fast.
+  ...(process.env.GITHUB_ACTIONS ? ['--test-concurrency=2'] : []),
   ...reporter('spec'),
   ...(process.env.GITHUB_ACTIONS ? reporter('node-test-github-reporter') : []),
   ...files,

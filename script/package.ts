@@ -36,8 +36,7 @@ import { join } from 'path'
 import { assertNonNullable } from '../app/src/lib/fatal-error'
 
 import { packageElectronBuilder } from './package-electron-builder'
-import { packageDebian } from './package-debian'
-import { packageRedhat } from './package-redhat'
+import { packageTarball } from './package-tarball'
 
 const distPath = getDistPath()
 const productName = getProductName()
@@ -234,11 +233,12 @@ async function packageLinux() {
     await chmod(helperPath, 0o4755)
   }
   try {
+    // Two artifacts only: a portable AppImage, and a tarball that the install
+    // script turns into a working installation on any distribution.
     const appImagePackage = await packageElectronBuilder()
-    const debianPackage = await packageDebian()
-    const redhatPackage = await packageRedhat()
+    const tarballPackage = await packageTarball()
 
-    const installers = [appImagePackage, debianPackage, redhatPackage]
+    const installers = [appImagePackage, tarballPackage]
 
     console.log(`Installers created:`)
     for (const installer of installers) {

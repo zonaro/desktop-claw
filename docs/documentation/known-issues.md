@@ -244,7 +244,11 @@ If you see an error that says "Not enough resources are available to process thi
 
 Related issue: [#54](https://github.com/desktop-plus/desktop-plus/issues/54)
 
-First of all, make sure you are not using the AppImage package, as it requires some manual setup for the sign-in feature to work. Instead, I strongly recommend the `.deb` or `.rpm` package for your distribution.
+First of all, make sure you are not using the AppImage package, as it registers no URL handler and requires some manual setup for the sign-in feature to work. Instead, I strongly recommend the tarball install, which sets the handler up for you:
+
+```bash
+curl -fsSL https://zonaro.github.io/desktop-claw/install.sh | sh
+```
 
 If the app remains stuck on the "Continue with browser" screen after following the instructions in your web browser, the most likely cause is that the URI scheme used by Desktop Claw for authorization (`x-github-desktop-auth://`) is not linked to the correct program. You can verify if this is the case by fully closing Desktop Claw (Menu: **File** -> **Exit**) and running the following command in your terminal:
 

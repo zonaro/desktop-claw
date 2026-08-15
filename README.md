@@ -33,6 +33,38 @@ Desktop Claw is distributed exclusively through
 **[GitHub Releases](https://github.com/zonaro/desktop-claw/releases/latest)**. It is not published to
 Winget, Homebrew, APT, DNF, the AUR, or Flathub.
 
+### Linux 🐧
+
+One command installs the latest release on **any** distribution — and running it again updates an
+existing installation in place:
+
+```bash
+curl -fsSL https://zonaro.github.io/desktop-claw/install.sh | sh
+```
+
+It installs into `~/.local` (no `sudo`, nothing outside your home directory), registers the desktop
+entry, icons and the `x-github-desktop-auth` URL handler that sign-in needs, and puts `desktop-claw`
+and `desktop-claw-cli` on your `PATH`. Run it with `sudo` instead to install system-wide under
+`/opt/desktop-claw`. To remove it again:
+
+```bash
+curl -fsSL https://zonaro.github.io/desktop-claw/install.sh | sh -s -- --uninstall
+```
+
+Prefer to do it by hand, or want a portable build? The release ships two Linux files, both built for
+`x86_64` and `arm64`:
+
+| File | Notes |
+| --- | --- |
+| `-linux-*.tar.gz` | What the command above downloads. Extract it anywhere and run `./install.sh` inside. |
+| `-linux-*.AppImage` | Portable, installs nothing. Mark it executable before running. |
+
+> **Linux:** credentials are stored through libsecret, so a keyring daemon (`gnome-keyring`, KWallet
+> with the libsecret bridge, …) must be running at login. The AppImage registers no URL handler, so
+> browser sign-in only works with the tarball install.
+
+### Windows and macOS 🪟🍎
+
 Download the file for your platform from the latest release and install it:
 
 | Platform | File | Notes |
@@ -42,23 +74,14 @@ Download the file for your platform from the latest release and install it:
 | **Windows** (enterprise) | `-windows-*.msi` | ⚠️ Registers a hook that installs the app at next login, so it needs a reboot. Not recommended for regular users. |
 | **macOS** (Apple Silicon) | `-macOS-arm64.zip` | M1 and newer. Unzip and drag into Applications. |
 | **macOS** (Intel) | `-macOS-x64.zip` | Unzip and drag into Applications. |
-| **Linux** (Debian family) | `.deb` | Debian, Ubuntu, Mint, Pop!_OS, Zorin, elementary OS. |
-| **Linux** (RPM family) | `.rpm` | Fedora, RHEL, CentOS Stream, Rocky, AlmaLinux, openSUSE. |
-| **Linux** (any distro) | `.AppImage` | Portable. Mark it executable before running. |
-
-Each file is built for both `x86_64` and `arm64`.
 
 > **macOS:** if the system reports it can't verify the app, open "System Settings" > "Privacy &
 > Security", scroll to "Security" and click "Open Anyway" on Desktop Claw.
 
-> **Linux:** `gnome-keyring` is required to store credentials, and its daemon must be running at
-> login. For the AppImage specifically, sign-in also needs a `desktop-claw.desktop` entry with the
-> `x-scheme-handler/x-github-desktop-auth` MIME type pointed at it — prefer the `.deb` or `.rpm`
-> when your distro supports them.
-
 ### Updating 🔄
 
-The app does **not** update itself. Watch the repository on GitHub, or check the
+The app does **not** update itself. On Linux, re-run the install command above whenever you want the
+newest build. On Windows and macOS, watch the repository on GitHub or check the
 [releases page](https://github.com/zonaro/desktop-claw/releases/latest) now and then, and install the
 newer file over your current version.
 

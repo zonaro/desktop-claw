@@ -60,6 +60,28 @@
     }
   }
 
+  /* ------------------------------------------------ copy install command -- */
+
+  document.querySelectorAll('.js-copy').forEach(function (button) {
+    var label = button.querySelector('span')
+    var code = button.parentNode.querySelector('code')
+
+    if (label === null || code === null || !navigator.clipboard) {
+      return
+    }
+
+    button.addEventListener('click', function () {
+      navigator.clipboard.writeText(code.textContent.trim()).then(function () {
+        label.textContent = 'Copied'
+        button.classList.add('is-copied')
+        window.setTimeout(function () {
+          label.textContent = 'Copy'
+          button.classList.remove('is-copied')
+        }, 2000)
+      })
+    })
+  })
+
   /* --------------------------------------------------- screenshot viewer -- */
 
   var lightbox = document.getElementById('lightbox')
