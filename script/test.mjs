@@ -62,6 +62,13 @@ const args = [
   // exceed the single heaviest file's own usage. Left uncapped locally so dev
   // runs stay fast.
   ...(process.env.GITHUB_ACTIONS ? ['--test-concurrency=1'] : []),
+  // Without this a hung test reports only as an opaque file-level "test
+  // failed" once the whole file's process is torn down (that's how the OOM
+  // above was originally masked — 11+ minutes of silence with no indication
+  // of which `it()` was stuck). A per-test bound turns that into a normal,
+  // attributable timeout failure naming the actual test, and caps how long a
+  // stuck test can occupy the process before the next one gets a turn.
+  '--test-timeout=30000',
   ...reporter('spec'),
   ...(process.env.GITHUB_ACTIONS ? reporter('node-test-github-reporter') : []),
   ...files,
