@@ -53,10 +53,15 @@ const args = [
   '--test',
   // Node's default test-file concurrency (CPU cores - 1) runs every heavy
   // React/jsdom suite in its own process at once. On memory-constrained CI
-  // runners that peaks high enough to OOM (observed as a V8 "Committing semi
-  // space failed" crash); capping it trades a bit of wall time for headroom.
-  // Left uncapped locally so dev runs stay fast.
-  ...(process.env.GITHUB_ACTIONS ? ['--test-concurrency=2'] : []),
+  // runners that peaked high enough to OOM (observed as a V8 "Committing semi
+  // space failed" crash on Windows and a silent kill on macOS, both inside
+  // the largest UI suite before it was split up — see
+  // app/test/helpers/ui/copilot-preferences-fixtures.tsx). Running test files
+  // fully serially in CI trades wall time for a hard ceiling: only one
+  // jsdom/React process's heap exists at a time, so peak memory can never
+  // exceed the single heaviest file's own usage. Left uncapped locally so dev
+  // runs stay fast.
+  ...(process.env.GITHUB_ACTIONS ? ['--test-concurrency=1'] : []),
   ...reporter('spec'),
   ...(process.env.GITHUB_ACTIONS ? reporter('node-test-github-reporter') : []),
   ...files,
