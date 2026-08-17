@@ -10,6 +10,7 @@ import { MultipleSelection } from './changes/multiple-selection'
 import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommits, CompareSidebar, CommitGraphSidebar } from './history'
 import { WorktreeFileTree, WorktreeFilePreview } from './worktree'
+import { OpenCodeSessionList, OpenCodeConversation } from './opencode'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import {
@@ -180,12 +181,8 @@ interface IRepositoryViewState {
   readonly compareListScrollTop: number
 }
 
-const enum Tab {
-  Changes = 0,
-  History = 1,
-  Compare = 2,
-  Worktree = 3,
-}
+/** The index of a tab in the repository tab bar. */
+type Tab = number
 
 export class RepositoryView extends React.Component<
   IRepositoryViewProps,
@@ -277,53 +274,44 @@ export class RepositoryView extends React.Component<
         <div className="with-indicator" id="worktree-tab">
           <span>Files</span>
         </div>
+
+        <div className="with-indicator" id="opencode-tab">
+          <span>OpenCode</span>
+        </div>
       </TabBar>
     )
   }
 
+  /**
+   * The sections rendered as tabs, in display order. Compare is optional, so
+   * the mapping between a section and its tab index has to be computed rather
+   * than hard coded.
+   */
+  private getVisibleSections(): ReadonlyArray<RepositorySectionTab> {
+    return [
+      RepositorySectionTab.Changes,
+      RepositorySectionTab.History,
+      ...(this.props.showCompareTab ? [RepositorySectionTab.Compare] : []),
+      RepositorySectionTab.Worktree,
+      RepositorySectionTab.OpenCode,
+    ]
+  }
+
   private sectionToTab(section: RepositorySectionTab): Tab {
-    switch (section) {
-      case RepositorySectionTab.Changes:
-        return Tab.Changes
-      case RepositorySectionTab.History:
-        return Tab.History
-      case RepositorySectionTab.Compare:
-        return Tab.Compare
-      case RepositorySectionTab.Worktree:
-        return Tab.Worktree
-      default:
-        return assertNever(section, 'Unknown repository section')
-    }
+    const index = this.getVisibleSections().indexOf(section)
+
+    return index === -1 ? 0 : index
   }
 
   private tabToSection(tab: Tab): RepositorySectionTab {
-    switch (tab) {
-      case Tab.Changes:
-        return RepositorySectionTab.Changes
-      case Tab.History:
-        return RepositorySectionTab.History
-      case Tab.Compare:
-        return RepositorySectionTab.Compare
-      case Tab.Worktree:
-        return RepositorySectionTab.Worktree
-      default:
-        return assertNever(tab, 'Unknown tab')
-    }
+    return this.getVisibleSections()[tab] ?? RepositorySectionTab.Changes
   }
 
   private nextSection(section: RepositorySectionTab): RepositorySectionTab {
-    switch (section) {
-      case RepositorySectionTab.Changes:
-        return RepositorySectionTab.History
-      case RepositorySectionTab.History:
-        return RepositorySectionTab.Compare
-      case RepositorySectionTab.Compare:
-        return RepositorySectionTab.Worktree
-      case RepositorySectionTab.Worktree:
-        return RepositorySectionTab.Changes
-      default:
-        return assertNever(section, 'Unknown repository section')
-    }
+    const sections = this.getVisibleSections()
+    const index = sections.indexOf(section)
+
+    return sections[(index + 1) % sections.length]
   }
 
   private onShowCommitProgress = () => {
@@ -565,6 +553,8 @@ export class RepositoryView extends React.Component<
       return this.renderCompareSidebar()
     } else if (selectedSection === RepositorySectionTab.Worktree) {
       return this.renderWorktreeSidebar()
+    } else if (selectedSection === RepositorySectionTab.OpenCode) {
+      return this.renderOpenCodeSidebar()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -826,6 +816,8 @@ export class RepositoryView extends React.Component<
       return this.renderContentForHistory()
     } else if (selectedSection === RepositorySectionTab.Worktree) {
       return this.renderWorktreeContent()
+    } else if (selectedSection === RepositorySectionTab.OpenCode) {
+      return this.renderOpenCodeContent()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
@@ -863,6 +855,26 @@ export class RepositoryView extends React.Component<
     this.props.dispatcher.setSelectedWorktreeFile(
       this.props.repository,
       filePath
+    )
+  }
+
+  private renderOpenCodeSidebar(): JSX.Element {
+    return (
+      <OpenCodeSessionList
+        repository={this.props.repository}
+        state={this.props.state.openCodeState}
+        dispatcher={this.props.dispatcher}
+      />
+    )
+  }
+
+  private renderOpenCodeContent(): JSX.Element {
+    return (
+      <OpenCodeConversation
+        repository={this.props.repository}
+        state={this.props.state.openCodeState}
+        dispatcher={this.props.dispatcher}
+      />
     )
   }
 

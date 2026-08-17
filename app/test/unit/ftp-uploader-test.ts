@@ -185,9 +185,7 @@ describe('buildFtpUploadFileList', () => {
 
 describe('mapFtpError', () => {
   it('maps FTPError code 530 to "Authentication failed"', () => {
-    const result = mapFtpError(
-      new FTPError({ code: 530, message: 'auth' })
-    )
+    const result = mapFtpError(new FTPError({ code: 530, message: 'auth' }))
     assert.ok(result instanceof Error)
     assert.strictEqual(result.message, 'Authentication failed')
   })

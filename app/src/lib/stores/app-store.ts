@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { writeFile } from 'fs/promises'
+import { readdir, writeFile } from 'fs/promises'
 import {
   defaultShowBranchNameInRepoListSetting,
   ShowBranchNameInRepoListSetting,
@@ -393,6 +393,8 @@ import {
 import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
 import { sendNonFatalException } from '../helpers/non-fatal-exception'
+import { getRepoDirectory } from '../helpers/repo-directory'
+import { directoryExists } from '../directory-exists'
 import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { IFtpDeployment } from '../../models/ftp-deployment'
@@ -403,6 +405,9 @@ import {
 import { OpenCodeCommitMessageGenerator } from '../commit-message-generator/opencode-commit-message-generator'
 import { CopilotCommitMessageGenerator } from '../commit-message-generator/copilot-commit-message-generator'
 import { generateCommitReview } from '../opencode/commit-review'
+import { OpenCodeClient } from '../opencode/opencode-client'
+import { loadOpenCodeConfig } from '../opencode/opencode-config'
+import { IOpenCodeServerStatus } from '../../models/opencode-session'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
@@ -722,6 +727,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private branchDropdownWidth = constrain(defaultBranchDropdownWidth)
   private worktreeDropdownWidth = constrain(defaultWorktreeDropdownWidth)
   private pushPullButtonWidth = constrain(defaultPushPullButtonWidth)
+
+  /**
+   * The in-flight (or resolved) start of the local OpenCode server. A single
+   * server instance serves every repository, so this is shared app-wide.
+   */
+  private openCodeServerPromise: Promise<IOpenCodeServerStatus> | null = null
 
   private windowState: WindowState | null = null
   private windowZoomFactor: number = 1
@@ -3259,6 +3270,10 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accountsStore.refresh()
 
     this.updateMenuLabelsForSelectedRepository()
+
+    // Scan the configured repo directory for Git repositories and add them
+    // to the app automatically (non-blocking).
+    this._scanRepoDirectory()
   }
 
   /**
@@ -3999,6 +4014,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     } else if (selectedSection === RepositorySectionTab.Worktree) {
       await this.loadWorktreeFiles(repository)
+    } else if (selectedSection === RepositorySectionTab.OpenCode) {
+      await this._refreshOpenCodeSessions(repository)
     }
 
     if (forceButtonFocus) {
@@ -4048,6 +4065,197 @@ export class AppStore extends TypedBaseStore<IAppState> {
       worktreeState: {
         ...state.worktreeState,
         selectedFile,
+      },
+    }))
+    this.emitUpdate()
+  }
+
+  /**
+   * Starts the OpenCode server if it isn't running yet and returns its status.
+   *
+   * A single server serves every repository, so the promise is shared between
+   * concurrent callers to avoid spawning more than one process.
+   */
+  private ensureOpenCodeServer(): Promise<IOpenCodeServerStatus> {
+    if (this.openCodeServerPromise === null) {
+      const { command } = loadOpenCodeConfig()
+
+      this.openCodeServerPromise = ipcRenderer
+        .invoke('opencode-server-start', command)
+        .then(status => {
+          // Only a running server is worth caching; a failed attempt should be
+          // retried the next time the user opens the tab.
+          if (!status.running) {
+            this.openCodeServerPromise = null
+          }
+          return status
+        })
+    }
+
+    return this.openCodeServerPromise
+  }
+
+  /**
+   * Loads the OpenCode sessions for the repository, starting the server first
+   * when needed.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _refreshOpenCodeSessions(repository: Repository): Promise<void> {
+    this.repositoryStateCache.update(repository, state => ({
+      openCodeState: {
+        ...state.openCodeState,
+        isStartingServer: state.openCodeState.server === null,
+      },
+    }))
+    this.emitUpdate()
+
+    const server = await this.ensureOpenCodeServer()
+    const client = OpenCodeClient.fromStatus(server)
+
+    if (client === null) {
+      this.repositoryStateCache.update(repository, state => ({
+        openCodeState: {
+          ...state.openCodeState,
+          server,
+          isStartingServer: false,
+          sessions: null,
+          error: server.error,
+        },
+      }))
+      this.emitUpdate()
+      return
+    }
+
+    try {
+      const sessions = [...(await client.listSessions(repository.path))].sort(
+        (x, y) => y.time.updated - x.time.updated
+      )
+
+      this.repositoryStateCache.update(repository, state => {
+        const { selectedSessionID } = state.openCodeState
+
+        // Keep the current selection as long as the session still exists,
+        // otherwise fall back to the most recently updated one.
+        const selected =
+          selectedSessionID !== null &&
+          sessions.some(s => s.id === selectedSessionID)
+            ? selectedSessionID
+            : sessions.length > 0
+            ? sessions[0].id
+            : null
+
+        return {
+          openCodeState: {
+            ...state.openCodeState,
+            server,
+            isStartingServer: false,
+            sessions,
+            selectedSessionID: selected,
+            error: null,
+          },
+        }
+      })
+      this.emitUpdate()
+    } catch (e) {
+      log.error('Failed to load OpenCode sessions', e)
+      this.setOpenCodeError(repository, server, e)
+    }
+  }
+
+  /**
+   * Sets the session shown in the OpenCode conversation view.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public _setSelectedOpenCodeSession(
+    repository: Repository,
+    selectedSessionID: string | null
+  ): void {
+    this.repositoryStateCache.update(repository, state => ({
+      openCodeState: {
+        ...state.openCodeState,
+        selectedSessionID,
+      },
+    }))
+    this.emitUpdate()
+  }
+
+  /**
+   * Creates a new OpenCode session for the repository and selects it.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _createOpenCodeSession(repository: Repository): Promise<void> {
+    const server = await this.ensureOpenCodeServer()
+    const client = OpenCodeClient.fromStatus(server)
+
+    if (client === null) {
+      this.setOpenCodeError(repository, server, server.error)
+      return
+    }
+
+    try {
+      const session = await client.createSession(repository.path)
+      await this._refreshOpenCodeSessions(repository)
+      this._setSelectedOpenCodeSession(repository, session.id)
+    } catch (e) {
+      log.error('Failed to create an OpenCode session', e)
+      this.setOpenCodeError(repository, server, e)
+    }
+  }
+
+  /**
+   * Deletes an OpenCode session and its message history.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _deleteOpenCodeSession(
+    repository: Repository,
+    sessionID: string
+  ): Promise<void> {
+    const server = await this.ensureOpenCodeServer()
+    const client = OpenCodeClient.fromStatus(server)
+
+    if (client === null) {
+      this.setOpenCodeError(repository, server, server.error)
+      return
+    }
+
+    try {
+      await client.deleteSession(repository.path, sessionID)
+
+      // Drop the selection first so the conversation view doesn't try to load
+      // a session that no longer exists.
+      this.repositoryStateCache.update(repository, state => ({
+        openCodeState: {
+          ...state.openCodeState,
+          selectedSessionID:
+            state.openCodeState.selectedSessionID === sessionID
+              ? null
+              : state.openCodeState.selectedSessionID,
+        },
+      }))
+
+      await this._refreshOpenCodeSessions(repository)
+    } catch (e) {
+      log.error(`Failed to delete the OpenCode session ${sessionID}`, e)
+      this.setOpenCodeError(repository, server, e)
+    }
+  }
+
+  /** Records an OpenCode failure so the tab can render it inline. */
+  private setOpenCodeError(
+    repository: Repository,
+    server: IOpenCodeServerStatus,
+    error: unknown
+  ): void {
+    this.repositoryStateCache.update(repository, state => ({
+      openCodeState: {
+        ...state.openCodeState,
+        server,
+        isStartingServer: false,
+        error: error instanceof Error ? error.message : String(error),
       },
     }))
     this.emitUpdate()
@@ -4843,6 +5051,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     } else if (section === RepositorySectionTab.Worktree) {
       refreshSectionPromise = this.loadWorktreeFiles(repository)
+    } else if (section === RepositorySectionTab.OpenCode) {
+      refreshSectionPromise = this._refreshOpenCodeSessions(repository)
     } else {
       return assertNever(section, `Unknown section: ${section}`)
     }
@@ -9699,6 +9909,49 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return addedRepositories
+  }
+
+  /**
+   * Scan the configured repo directory for Git repositories and add them
+   * to the app automatically.
+   *
+   * Only direct subfolders of the repo directory are considered. This is
+   * called on startup and whenever the repo directory preference changes.
+   */
+  public async _scanRepoDirectory(): Promise<void> {
+    const repoDirectory = getRepoDirectory()
+
+    if (repoDirectory === null || !(await directoryExists(repoDirectory))) {
+      return
+    }
+
+    try {
+      const entries = await readdir(repoDirectory, { withFileTypes: true })
+
+      const paths = new Array<string>()
+
+      for (const entry of entries) {
+        if (!entry.isDirectory()) {
+          continue
+        }
+
+        const path = Path.join(repoDirectory, entry.name)
+        const repositoryType = await getRepositoryType(path).catch(e => {
+          log.error('Could not determine repository type', e)
+          return { kind: 'missing' } as RepositoryType
+        })
+
+        if (repositoryType.kind === 'regular') {
+          paths.push(repositoryType.topLevelWorkingDirectory)
+        }
+      }
+
+      if (paths.length > 0) {
+        await this._addRepositories(paths, null)
+      }
+    } catch (e) {
+      log.error(`[AppStore] failed to scan repo directory ${repoDirectory}`, e)
+    }
   }
 
   public async _relocateRepository(repository: Repository): Promise<void> {

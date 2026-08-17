@@ -397,6 +397,13 @@ function getInitialRepositoryState(): IRepositoryState {
       files: null,
       selectedFile: null,
     },
+    openCodeState: {
+      server: null,
+      isStartingServer: false,
+      sessions: null,
+      selectedSessionID: null,
+      error: null,
+    },
     selectedSection: RepositorySectionTab.Changes,
     branchesState: {
       tip: { kind: TipState.Unknown },

@@ -11,9 +11,7 @@ import type { ICopilotCommitMessage } from '../copilot-commit-message'
  * generation to the existing Copilot SDK integration provided by
  * {@link CopilotStore}.
  */
-export class CopilotCommitMessageGenerator
-  implements ICommitMessageGenerator
-{
+export class CopilotCommitMessageGenerator implements ICommitMessageGenerator {
   public readonly id = 'copilot' as const
 
   public constructor(

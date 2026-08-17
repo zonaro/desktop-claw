@@ -177,9 +177,7 @@ export class EditFtpDeploymentForm extends React.Component<
           <Row>
             <Checkbox
               label="Active (available for upload)"
-              value={
-                this.state.active ? CheckboxValue.On : CheckboxValue.Off
-              }
+              value={this.state.active ? CheckboxValue.On : CheckboxValue.Off}
               onChange={this.onActiveChanged}
             />
           </Row>
@@ -198,11 +196,9 @@ export class EditFtpDeploymentForm extends React.Component<
 
   private onPortChanged = (port: string) => this.setState({ port })
 
-  private onUsernameChanged = (username: string) =>
-    this.setState({ username })
+  private onUsernameChanged = (username: string) => this.setState({ username })
 
-  private onPasswordChanged = (password: string) =>
-    this.setState({ password })
+  private onPasswordChanged = (password: string) => this.setState({ password })
 
   private onRemotePathChanged = (remotePath: string) =>
     this.setState({ remotePath })

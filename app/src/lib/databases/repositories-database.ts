@@ -275,7 +275,5 @@ async function ensureFtpDeploymentsField(tx: Transaction) {
     .toCollection()
     .filter(r => r.ftpDeployments === undefined)
     .modify({ ftpDeployments: [] })
-    .then(modified =>
-      log.info(`ensureFtpDeploymentsField: ${modified}`)
-    )
+    .then(modified => log.info(`ensureFtpDeploymentsField: ${modified}`))
 }

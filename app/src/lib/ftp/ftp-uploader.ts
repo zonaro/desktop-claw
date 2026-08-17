@@ -200,10 +200,7 @@ export async function uploadFtpDeployment(options: {
       try {
         await client.uploadFrom(absLocal, remotePosixPath)
       } catch (e) {
-        if (
-          e instanceof Error &&
-          e.message.includes('User closed client')
-        ) {
+        if (e instanceof Error && e.message.includes('User closed client')) {
           throw new FtpUploadCancelledError()
         }
         throw e
@@ -225,10 +222,7 @@ export async function uploadFtpDeployment(options: {
     if (e instanceof FtpUploadCancelledError) {
       throw e
     }
-    if (
-      e instanceof Error &&
-      e.message.includes('User closed client')
-    ) {
+    if (e instanceof Error && e.message.includes('User closed client')) {
       throw new FtpUploadCancelledError()
     }
     throw e

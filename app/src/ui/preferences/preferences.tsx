@@ -43,10 +43,15 @@ import {
   setDefaultBranch,
   getDefaultBranch,
 } from '../../lib/helpers/default-branch'
+import {
+  getRepoDirectory,
+  setRepoDirectory,
+} from '../../lib/helpers/repo-directory'
 import { Prompts } from './prompts'
 import { Repository } from '../../models/repository'
 import { Notifications } from './notifications'
 import { Accessibility } from './accessibility'
+import { showOpenDialog } from '../main-process-proxy'
 import { ShowBranchNameInRepoListSetting } from '../../models/show-branch-name-in-repo-list'
 import {
   CopyPathNormalization,
@@ -156,6 +161,7 @@ interface IPreferencesState {
   readonly committerName: string
   readonly committerEmail: string
   readonly defaultBranch: string
+  readonly repoDirectory: string
   readonly initialCommitterName: string | null
   readonly initialCommitterEmail: string | null
   readonly initialDefaultBranch: string | null
@@ -257,6 +263,7 @@ export class Preferences extends React.Component<
       committerName: '',
       committerEmail: '',
       defaultBranch: '',
+      repoDirectory: getRepoDirectory() ?? '',
       initialCommitterName: null,
       initialCommitterEmail: null,
       initialDefaultBranch: null,
@@ -751,6 +758,9 @@ export class Preferences extends React.Component<
                 !!this.state.initialCommitterEmail
               }
               onSetGlobalAuthorChanged={this.onSetGlobalAuthorChanged}
+              repoDirectory={this.state.repoDirectory}
+              onRepoDirectoryChanged={this.onRepoDirectoryChanged}
+              onChooseRepoDirectory={this.onChooseRepoDirectory}
             />
           </>
         )
@@ -812,9 +822,7 @@ export class Preferences extends React.Component<
             }
             onPreferAbsoluteDatesChanged={this.onPreferAbsoluteDatesChanged}
             enableMarkdownWysiwyg={this.state.enableMarkdownWysiwyg}
-            onEnableMarkdownWysiwygChanged={
-              this.onEnableMarkdownWysiwygChanged
-            }
+            onEnableMarkdownWysiwygChanged={this.onEnableMarkdownWysiwygChanged}
           />
         )
         break
@@ -959,6 +967,24 @@ export class Preferences extends React.Component<
     this.setState({ setGlobalAuthor })
   }
 
+  private onRepoDirectoryChanged = (repoDirectory: string) => {
+    this.setState({ repoDirectory })
+  }
+
+  private onChooseRepoDirectory = async (): Promise<string | undefined> => {
+    const path = await showOpenDialog({
+      properties: ['createDirectory', 'openDirectory'],
+    })
+
+    if (path === null) {
+      return
+    }
+
+    this.setState({ repoDirectory: path })
+
+    return path
+  }
+
   private onNotificationsEnabledChanged = (notificationsEnabled: boolean) => {
     this.setState({ notificationsEnabled })
   }
@@ -1100,9 +1126,7 @@ export class Preferences extends React.Component<
     this.setState({ showDiffCheckMarks })
   }
 
-  private onEnableMarkdownWysiwygChanged = (
-    enableMarkdownWysiwyg: boolean
-  ) => {
+  private onEnableMarkdownWysiwygChanged = (enableMarkdownWysiwyg: boolean) => {
     this.setState({ enableMarkdownWysiwyg })
   }
 
@@ -1332,6 +1356,14 @@ export class Preferences extends React.Component<
           setGitHookEnvShell(this.state.selectedGitHookEnvShell)
         }
       }
+
+      const currentRepoDirectory = getRepoDirectory() ?? ''
+      if (this.state.repoDirectory !== currentRepoDirectory) {
+        setRepoDirectory(this.state.repoDirectory)
+        // Scan the newly configured repo directory for Git repositories and
+        // add them to the app automatically (non-blocking).
+        dispatcher.scanRepoDirectory()
+      }
     } catch (e) {
       if (isConfigFileLockError(e)) {
         const lockFilePath = parseConfigLockFilePathFromError(e.result)
@@ -1440,9 +1472,7 @@ export class Preferences extends React.Component<
 
     dispatcher.setDiffCheckMarksSetting(this.state.showDiffCheckMarks)
 
-    dispatcher.setEnableMarkdownWysiwygSetting(
-      this.state.enableMarkdownWysiwyg
-    )
+    dispatcher.setEnableMarkdownWysiwygSetting(this.state.enableMarkdownWysiwyg)
 
     dispatcher.setShowBranchNameInRepoList(this.state.showBranchNameInRepoList)
     dispatcher.setBranchSortOrder(this.state.branchSortOrder)

@@ -9,6 +9,10 @@
   .worktree-file-tree-item {
     display: flex;
     flex-direction: column;
+    // Rows are flex items of the tree and carry `overflow: hidden`, which
+    // zeroes their automatic minimum size. Without this the tree squeezes the
+    // rows down to whatever height is available instead of scrolling.
+    flex-shrink: 0;
 
     .worktree-file-tree-dir-header,
     &.worktree-file-tree-item-file {
@@ -16,6 +20,7 @@
       flex-direction: row;
       align-items: center;
       height: 26px;
+      flex-shrink: 0;
       padding-right: 8px;
       cursor: pointer;
       white-space: nowrap;

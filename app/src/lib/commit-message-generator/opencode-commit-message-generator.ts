@@ -19,9 +19,7 @@ import type { IOpenCodeAvailability } from '../../models/opencode'
  * A {@link ICommitMessageGenerator} that generates commit messages by
  * invoking the OpenCode CLI through the main-process runner via typed IPC.
  */
-export class OpenCodeCommitMessageGenerator
-  implements ICommitMessageGenerator
-{
+export class OpenCodeCommitMessageGenerator implements ICommitMessageGenerator {
   public readonly id = 'openCode' as const
 
   /**
@@ -38,9 +36,7 @@ export class OpenCodeCommitMessageGenerator
   ): Promise<ICopilotCommitMessage> {
     const config = loadOpenCodeConfig()
     const tags = generateCommitMessagePromptTags()
-    const rules = getCleanedEnforcedRuleDescriptions(
-      request.commitMessageRules
-    )
+    const rules = getCleanedEnforcedRuleDescriptions(request.commitMessageRules)
     const prompt =
       buildCommitMessageSystemPrompt(rules.length > 0, tags) +
       '\n\n' +

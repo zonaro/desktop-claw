@@ -1,12 +1,14 @@
 import * as Path from 'path'
 import { getDocumentsPath } from './app-proxy'
 import { Account } from '../../models/account'
+import { getRepoDirectory } from '../../lib/helpers/repo-directory'
 
 const localStorageKey = 'last-clone-location'
 
 /** The path to the default directory. */
 export async function getDefaultDir(): Promise<string> {
   return (
+    getRepoDirectory() ||
     localStorage.getItem(localStorageKey) ||
     Path.join(await getDocumentsPath(), 'GitHub')
   )

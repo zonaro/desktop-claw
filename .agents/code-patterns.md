@@ -1,62 +1,62 @@
-# Padrões de código
+# Code patterns
 
-Convenções seguidas pelo código (algumas reforçadas por regras eslint custom em `eslint-rules/`).
+Conventions followed by the code (some enforced by custom eslint rules in `eslint-rules/`).
 
 ## TypeScript
 
-- **Named exports** sempre (sem default exports)
-- **Interfaces com prefixo `I`** para tipos de dados (`IFtpDeployment`, `IRepository` onde aplicável)
-- **Union types em vez de enums novos** (convenção deste fork)
-- **Props e state readonly**: `public readonly foo: Foo` — enforced por `react-readonly-props-and-state`
-- Tipos compartilhados entre processos vivem no layer `models/`; `ipc-shared.ts` só importa de `models/`
+- **Named exports** always (no default exports)
+- **`I`-prefixed interfaces** for data types (`IFtpDeployment`, `IRepository` where applicable)
+- **Union types instead of new enums** (convention of this fork)
+- **Readonly props and state**: `public readonly foo: Foo` — enforced by `react-readonly-props-and-state`
+- Types shared between processes live in the `models/` layer; `ipc-shared.ts` only imports from `models/`
 
 ## React (16.8, class components)
 
-- Componentes são classes (React 16 — não portar para hooks sem necessidade)
-- Métodos de lifecycle corretos e bem formados — regra `react-proper-lifecycle-methods`
-- Props de dispatcher devem estar bound (arrow functions/métodos bound) — regra `react-no-unbound-dispatcher-props`
-- UI organizada **por feature**: `app/src/ui/<feature>/` com componentes, dialogs (`*-dialog.tsx`) e styles SCSS co-localizados
-- Popups: registrar em `PopupType` (`app/src/models/popup.ts`) e rotear via `app.tsx`
-- Classnames via pacote `classnames`
+- Components are classes (React 16 — don't port to hooks without need)
+- Correct, well-formed lifecycle methods — rule `react-proper-lifecycle-methods`
+- Dispatcher props must be bound (arrow functions/bound methods) — rule `react-no-unbound-dispatcher-props`
+- UI organized **by feature**: `app/src/ui/<feature>/` with components, dialogs (`*-dialog.tsx`) and co-located SCSS styles
+- Popups: register in `PopupType` (`app/src/models/popup.ts`) and route via `app.tsx`
+- Classnames via the `classnames` package
 
-## Fluxo de estado
+## State flow
 
-- Componentes **nunca** chamam stores diretamente; toda ação passa pelo dispatcher (`app/src/ui/dispatcher/dispatcher.ts`)
-- Stores herdam `BaseStore` e notificam via event-kit; UI se inscreve com `subscribe()`
-- Estado de repositório cacheado (`git-store-cache.ts`, `repository-state-cache.ts`) — respeitar o padrão existente antes de criar cache novo
+- Components **never** call stores directly; every action goes through the dispatcher (`app/src/ui/dispatcher/dispatcher.ts`)
+- Stores inherit `BaseStore` and notify via event-kit; UI subscribes with `subscribe()`
+- Repository state is cached (`git-store-cache.ts`, `repository-state-cache.ts`) — respect the existing pattern before creating a new cache
 
 ## Git
 
-- Comandos git novos: arquivo próprio em `app/src/lib/git/<operacao>.ts` usando o wrapper de `core.ts` (dugite)
-- Nunca executar git fora de `lib/git/`
-- Parsing de saída delimitada via `git-delimiter-parser.ts`
+- New git commands: own file in `app/src/lib/git/<operation>.ts` using the `core.ts` wrapper (dugite)
+- Never run git outside `lib/git/`
+- Delimited output parsing via `git-delimiter-parser.ts`
 
 ## IPC
 
-- Canal novo entra no mapa tipado de `app/src/lib/ipc-shared.ts`
-- Handler registrado com `registerIpcMainHandler` (`ipc-main.ts`), com validação de remetente (`trusted-ipc-sender`)
-- Renderer chama main via proxy tipado (`ui/main-process-proxy.ts`) — não usar `ipcRenderer` cru
-- Nunca aceitar canal de webContents não confiável — regra `no-loosely-typed-webcontents-ipc`
+- A new channel goes into the typed map in `app/src/lib/ipc-shared.ts`
+- Handler registered with `registerIpcMainHandler` (`ipc-main.ts`), with sender validation (`trusted-ipc-sender`)
+- Renderer calls main via the typed proxy (`ui/main-process-proxy.ts`) — don't use raw `ipcRenderer`
+- Never accept an untrusted webContents channel — rule `no-loosely-typed-webcontents-ipc`
 
-## Segurança
+## Security
 
-- Nunca `Math.random()` para criptografia/IDs sensíveis — regra `insecure-random` (usar crypto próprio)
-- Senhas/credenciais: só OS keychain via `TokenStore` (keytar). Nada de DB/localStorage/logs
-- Sanitizar HTML com `dompurify` (há uso de `marked`)
+- Never `Math.random()` for cryptography/sensitive IDs — rule `insecure-random` (use proper crypto)
+- Passwords/credentials: OS keychain only via `TokenStore` (keytar). Nothing in DB/localStorage/logs
+- Sanitize HTML with `dompurify` (there is `marked` usage)
 
-## Testes
+## Tests
 
-- Unitários: `app/test/unit/<modulo>-test.ts` espelhando `app/src`; rodam com `node --test` + tsx (ver `.agents/workflow.md`)
+- Unit: `app/test/unit/<module>-test.ts` mirroring `app/src`; run with `node --test` + tsx (see `.agents/workflow.md`)
 - E2E: `app/test/e2e/*.e2e.ts` (Playwright)
-- CI e testes usam `.test.env`; unit tests precisam de `yarn test:setup` (ou Docker)
+- CI and tests use `.test.env`; unit tests need `yarn test:setup` (or Docker)
 
 ## Repo housekeeping
 
-- Mudanças visíveis ao usuário entram em `changelog.json` (validado por `validate-changelog`)
-- **Nunca editar `version` em `app/package.json`** — vem de `env.APP_VERSION` (nota `$NOTE` no próprio arquivo)
-- Prettier + ESLint obrigatórios (`yarn lint:src`); markdownlint para docs
-- Styleguide completo do upstream: `docs/documentation/contributing/styleguide.md`
+- User-visible changes go into `changelog.json` (validated by `validate-changelog`)
+- **Never edit `version` in `app/package.json`** — it comes from `env.APP_VERSION` (`$NOTE` in the file itself)
+- Prettier + ESLint mandatory (`yarn lint:src`); markdownlint for docs
+- Full upstream styleguide: `docs/documentation/contributing/styleguide.md`
 
-## Regras eslint custom (`eslint-rules/`)
+## Custom eslint rules (`eslint-rules/`)
 
 `insecure-random.js`, `no-loosely-typed-webcontents-ipc.js`, `react-no-unbound-dispatcher-props.js`, `react-proper-lifecycle-methods.js`, `react-readonly-props-and-state.js`

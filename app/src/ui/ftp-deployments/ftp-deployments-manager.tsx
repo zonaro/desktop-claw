@@ -270,9 +270,7 @@ export class FtpDeploymentsManager extends React.Component<
     }
   }
 
-  private onEditFormSubmit = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  private onEditFormSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
     // Prevent the form submit event from propagating to the Dialog's onSubmit
     // handler. In the settings tab context, Save should persist the FTP
     // deployment, not trigger the repository settings save.
@@ -280,9 +278,7 @@ export class FtpDeploymentsManager extends React.Component<
     this.submitEditForm()
   }
 
-  private onEditFormCancel = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  private onEditFormCancel = (event: React.MouseEvent<HTMLButtonElement>) => {
     // Prevent the form reset event from propagating to the Dialog's onDismiss
     // handler. In the settings tab context, Cancel should return to the list
     // view, not close the entire repository settings dialog.

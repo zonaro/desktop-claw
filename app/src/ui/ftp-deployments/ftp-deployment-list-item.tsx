@@ -120,7 +120,10 @@ export class FtpDeploymentListItem extends React.Component<
   private renderUploadArea() {
     const activeUpload = this.props.activeUpload
 
-    if (activeUpload !== null && activeUpload.deploymentId === this.props.deployment.id) {
+    if (
+      activeUpload !== null &&
+      activeUpload.deploymentId === this.props.deployment.id
+    ) {
       return (
         <div className="ftp-upload-progress">
           <span className="ftp-upload-file">

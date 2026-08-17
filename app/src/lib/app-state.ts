@@ -21,6 +21,10 @@ import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { WorktreeEntry } from '../models/worktree'
+import {
+  IOpenCodeServerStatus,
+  IOpenCodeSession,
+} from '../models/opencode-session'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
@@ -535,6 +539,7 @@ export enum RepositorySectionTab {
   History,
   Compare,
   Worktree,
+  OpenCode,
 }
 
 /**
@@ -623,11 +628,40 @@ export interface IWorktreeState {
   readonly selectedFile: string | null
 }
 
+/**
+ * State for the OpenCode tab — the session list shown in the sidebar. The
+ * conversation itself is owned by the conversation component, which streams it
+ * straight from the OpenCode server.
+ */
+export interface IOpenCodeState {
+  /**
+   * The status of the local OpenCode server, or `null` when it hasn't been
+   * started yet (the tab starts it lazily the first time it's opened).
+   */
+  readonly server: IOpenCodeServerStatus | null
+
+  /** Whether the server is currently being started. */
+  readonly isStartingServer: boolean
+
+  /**
+   * The sessions belonging to this repository, most recently updated first.
+   * `null` when they haven't been loaded yet.
+   */
+  readonly sessions: ReadonlyArray<IOpenCodeSession> | null
+
+  /** The session currently shown in the conversation view, or `null`. */
+  readonly selectedSessionID: string | null
+
+  /** The last error raised while talking to the server, or `null`. */
+  readonly error: string | null
+}
+
 export interface IRepositoryState {
   readonly commitSelection: ICommitSelection
   readonly changesState: IChangesState
   readonly compareState: ICompareState
   readonly worktreeState: IWorktreeState
+  readonly openCodeState: IOpenCodeState
   readonly selectedSection: RepositorySectionTab
 
   /**

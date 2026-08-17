@@ -15,10 +15,7 @@ export function getFtpSecret(
   repositoryId: number,
   deploymentId: string
 ): Promise<string | null> {
-  return TokenStore.getItem(
-    FtpTokenStoreKey,
-    `${repositoryId}:${deploymentId}`
-  )
+  return TokenStore.getItem(FtpTokenStoreKey, `${repositoryId}:${deploymentId}`)
 }
 
 /**

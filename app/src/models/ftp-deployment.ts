@@ -56,7 +56,10 @@ export function isFtpDeployment(value: unknown): value is IFtpDeployment {
   if (typeof d.remotePath !== 'string') {
     return false
   }
-  if (!Array.isArray(d.ignorePatterns) || !d.ignorePatterns.every(p => typeof p === 'string')) {
+  if (
+    !Array.isArray(d.ignorePatterns) ||
+    !d.ignorePatterns.every(p => typeof p === 'string')
+  ) {
     return false
   }
   if (typeof d.active !== 'boolean') {

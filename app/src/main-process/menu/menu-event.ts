@@ -8,6 +8,7 @@ export type MenuEvent =
   | 'show-history'
   | 'show-compare'
   | 'show-worktree'
+  | 'show-opencode'
   | 'add-local-repository'
   | 'create-branch'
   | 'show-branches'

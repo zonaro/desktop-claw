@@ -229,6 +229,12 @@ export function buildDefaultMenuTemplate({
         click: emit('show-worktree'),
       },
       {
+        label: __DARWIN__ ? 'Show OpenCode' : 'Show Open&Code',
+        id: 'show-opencode',
+        accelerator: 'CmdOrCtrl+5',
+        click: emit('show-opencode'),
+      },
+      {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
         id: 'show-repository-list',
         accelerator: 'CmdOrCtrl+T',

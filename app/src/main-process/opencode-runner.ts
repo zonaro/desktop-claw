@@ -1,5 +1,6 @@
 import { spawn, ChildProcess } from 'child_process'
 import { IOpenCodeAvailability, IOpenCodeRunRequest } from '../models/opencode'
+import { resolveOpenCodeCommand } from './opencode-command'
 
 /** Maximum stderr captured before truncation. */
 const MaxStderrLength = 2000
@@ -28,7 +29,9 @@ export class OpenCodeRunError extends Error {
   public constructor(message: string, exitCode: number | null, stderr: string) {
     // Truncate stderr to keep IPC messages bounded.
     const truncatedStderr =
-      stderr.length > MaxStderrLength ? stderr.slice(0, MaxStderrLength) : stderr
+      stderr.length > MaxStderrLength
+        ? stderr.slice(0, MaxStderrLength)
+        : stderr
 
     // Include stderr in the message so it survives Electron IPC serialization,
     // which only preserves message, name, and stack on Error objects.
@@ -75,8 +78,10 @@ const cancelledRequestIds = new Set<string>()
 export async function checkOpenCodeAvailability(
   command: string
 ): Promise<IOpenCodeAvailability> {
+  const executable = await resolveOpenCodeCommand(command)
+
   return new Promise<IOpenCodeAvailability>(resolve => {
-    const child = spawn(command, ['--version'], {
+    const child = spawn(executable, ['--version'], {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env },
     })
@@ -137,8 +142,10 @@ export async function runOpenCodePrompt(
     'Follow the instructions provided via stdin. Output only the requested JSON object.',
   ]
 
+  const executable = await resolveOpenCodeCommand(request.command)
+
   return new Promise<string>((resolve, reject) => {
-    const child = spawn(request.command, args, {
+    const child = spawn(executable, args, {
       cwd: request.cwd,
       env: {
         ...process.env,
@@ -290,8 +297,10 @@ export async function listOpenCodeModels(
   const truncateStderr = (raw: string): string =>
     raw.length > MaxStderrLength ? raw.slice(0, MaxStderrLength) : raw
 
+  const executable = await resolveOpenCodeCommand(command)
+
   return new Promise<ReadonlyArray<string>>((resolve, reject) => {
-    const child = spawn(command, ['models'], {
+    const child = spawn(executable, ['models'], {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env },
     })

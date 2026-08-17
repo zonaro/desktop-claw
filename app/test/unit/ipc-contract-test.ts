@@ -111,6 +111,7 @@ describe('IPC channel contract', () => {
     'opencode-check-availability',
     'opencode-list-models',
     'opencode-run-prompt',
+    'opencode-server-start',
     'ftp-test-connection',
     'ftp-upload',
     'export-markdown-pdf',

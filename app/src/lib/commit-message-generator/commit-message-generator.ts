@@ -36,5 +36,7 @@ export interface ICommitMessageGenerator {
    * @returns A parsed commit message with title and description.
    * @throws If generation is cancelled or the backend returns an error.
    */
-  generate(request: ICommitMessageGenerationRequest): Promise<ICopilotCommitMessage>
+  generate(
+    request: ICommitMessageGenerationRequest
+  ): Promise<ICopilotCommitMessage>
 }

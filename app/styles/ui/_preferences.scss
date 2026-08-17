@@ -149,6 +149,16 @@
     }
   }
 
+  .projects-component {
+    .row-component {
+      margin-top: var(--spacing);
+    }
+
+    #repo-directory-description {
+      margin-top: var(--spacing);
+    }
+  }
+
   .settings-description {
     margin-top: var(--spacing);
     font-size: var(--font-size-sm);

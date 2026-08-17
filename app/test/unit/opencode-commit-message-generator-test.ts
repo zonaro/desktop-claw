@@ -1,11 +1,12 @@
 import assert from 'node:assert'
 import { afterEach, beforeEach, describe, it } from 'node:test'
 
-import {
-  OpenCodeCommitMessageGenerator,
-} from '../../src/lib/commit-message-generator/opencode-commit-message-generator'
+import { OpenCodeCommitMessageGenerator } from '../../src/lib/commit-message-generator/opencode-commit-message-generator'
 import { CommitMessageGenerationCancelledError } from '../../src/lib/stores/copilot-store'
-import { loadCommitMessageProvider, saveCommitMessageProvider } from '../../src/lib/opencode/commit-message-provider-pref'
+import {
+  loadCommitMessageProvider,
+  saveCommitMessageProvider,
+} from '../../src/lib/opencode/commit-message-provider-pref'
 import {
   DefaultOpenCodeConfig,
   loadOpenCodeConfig,

@@ -233,16 +233,11 @@ export class CopilotPreferences extends React.Component<
         <h2>OpenCode</h2>
         <Checkbox
           label="Enabled"
-          value={
-            opencodeConfig.enabled ? CheckboxValue.On : CheckboxValue.Off
-          }
+          value={opencodeConfig.enabled ? CheckboxValue.On : CheckboxValue.Off}
           onChange={this.onOpenCodeEnabledChanged}
           ariaDescribedBy="opencode-enabled-description"
         />
-        <div
-          id="opencode-enabled-description"
-          className="settings-description"
-        >
+        <div id="opencode-enabled-description" className="settings-description">
           <p>Requires the OpenCode CLI to be installed and available.</p>
         </div>
         <Checkbox
@@ -287,9 +282,7 @@ export class CopilotPreferences extends React.Component<
     )
   }
 
-  private renderAvailabilityResult(
-    result: IOpenCodeAvailability
-  ): JSX.Element {
+  private renderAvailabilityResult(result: IOpenCodeAvailability): JSX.Element {
     if (result.available) {
       return (
         <span className="opencode-availability-success">

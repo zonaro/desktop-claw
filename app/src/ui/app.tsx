@@ -504,6 +504,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return this.showCompare(true)
       case 'show-worktree':
         return this.showWorktree()
+      case 'show-opencode':
+        return this.showOpenCode()
       case 'choose-repository':
         return this.chooseRepository()
       case 'add-local-repository':
@@ -1073,6 +1075,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     await this.props.dispatcher.changeRepositorySection(
       state.repository,
       RepositorySectionTab.Worktree
+    )
+  }
+
+  private async showOpenCode() {
+    const state = this.state.selectedState
+    if (state == null || state.type !== SelectionType.Repository) {
+      return
+    }
+
+    this.props.dispatcher.closeCurrentFoldout()
+
+    await this.props.dispatcher.changeRepositorySection(
+      state.repository,
+      RepositorySectionTab.OpenCode
     )
   }
 

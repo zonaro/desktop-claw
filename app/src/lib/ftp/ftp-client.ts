@@ -94,10 +94,7 @@ export async function startFtpUpload(args: {
     password,
   })
     .catch(e => {
-      if (
-        e instanceof Error &&
-        e.message.includes('cancelled')
-      ) {
+      if (e instanceof Error && e.message.includes('cancelled')) {
         throw new FtpUploadCancelledError()
       }
       throw e

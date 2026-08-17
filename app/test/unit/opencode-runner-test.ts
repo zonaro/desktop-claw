@@ -85,11 +85,7 @@ describe('OpenCodeRunError', () => {
   })
 
   it('does not append stderr section when stderr is empty', () => {
-    const error = new OpenCodeRunError(
-      'OpenCode CLI exited with code 1',
-      1,
-      ''
-    )
+    const error = new OpenCodeRunError('OpenCode CLI exited with code 1', 1, '')
 
     assert.strictEqual(error.message, 'OpenCode CLI exited with code 1')
     assert.strictEqual(error.stderr, '')

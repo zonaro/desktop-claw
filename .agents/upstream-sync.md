@@ -1,76 +1,76 @@
-# Sincronização com o repositório original (desktop-plus)
+# Syncing with the original repository (desktop-plus)
 
-## Contexto
+## Context
 
-- Este repo (**desktop-claw**) é um fork de **desktop-plus** (`https://github.com/desktop-plus/desktop-plus`), que por sua vez é fork do GitHub Desktop
-- Remotes já configurados:
+- This repo (**desktop-claw**) is a fork of **desktop-plus** (`https://github.com/desktop-plus/desktop-plus`), which is itself a fork of GitHub Desktop
+- Remotes already configured:
 
-| Remote | URL | Papel |
+| Remote | URL | Role |
 | --- | --- | --- |
-| `origin` | `https://github.com/zonaro/desktop-claw.git` | fork pessoal (branch `main`) |
-| `upstream` | `https://github.com/desktop-plus/desktop-plus.git` | repo original |
+| `origin` | `https://github.com/zonaro/desktop-claw.git` | personal fork (branch `main`) |
+| `upstream` | `https://github.com/desktop-plus/desktop-plus.git` | original repo |
 
-- Ambos usam refspec completo (`+refs/heads/*:refs/remotes/*`), ou seja, `upstream/main` é o espelho local do main original
-- **Observação importante (verificado no histórico)**: este fork publica os commits dele **diretamente no upstream** (`upstream/main` contém os commits do fork, ex. `f8b2fb76d3`, `0901cca2b1`). Na prática o fluxo é: desenvolver aqui → push para `upstream` (quando a mudança deve virar upstream) → `origin` mantém o espelho. Não há divergência permanente entre fork e upstream
-- Estado típico atual: `main` == `origin/main`, e `main` está N commits atrás de `upstream/main` (o upstream avança com releases/betas; hoje a versão em dev é ex. `3.6.4-beta2`)
+- Both use a full refspec (`+refs/heads/*:refs/remotes/*`), i.e. `upstream/main` is the local mirror of the original main
+- **Important note (verified in history)**: this fork publishes its commits **directly to upstream** (`upstream/main` contains the fork's commits, e.g. `f8b2fb76d3`, `0901cca2b1`). In practice the flow is: develop here → push to `upstream` (when the change should become upstream) → `origin` keeps the mirror. There is no permanent divergence between fork and upstream
+- Typical current state: `main` == `origin/main`, and `main` is N commits behind `upstream/main` (upstream advances with releases/betas; today the dev version is e.g. `3.6.4-beta2`)
 
-## Quando fazer
+## When to do it
 
-- Sempre que for preciso puxar commits novos do desktop-plus (releases, correções, features upstream)
-- Sugestão: após cada release do upstream (beta ou stable)
+- Whenever you need to pull new commits from desktop-plus (releases, fixes, upstream features)
+- Suggestion: after each upstream release (beta or stable)
 
-## Procedimento de sync (merge — padrão histórico)
+## Sync procedure (merge — historical pattern)
 
-O histórico usa **merge commits** (`Merge branch 'upstream-development'`), não rebase. Siga o mesmo padrão.
+History uses **merge commits** (`Merge branch 'upstream-development'`), not rebase. Follow the same pattern.
 
 ```sh
-# 1. Garantir working tree limpo e branch main atualizado
+# 1. Ensure a clean working tree and an up-to-date main branch
 git status
 git checkout main
 git pull origin main
 
-# 2. Buscar commits do upstream
+# 2. Fetch upstream commits
 git fetch upstream
 
-# 3. Ver quanto estamos atrás e o que vem
+# 3. See how far behind we are and what's coming
 git log --oneline main..upstream/main
 
-# 4. Mergear o main do upstream na nossa main
+# 4. Merge upstream main into our main
 git merge upstream/main
-# (usa o editor de commit padrão para a mensagem de merge;
-#  o padrão histórico é "Merge branch 'upstream-development'" — pode usar esse título)
+# (uses the default commit editor for the merge message;
+#  the historical pattern is "Merge branch 'upstream-development'" — you can use that title)
 
-# 5. Resolver conflitos, se houver (ver seção abaixo)
+# 5. Resolve conflicts, if any (see section below)
 
-# 6. Submódulos — se .gitmodules/pointers mudaram
+# 6. Submodules — if .gitmodules/pointers changed
 git submodule update --init --recursive
 
-# 7. Dependências — se package.json/yarn.lock mudaram
+# 7. Dependencies — if package.json/yarn.lock changed
 yarn install
 
-# 8. Verificar que nada quebrou
+# 8. Verify nothing broke
 yarn lint:src
-yarn test        # ou yarn test:docker
+yarn test        # or yarn test:docker
 yarn build:dev
 
-# 9. Publicar
+# 9. Publish
 git push origin main
 ```
 
-## Conflitos típicos e como resolver
+## Typical conflicts and how to resolve them
 
-| Arquivo | Resolução |
+| File | Resolution |
 | --- | --- |
-| `app/package.json` (`version`) | **Nunca editar `version`** — manter o valor do upstream (a versão vem de `env.APP_VERSION` no build). Para o resto, aceitar upstream + reaplicar mudanças do fork se existirem |
-| `yarn.lock` | Aceitar o do upstream e rodar `yarn install` para reconciliar |
-| `changelog.json` | Manter as duas partes (release notes do upstream + entradas do fork), depois `yarn validate-changelog` |
-| Código tocado pelo fork (`ftp*`, `opencode*`, worktree) | Reaplicar as mudanças do fork sobre o código novo do upstream — ver `.agents/fork-features.md` para o mapa das features |
+| `app/package.json` (`version`) | **Never edit `version`** — keep the upstream value (the version comes from `env.APP_VERSION` at build). For the rest, accept upstream + reapply fork changes if any |
+| `yarn.lock` | Accept upstream's and run `yarn install` to reconcile |
+| `changelog.json` | Keep both parts (upstream release notes + fork entries), then `yarn validate-changelog` |
+| Code touched by the fork (`ftp*`, `opencode*`, worktree) | Reapply the fork changes on top of the new upstream code — see `.agents/fork-features.md` for the feature map |
 
-Regra geral: o fork não mantém divergência estrutural grande; a maioria dos merges é limpa ou fast-forward.
+General rule: the fork doesn't keep large structural divergence; most merges are clean or fast-forward.
 
-## Variante com branch local (padrão histórico alternativo)
+## Variant with a local branch (alternative historical pattern)
 
-O histórico mostra merges de uma branch local chamada `upstream-development`. Se preferir:
+History shows merges from a local branch called `upstream-development`. If you prefer:
 
 ```sh
 git fetch upstream
@@ -79,24 +79,24 @@ git checkout main
 git merge upstream-development
 ```
 
-(Equivalente ao procedimento principal; o nome da branch é livre.)
+(Equivalent to the main procedure; the branch name is free.)
 
-## Publicar mudanças no upstream
+## Publishing changes upstream
 
-Como os commits do fork são pushados direto para o desktop-plus (o autor do fork é colaborador):
+Since the fork's commits are pushed directly to desktop-plus (the fork author is a collaborator):
 
 ```sh
 git push upstream main
 ```
 
-> Cuidado: isto publica o que estiver em `main` no repositório oficial. Faça só quando a mudança realmente deve ir para upstream, e após verificar build/testes.
+> Caution: this publishes whatever is in `main` to the official repository. Do it only when the change really should go upstream, and after verifying build/tests.
 
-## Cheat sheet de verificação
+## Verification cheat sheet
 
 ```sh
-git remote -v                       # remotes configurados
-git fetch upstream && git status    # está atrás? ("Your branch is behind")
-git rev-list --count main..upstream/main   # quantos commits atrás
-git log --oneline main..upstream/main      # quais commits virão
-git log --oneline upstream/main..main      # commits do fork ainda não publicados no upstream
+git remote -v                       # configured remotes
+git fetch upstream && git status    # behind? ("Your branch is behind")
+git rev-list --count main..upstream/main   # how many commits behind
+git log --oneline main..upstream/main      # which commits will come
+git log --oneline upstream/main..main      # fork commits not yet published upstream
 ```

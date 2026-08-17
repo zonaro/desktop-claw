@@ -1,0 +1,434 @@
+// The OpenCode tab: session list in the repository sidebar, conversation in
+// the main area.
+
+// The OpenCode tab is the fifth item in the repository tab bar, which shares a
+// 250px sidebar by default. Flex items don't shrink below their content, so
+// without this the tab bar would push itself out of the sidebar. The smaller
+// type keeps every label readable at the default width; the ellipsis is the
+// last resort for a sidebar narrowed further than that.
+#repository-sidebar .tab-bar.tabs .tab-bar-item {
+  min-width: 0;
+  padding: 0 2px;
+  font-size: var(--font-size-sm);
+
+  .with-indicator {
+    min-width: 0;
+
+    > span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.opencode-session-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+
+  .opencode-session-list-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+
+    .text-box-component {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .button-component {
+      flex-shrink: 0;
+    }
+  }
+
+  .opencode-session-list-contents {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--spacing-half) 0;
+  }
+
+  .opencode-session-list-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    width: 100%;
+    padding: var(--spacing-half) var(--spacing);
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--list-item-hover-background-color);
+    }
+
+    &.selected {
+      background: var(--box-selected-background-color);
+      color: var(--box-selected-text-color);
+
+      .opencode-session-meta {
+        color: inherit;
+        opacity: 0.8;
+      }
+    }
+
+    .opencode-session-title {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .opencode-session-meta {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--spacing-half);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+
+      .opencode-session-agent {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 120px;
+      }
+    }
+  }
+
+  .opencode-session-list-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-half);
+    padding: var(--spacing);
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+    text-align: center;
+    overflow-y: auto;
+
+    p {
+      margin: 0;
+      word-break: break-word;
+    }
+
+    .opencode-session-list-hint {
+      color: var(--text-secondary-color-muted);
+    }
+  }
+}
+
+.opencode-conversation {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: var(--background-color);
+
+  .opencode-conversation-scroller {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--spacing);
+  }
+
+  .opencode-conversation-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-half);
+    height: 100%;
+    color: var(--text-secondary-color);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .opencode-conversation-busy,
+  .opencode-conversation-error {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    padding: var(--spacing-half) 0;
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+  }
+
+  .opencode-conversation-error {
+    color: var(--error-color);
+    word-break: break-word;
+  }
+}
+
+.opencode-message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-half);
+  margin-bottom: var(--spacing);
+
+  .opencode-message-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-secondary-color);
+
+    .opencode-message-model {
+      font-weight: normal;
+      color: var(--text-secondary-color-muted);
+    }
+  }
+
+  .opencode-message-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-half);
+    min-width: 0;
+  }
+
+  .opencode-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  // The assistant writes markdown; keep its block spacing tight so a reply
+  // doesn't read as a document.
+  .opencode-markdown {
+    white-space: normal;
+
+    p,
+    ul,
+    ol,
+    pre,
+    blockquote {
+      margin: 0 0 var(--spacing-half) 0;
+    }
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+
+    ul,
+    ol {
+      padding-left: var(--spacing-double);
+    }
+
+    code {
+      font-family: var(--font-family-monospace);
+      font-size: var(--font-size-sm);
+    }
+
+    pre {
+      padding: var(--spacing-half);
+      overflow-x: auto;
+      background: var(--box-alt-background-color);
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+    }
+
+    table {
+      border-collapse: collapse;
+
+      td,
+      th {
+        border: var(--base-border);
+        padding: 2px var(--spacing-half);
+      }
+    }
+  }
+
+  .opencode-message-error {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    color: var(--error-color);
+    word-break: break-word;
+  }
+
+  .opencode-file-part {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+  }
+}
+
+.opencode-message-user .opencode-message-body {
+  padding: var(--spacing-half) var(--spacing);
+  border-left: 2px solid var(--box-border-color);
+}
+
+// Reasoning and tool calls share the same collapsed presentation.
+.opencode-reasoning,
+.opencode-tool {
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+
+  .opencode-collapsible-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    width: 100%;
+    padding: var(--spacing-half);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--list-item-hover-background-color);
+    }
+
+    .opencode-tool-name {
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-color);
+      flex-shrink: 0;
+    }
+
+    .opencode-tool-summary {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: var(--font-family-monospace);
+    }
+
+    .opencode-tool-status {
+      flex-shrink: 0;
+      font-style: italic;
+    }
+  }
+
+  .opencode-collapsible-body {
+    padding: 0 var(--spacing-half) var(--spacing-half);
+  }
+
+  pre {
+    margin: var(--spacing-half) 0 0 0;
+    padding: var(--spacing-half);
+    max-height: 320px;
+    overflow: auto;
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--box-alt-background-color);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+  }
+
+  .opencode-tool-error {
+    color: var(--error-color);
+  }
+
+  .opencode-reasoning-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text-secondary-color);
+  }
+}
+
+.opencode-tool.opencode-tool-error {
+  border-color: var(--error-color);
+}
+
+.opencode-permission {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-half);
+  margin-bottom: var(--spacing);
+  padding: var(--spacing);
+  border: 1px solid var(--error-color);
+  border-radius: var(--border-radius);
+
+  .opencode-permission-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+  }
+
+  .opencode-permission-patterns {
+    margin: 0;
+    padding: var(--spacing-half);
+    max-height: 160px;
+    overflow: auto;
+    font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--box-alt-background-color);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+  }
+
+  .opencode-permission-actions {
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing-half);
+  }
+}
+
+.opencode-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-half);
+  padding: var(--spacing);
+  border-top: var(--base-border);
+
+  .opencode-prompt-input {
+    width: 100%;
+    resize: none;
+    padding: var(--spacing-half);
+    font-family: var(--font-family-sans-serif);
+    font-size: var(--font-size);
+    color: var(--text-color);
+    background: var(--box-background-color);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+
+    &:focus {
+      border-color: var(--focus-color);
+      outline: none;
+    }
+  }
+
+  .opencode-prompt-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-half);
+
+    .opencode-agent-picker {
+      margin-right: auto;
+      min-width: 0;
+      max-width: 220px;
+    }
+  }
+}

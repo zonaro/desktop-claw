@@ -71,6 +71,7 @@ import {
   cancelOpenCodeRun,
   listOpenCodeModels,
 } from './opencode-runner'
+import { ensureOpenCodeServer, stopOpenCodeServer } from './opencode-server'
 import {
   uploadFtpDeployment,
   testFtpConnection,
@@ -200,6 +201,10 @@ if (!handlingSquirrelEvent) {
 
 initializeDesktopNotifications()
 app.on('before-quit', () => terminateDesktopNotifications())
+
+// The OpenCode server is a long lived child process; it has to be torn down
+// explicitly or it would outlive the app.
+app.on('will-quit', () => stopOpenCodeServer())
 
 function getAppWindows() {
   return [...windows.values()]
@@ -1024,6 +1029,18 @@ app.on('ready', () => {
     return runOpenCodePrompt(request)
   })
 
+  ipcMain.handle('opencode-server-start', (_, command) => {
+    if (typeof command !== 'string' || command.trim() === '') {
+      return Promise.resolve({
+        running: false,
+        baseUrl: null,
+        password: null,
+        error: 'No OpenCode command configured',
+      })
+    }
+    return ensureOpenCodeServer(command)
+  })
+
   ipcMain.on('opencode-cancel', (_, requestId) => {
     if (typeof requestId === 'string' && requestId.length > 0) {
       cancelOpenCodeRun(requestId)
@@ -1088,7 +1105,8 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('will-quit', event => {    for (const window of getAppWindows()) {
+  ipcMain.on('will-quit', event => {
+    for (const window of getAppWindows()) {
       window.markWillQuit()
     }
     event.returnValue = true
@@ -1224,7 +1242,9 @@ async function exportHtmlToPdf(
   })
 
   try {
-    await window.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+    await window.loadURL(
+      `data:text/html;charset=utf-8,${encodeURIComponent(html)}`
+    )
 
     const data = await window.webContents.printToPDF({
       printBackground: true,

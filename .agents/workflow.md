@@ -1,75 +1,75 @@
-# Workflow de desenvolvimento
+# Development workflow
 
-## Setup inicial
+## Initial setup
 
 ```sh
-corepack enable   # instala yarn se necessário
-yarn              # instala dependências (raiz + app via postinstall)
-yarn build:dev    # build inicial de desenvolvimento
-yarn start        # roda o app em dev com watch
+corepack enable   # installs yarn if needed
+yarn              # installs dependencies (root + app via postinstall)
+yarn build:dev    # initial development build
+yarn start        # runs the app in dev with watch
 ```
 
-- O primeiro start/build demora — é normal
-- VSCode: `F5` também funciona (breakpoints no devtools do app, não no editor)
-- Docs de setup por SO: `docs/documentation/contributing/setup.md`, `setup-linux.md`, `setup-macos.md`, `setup-windows.md`, `building-arm64.md`
+- The first start/build takes a while — that's normal
+- VSCode: `F5` also works (breakpoints in the app's devtools, not the editor)
+- Per-OS setup docs: `docs/documentation/contributing/setup.md`, `setup-linux.md`, `setup-macos.md`, `setup-windows.md`, `building-arm64.md`
 
-## Loop de desenvolvimento
+## Development loop
 
-| Mudança | Para aplicar |
+| Change | To apply |
 | --- | --- |
-| Renderer (ui/) | Recarregar janela: `Ctrl+Alt+R` / `Cmd+Alt+R` |
-| Main process (main-process/, lib/) | Rebuild: parar app e rodar `yarn build:dev` de novo |
+| Renderer (ui/) | Reload the window: `Ctrl+Alt+R` / `Cmd+Alt+R` |
+| Main process (main-process/, lib/) | Rebuild: stop the app and run `yarn build:dev` again |
 
 ## Build
 
 ```sh
 yarn build:dev    # webpack dev (compile:dev) + build.ts
-yarn build:prod   # produção (compile:prod usa NODE_OPTIONS=--max_old_space_size=4096)
-yarn compile:dev  # só webpack dev
-yarn compile:prod # só webpack prod
-yarn package      # empacota distributivos (electron-builder/packager)
+yarn build:prod   # production (compile:prod uses NODE_OPTIONS=--max_old_space_size=4096)
+yarn compile:dev  # webpack dev only
+yarn compile:prod # webpack prod only
+yarn package      # packages distributables (electron-builder/packager)
 ```
 
-- A versão é carimbada da data/hora UTC do build (`{YY}.{diaDoAno}.{HHMM}`). `build` e `package` são
-  processos separados: para empacotar release localmente, exporte `APP_VERSION` antes, senão cada
-  etapa carimba seu próprio horário e elas divergem se o minuto virar.
+- The version is stamped from the build's UTC date/time (`{YY}.{dayOfYear}.{HHMM}`). `build` and `package` are
+  separate processes: to package a release locally, export `APP_VERSION` first, otherwise each
+  step stamps its own time and they diverge if the minute rolls over.
 
 ```sh
 export APP_VERSION=$(yarn --silent version:calendar)
 yarn build:prod && yarn package
 ```
 
-- Saída do webpack: `out/` na raiz
-- `yarn clean-slate` = rimraf `out`, `node_modules`, `app/node_modules` + `yarn` do zero
-- `yarn rebuild-hard:dev` / `rebuild-hard:prod` = clean-slate + build (último recurso para estado estranho)
+- Webpack output: `out/` at the root
+- `yarn clean-slate` = rimraf `out`, `node_modules`, `app/node_modules` + `yarn` from scratch
+- `yarn rebuild-hard:dev` / `rebuild-hard:prod` = clean-slate + build (last resort for weird state)
 
-## Testes
+## Tests
 
 ```sh
-yarn test           # unitários (script/test.mjs → node --test + tsx)
-yarn test:unit      # idem
-yarn test:setup     # prepara ambiente de teste (ts-node script/test-setup.ts)
-yarn test:docker    # unitários em Docker — RECOMENDADO (isola do git config global)
+yarn test           # unit (script/test.mjs → node --test + tsx)
+yarn test:unit      # same
+yarn test:setup     # prepares the test environment (ts-node script/test-setup.ts)
+yarn test:docker    # unit tests in Docker — RECOMMENDED (isolates from global git config)
 yarn test:e2e       # build + run e2e (packaged)
-yarn test:e2e:build # só build (packaged ou :unpackaged)
-yarn test:e2e:run   # só execução (packaged ou :unpackaged)
+yarn test:e2e:build # build only (packaged or :unpackaged)
+yarn test:e2e:run   # run only (packaged or :unpackaged)
 ```
 
-- Unit tests: `app/test/unit/**/*-test.ts`, usam `.test.env`, `app/test/globals.mts`, mock de IndexedDB (fake-indexeddb) e jsdom
-- E2E: Playwright com mock de update server (`DESKTOP_E2E_UPDATES_URL=http://127.0.0.1:51789/update`)
+- Unit tests: `app/test/unit/**/*-test.ts`, use `.test.env`, `app/test/globals.mts`, IndexedDB mock (fake-indexeddb) and jsdom
+- E2E: Playwright with mock update server (`DESKTOP_E2E_UPDATES_URL=http://127.0.0.1:51789/update`)
 
-## Lint e formatação
+## Lint and formatting
 
 ```sh
 yarn lint           # prettier check + lint:src
-yarn lint:src       # eslint + prettier (regras custom em eslint-rules/)
+yarn lint:src       # eslint + prettier (custom rules in eslint-rules/)
 yarn lint:fix       # prettier --write + eslint --fix
 yarn markdownlint   # docs
-yarn check:eslint   # valida config eslint (tsc -P eslint-rules/)
-yarn test:eslint    # testes das regras eslint custom
+yarn check:eslint   # validates eslint config (tsc -P eslint-rules/)
+yarn test:eslint    # tests for the custom eslint rules
 ```
 
-## CLI do app
+## App CLI
 
 ```sh
 yarn cli            # ts-node app/src/cli/main.ts (desktop-claw-cli)
@@ -77,32 +77,32 @@ yarn cli            # ts-node app/src/cli/main.ts (desktop-claw-cli)
 
 ## Release
 
-Distribuição é **só GitHub Releases** (sem Winget/Homebrew/APT/DNF/AUR/Flathub, sem auto-update).
-O `ci.yml` compila as 6 combinações (win/mac/linux × x64/arm64) e publica quando há push na `main`
-ou disparo manual (workflow_dispatch), criando a tag `v{versão}` no commit. Detalhes em
+Distribution is **GitHub Releases only** (no Winget/Homebrew/APT/DNF/AUR/Flathub, no auto-update).
+`ci.yml` builds the 6 combinations (win/mac/linux × x64/arm64) and publishes on push to `main`
+or manual trigger (workflow_dispatch), creating the `v{version}` tag on the commit. Details in
 [docs/documentation/process/releases.md](../docs/documentation/process/releases.md).
 
-Artefatos publicados: `.exe`, `.msi`, `.zip` (macOS), `.deb`, `.rpm`, `.AppImage`.
+Published artifacts: `.exe`, `.msi`, `.zip` (macOS), `.tar.gz` + `.AppImage` (Linux).
 
 ```sh
-yarn version:calendar       # versão que um build feito agora receberia
-yarn validate-changelog     # valida changelog.json
+yarn version:calendar       # version a build made now would get
+yarn validate-changelog     # validates changelog.json
 ```
 
-O corpo do release sai de `.github/desktop-claw-release-notes.md`; o título é gerado da versão.
+The release body comes from `.github/desktop-claw-release-notes.md`; the title is generated from the version.
 
-Os scripts `yarn draft-release*` são do fluxo do upstream (versões manuais via changelog.json) e não
-fazem parte do release deste fork.
+The `yarn draft-release*` scripts belong to the upstream flow (manual versions via changelog.json) and are
+not part of this fork's release.
 
-## Manutenção
+## Maintenance
 
 ```sh
-yarn validate-electron-version   # confere electron vs node
+yarn validate-electron-version   # checks electron vs node
 yarn validate-macos-version
-yarn generate-octicons           # regenera ícones octicons
-yarn test:script                 # testes dos scripts de build
+yarn generate-octicons           # regenerates octicons
+yarn test:script                 # tests for the build scripts
 ```
 
-## Sincronização com upstream
+## Upstream sync
 
-Puxar commits novos do desktop-plus: **`.agents/upstream-sync.md`** (siga esse doc).
+Pull new commits from desktop-plus: **`.agents/upstream-sync.md`** (follow that doc).

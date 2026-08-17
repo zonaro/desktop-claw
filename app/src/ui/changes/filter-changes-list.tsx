@@ -1305,14 +1305,8 @@ export class FilterChangesList extends React.Component<
     const { change } = item
     const fullPath = Path.join(this.props.repository.path, change.path)
 
-    if (
-      this.props.enableMarkdownWysiwyg &&
-      isMarkdownFilePath(fullPath)
-    ) {
-      this.props.dispatcher.openMarkdownEditor(
-        this.props.repository,
-        fullPath
-      )
+    if (this.props.enableMarkdownWysiwyg && isMarkdownFilePath(fullPath)) {
+      this.props.dispatcher.openMarkdownEditor(this.props.repository, fullPath)
     } else {
       this.props.onOpenItemInExternalEditor(change.path)
     }

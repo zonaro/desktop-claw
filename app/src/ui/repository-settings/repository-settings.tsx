@@ -355,22 +355,22 @@ export class RepositorySettings extends React.Component<
               </div>
             </DialogContent>
             <GitConfig
-            account={this.props.repositoryAccount}
-            gitConfigLocation={this.state.gitConfigLocation}
-            updateBranchStrategy={this.state.updateBranchStrategy}
-            onGitConfigLocationChanged={this.onGitConfigLocationChanged}
-            onUpdateBranchStrategyChanged={this.onUpdateBranchStrategyChanged}
-            name={this.state.committerName}
-            email={this.state.committerEmail}
-            globalName={this.state.globalCommitterName}
-            globalEmail={this.state.globalCommitterEmail}
-            onNameChanged={this.onCommitterNameChanged}
-            onEmailChanged={this.onCommitterEmailChanged}
-            isLoadingGitConfig={this.state.isLoadingGitConfig}
-            nameOrigin={this.state.nameOrigin}
-            emailOrigin={this.state.emailOrigin}
-            repositoryPath={this.props.repository.path}
-          />
+              account={this.props.repositoryAccount}
+              gitConfigLocation={this.state.gitConfigLocation}
+              updateBranchStrategy={this.state.updateBranchStrategy}
+              onGitConfigLocationChanged={this.onGitConfigLocationChanged}
+              onUpdateBranchStrategyChanged={this.onUpdateBranchStrategyChanged}
+              name={this.state.committerName}
+              email={this.state.committerEmail}
+              globalName={this.state.globalCommitterName}
+              globalEmail={this.state.globalCommitterEmail}
+              onNameChanged={this.onCommitterNameChanged}
+              onEmailChanged={this.onCommitterEmailChanged}
+              isLoadingGitConfig={this.state.isLoadingGitConfig}
+              nameOrigin={this.state.nameOrigin}
+              emailOrigin={this.state.emailOrigin}
+              repositoryPath={this.props.repository.path}
+            />
           </>
         )
       }
@@ -568,7 +568,7 @@ export class RepositorySettings extends React.Component<
       this.state.commitMessageProvider === ''
         ? this.props.repository.commitMessageProvider !== null
         : this.state.commitMessageProvider !==
-            this.props.repository.commitMessageProvider
+          this.props.repository.commitMessageProvider
     ) {
       this.props.dispatcher.updateRepositoryCommitMessageProvider(
         this.props.repository,

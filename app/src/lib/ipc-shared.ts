@@ -19,6 +19,7 @@ import { DesktopAliveEvent } from './stores/alive-store'
 import { CLIAction } from './cli-action'
 import { MainProcessConfig } from './main-process-config'
 import { IOpenCodeAvailability, IOpenCodeRunRequest } from '../models/opencode'
+import { IOpenCodeServerStatus } from '../models/opencode-session'
 import type { IFtpDeployment } from '../models/ftp-deployment'
 import {
   IFtpUploadRequest,
@@ -164,18 +165,13 @@ export type RequestResponseChannels = {
   'opencode-check-availability': (
     command: string
   ) => Promise<IOpenCodeAvailability>
-  'opencode-list-models': (
-    command: string
-  ) => Promise<ReadonlyArray<string>>
-  'opencode-run-prompt': (
-    request: IOpenCodeRunRequest
-  ) => Promise<string>
+  'opencode-list-models': (command: string) => Promise<ReadonlyArray<string>>
+  'opencode-run-prompt': (request: IOpenCodeRunRequest) => Promise<string>
+  'opencode-server-start': (command: string) => Promise<IOpenCodeServerStatus>
   'ftp-test-connection': (
     deployment: IFtpDeployment,
     password: string
   ) => Promise<IFtpTestConnectionResult>
   'ftp-upload': (request: IFtpUploadRequest) => Promise<IFtpUploadResultData>
-  'export-markdown-pdf': (
-    request: IMarkdownPdfExportRequest
-  ) => Promise<void>
+  'export-markdown-pdf': (request: IMarkdownPdfExportRequest) => Promise<void>
 }

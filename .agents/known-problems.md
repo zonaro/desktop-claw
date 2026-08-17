@@ -1,48 +1,50 @@
-# Problemas conhecidos e gotchas
+# Known problems and gotchas
 
-Problemas recorrentes/esperados, para não perder tempo debugando o que é normal ou já conhecido.
+Recurring/expected problems, so you don't waste time debugging what is normal or already known.
 
-## Erros "normais" no dev
+## "Normal" dev errors
 
-- **`UnhandledPromiseRejectionWarning: Error: Invalid header: Does not start with Cr24`** no start — esperado (extensão CRX), ignorar (README confirma)
-- **Primeiro start/build lento** — esperado; não é trava
-- **`UnhandledPromiseRejectionWarning` genéricos** no boot — às vezes benignos; verificar console real antes de investigar
+- **`UnhandledPromiseRejectionWarning: Error: Invalid header: Does not start with Cr24`** on start — expected (CRX extension), ignore (README confirms)
+- **Slow first start/build** — expected; not a hang
+- **Generic `UnhandledPromiseRejectionWarning`s** at boot — sometimes benign; check the real console before investigating
 
 ## Build/dev
 
-- **Node errado quebra o build de forma confusa** — usar Node 24.15.0 (`.nvmrc`). Checar com `yarn validate-electron-version`
-- **Mudanças no main process não aparecem com reload** — precisa `yarn build:dev` (relo-car só vale para renderer)
-- **Yarn moderno/npm não funcionam** — `.yarnrc` força `vendor/yarn-1.21.1.js` (yarn clássico 1.21.1); usar `yarn` via corepack ou o vendored
-- **Estado estranho do build** (erros de cache/inconsistência) → `yarn rebuild-hard:dev`
-- **`electron-installer-redhat` precisa de patch** — `patches/electron-installer-redhat+3.4.0.patch` via patch-package; não remova o patch sem validar build RPM
+- **Wrong Node breaks the build in confusing ways** — use Node 24.15.0 (`.nvmrc`). Check with `yarn validate-electron-version`
+- **Main process changes don't show up with reload** — needs `yarn build:dev` (reload only applies to the renderer)
+- **Modern yarn/npm don't work** — `.yarnrc` forces `vendor/yarn-1.21.1.js` (classic yarn 1.21.1); use `yarn` via corepack or the vendored one
+- **Weird build state** (cache/inconsistency errors) → `yarn rebuild-hard:dev`
 
-## Testes
+## Tests
 
-- **Unit tests interferem com git config global** — por isso `yarn test:docker` é recomendado; sem Docker, rodar com `yarn test:setup` e cuidado com configs do usuário
-- **E2E exige build de produção** — `yarn test:e2e:build` antes de `run`; usa mock update server na porta 51789
-- Testes unitários dependem de `.test.env` e `app/test/globals.mts` (carregados automaticamente pelo `script/test.mjs`)
+- **Unit tests interfere with the global git config** — that's why `yarn test:docker` is recommended; without Docker, run with `yarn test:setup` and be careful with user configs
+- **E2E requires a production build** — `yarn test:e2e:build` before `run`; uses mock update server on port 51789
+- Unit tests depend on `.test.env` and `app/test/globals.mts` (loaded automatically by `script/test.mjs`)
 
 ## Upstream / merge
 
-- **`app/package.json` `version` NUNCA editado à mão** — nota `$NOTE` no arquivo; conflito de merge com upstream é resolvido mantendo o valor do upstream (a versão é setada por `env.APP_VERSION` no build)
-- **`changelog.json` e `yarn.lock` são pontos frequentes de conflito** ao mergear upstream — resolver com calma; `yarn install` regenera o lock
-- **Submódulos** (`gemoji`, `gitignore`, `choosealicense.com`): após puxar commits do upstream que mexam nos pointers, rodar `git submodule update --init --recursive`, senão recursos estáticos somem
-- **`yarn.lock` pode acumular entradas stale** (já limpo em 258cae77ed) — não commitar "sujas"; rodar `yarn install` clássico para limpar
+- **`app/package.json` `version` NEVER edited by hand** — `$NOTE` in the file; merge conflicts with upstream are resolved keeping the upstream value (the version is set by `env.APP_VERSION` at build)
+- **`changelog.json` and `yarn.lock` are frequent conflict points** when merging upstream — resolve calmly; `yarn install` regenerates the lock
+- **Submodules** (`gemoji`, `gitignore`, `choosealicense.com`): after pulling upstream commits that touch the pointers, run `git submodule update --init --recursive`, otherwise static assets disappear
+- **`yarn.lock` can accumulate stale entries** (already cleaned in 258cae77ed) — don't commit "dirty" ones; run classic `yarn install` to clean
 
 ## Fork (desktop-claw)
 
-- **Worktree API**: há mudança fork-only no construtor (`mainWorktreePath`) — manter compatível ao mergear upstream (commit 0901cca2b1 documenta o padrão)
-- **FTP**: senhas só via keychain (service `"Desktop Claw - FTP Deployments"`); nunca gravar em DB/logs. Upload roda no main process com AbortSignal — não mover para renderer
-- **Check for Updates**: consulta a API pública do GitHub (`repos/zonaro/desktop-claw/releases/latest`) sem auth — sujeita a rate limit (60 req/h por IP); falha vira estado `error` no dialog. Não há auto-updater; o botão Download abre a página de release no navegador
-- Features do fork pendentes: ver `.agents/fork-features.md` (tab FTP em Repository Settings e seção OpenCode nas Preferences ainda não implementadas)
+- **Worktree API**: there is a fork-only change in the constructor (`mainWorktreePath`) — keep it compatible when merging upstream (commit 0901cca2b1 documents the pattern)
+- **FTP**: passwords only via keychain (service `"Desktop Claw - FTP Deployments"`); never write to DB/logs. Upload runs in the main process with AbortSignal — don't move it to the renderer
+- **Check for Updates**: queries the public GitHub API (`repos/zonaro/desktop-claw/releases/latest`) without auth — subject to rate limit (60 req/h per IP); failure becomes the `error` state in the dialog. There is no auto-updater; the Download button opens the release page in the browser
+- **OpenCode tab**: one `opencode serve` process serves every repository — requests are scoped with `directory=<repo path>`, so never restart the server to switch repository. The tab's sidebar shows the server error inline when the CLI is missing
+- **The CLI is not on the graphical session's PATH**: the OpenCode installer appends `~/.opencode/bin` to the user's *shell* profile (`.bashrc`/`.zshrc`), but the app is launched from a `.desktop` entry by `systemd --user`, which never reads it — so a bare `spawn('opencode')` fails with ENOENT even though `which opencode` works in a terminal. `opencode-command.ts` resolves the binary against PATH *and* the known install directories; keep every OpenCode spawn going through `resolveOpenCodeCommand`. Same trap applies to any other CLI the app shells out to
+- **Dev builds can't be driven by Playwright**: the packaged *dev* build's `renderer.bundle.js` needs the webpack dev server, and fails with `TypeError: object null is not iterable` when launched standalone. Use `yarn test:e2e:build:unpackaged` + `DESKTOP_E2E_APP_MODE=unpackaged` (or a production build) for any automated UI check
+- Pending fork features: see `.agents/fork-features.md` (FTP tab in Repository Settings and OpenCode section in Preferences not implemented yet)
 
-## Plataformas
+## Platforms
 
-- **AppImage**: exige setup manual (`.desktop` + MIME `x-scheme-handler/x-github-desktop-auth`) para o sign-in funcionar; prefira `.deb`/`.rpm`
-- **Linux e2e/CI**: CI roda `ci.yml` (lint, unit, e2e, package); builds Linux usam electron-builder + scripts de empacotamento (`script/package-debian.ts`, `package-redhat.ts`, `package-electron-builder.ts`)
+- **AppImage**: registers no URL handler, so sign-in needs manual setup (`.desktop` + MIME `x-scheme-handler/x-github-desktop-auth`); prefer the tarball install (`docs/install.sh`), which sets it up
+- **Linux e2e/CI**: CI runs `ci.yml` (lint, unit, e2e, package); Linux builds use `script/package-electron-builder.ts` (AppImage) and `script/package-tarball.ts` (tar.gz)
 
-## Dicas de debug
+## Debug tips
 
-- Logs do app: winston (transports de console/arquivo em `app/src/main-process/log.ts`)
-- Erros de exceção não capturada: `show-uncaught-exception.ts` / `crash-window.ts`
-- Problemas de IPC suspeitos: checar `trusted-ipc-sender` e `same-origin-filter` antes de culpar o handler
+- App logs: winston (console/file transports in `app/src/main-process/log.ts`)
+- Uncaught exception errors: `show-uncaught-exception.ts` / `crash-window.ts`
+- Suspected IPC issues: check `trusted-ipc-sender` and `same-origin-filter` before blaming the handler

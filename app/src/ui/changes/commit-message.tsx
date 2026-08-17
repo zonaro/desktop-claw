@@ -1065,8 +1065,8 @@ export class CommitMessage extends React.Component<
           ? 'Generate Commit Message with OpenCode'
           : 'Generate commit message with OpenCode'
         : __DARWIN__
-          ? 'Generate Commit Message with Copilot'
-          : 'Generate commit message with Copilot'
+        ? 'Generate Commit Message with Copilot'
+        : 'Generate commit message with Copilot'
 
     return {
       label,
@@ -1199,9 +1199,7 @@ export class CommitMessage extends React.Component<
     }
 
     const generateIcon =
-      commitMessageProvider === 'openCode'
-        ? octicons.sparkle
-        : octicons.copilot
+      commitMessageProvider === 'openCode' ? octicons.sparkle : octicons.copilot
 
     return (
       <>

@@ -8,6 +8,9 @@ import { GitConfigUserForm } from '../lib/git-config-user-form'
 import { TabBar } from '../tab-bar'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Select } from '../lib/select'
+import { TextBox } from '../lib/text-box'
+import { Button } from '../lib/button'
+import { Row } from '../lib/row'
 import {
   shellFriendlyNames,
   SupportedHooksEnvShell,
@@ -44,6 +47,10 @@ interface IGitProps {
   readonly setGlobalAuthor: boolean
   readonly globalAuthorWasSet: boolean
   readonly onSetGlobalAuthorChanged: (value: boolean) => void
+
+  readonly repoDirectory: string
+  readonly onRepoDirectoryChanged: (path: string) => void
+  readonly onChooseRepoDirectory: () => Promise<string | undefined>
 }
 
 const windowsShells: ReadonlyArray<SupportedHooksEnvShell> = [
@@ -168,6 +175,7 @@ export class Git extends React.Component<IGitProps> {
           <span>Author</span>
           <span>Default branch</span>
           <span>Hooks</span>
+          <span>Projects</span>
         </TabBar>
         <div className="git-preferences-content">{this.renderCurrentTab()}</div>
       </DialogContent>
@@ -181,6 +189,8 @@ export class Git extends React.Component<IGitProps> {
       return this.renderDefaultBranchSetting()
     } else if (this.selectedTabIndex === 2) {
       return this.renderHooksSettings()
+    } else if (this.selectedTabIndex === 3) {
+      return this.renderProjectsSettings()
     }
 
     return null
@@ -271,6 +281,29 @@ export class Git extends React.Component<IGitProps> {
         </p>
 
         {this.renderEditGlobalGitConfigInfo()}
+      </div>
+    )
+  }
+
+  private renderProjectsSettings() {
+    return (
+      <div className="projects-component">
+        <h2 id="repo-directory-heading">Repo Directory</h2>
+        <Row>
+          <TextBox
+            value={this.props.repoDirectory}
+            placeholder="repository directory"
+            ariaLabelledBy="repo-directory-heading"
+            ariaDescribedBy="repo-directory-description"
+            onValueChanged={this.props.onRepoDirectoryChanged}
+          />
+          <Button onClick={this.props.onChooseRepoDirectory}>Choose…</Button>
+        </Row>
+        <p id="repo-directory-description" className="settings-description">
+          Repositories will be cloned into this directory by default, and any
+          subfolder that is a Git repository will be added to Desktop Claw
+          automatically.
+        </p>
       </div>
     )
   }

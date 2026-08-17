@@ -1,54 +1,54 @@
-# Stack Tecnológica
+# Technology Stack
 
-App Electron (cliente Git desktop). TypeScript em todo o código do app. Build via Webpack 5 com Yarn clássico.
+Electron app (desktop Git client). TypeScript throughout the app code. Built with Webpack 5 and classic Yarn.
 
-## Versões pinadas (arquivos de versão na raiz)
+## Pinned versions (version files at the repo root)
 
-| Ferramenta | Versão | Onde |
+| Tool | Version | Where |
 | --- | --- | --- |
 | Node.js | **24.15.0** | `.nvmrc`, `.node-version`, `.tool-versions` |
-| Python | 3.9.5 | `.python-version` (usado pela toolchain de build) |
-| Yarn | 1.22.22 (clássico) | `package.json` `packageManager`; `.yarnrc` força `yarn-path ./vendor/yarn-1.21.1.js` |
-| Electron | 42.4.0 | `package.json` (devDependencies raiz) |
-| TypeScript | 5.8.2 | `package.json` raiz |
+| Python | 3.9.5 | `.python-version` (used by the build toolchain) |
+| Yarn | 1.22.22 (classic) | `package.json` `packageManager`; `.yarnrc` forces `yarn-path ./vendor/yarn-1.21.1.js` |
+| Electron | 42.4.0 | `package.json` (root devDependencies) |
+| TypeScript | 5.8.2 | root `package.json` |
 | React | 16.8.4 (class components) | `app/package.json` |
 
-> Node errado quebra o build de formas confusas. Use `nvm use` / asdf com as versões pinadas.
+> The wrong Node breaks the build in confusing ways. Use `nvm use` / asdf with the pinned versions.
 
-## Dependências de runtime (`app/package.json`)
+## Runtime dependencies (`app/package.json`)
 
-O app tem `package.json` próprio (`app/`), separado das deps de build na raiz.
+The app has its own `package.json` (`app/`), separate from the build deps at the root.
 
-- **Git**: `dugite` 3.2.2 (executa git embutido; wrapper em `app/src/lib/git/core.ts`)
-- **Persistência**: `dexie` 3.2.3 (IndexedDB); `keytar` 7.8 (keychain do SO — credenciais)
-- **UI**: `react`/`react-dom` 16.8, `classnames`, `focus-trap-react`, `react-transition-group`, `react-css-transition-replace`, `react-virtualized`, `react-confetti`, `@floating-ui/react-dom` (popovers/tooltips), `fuzzaldrin-plus` (busca), `memoize-one`
-- **Editor/terminal**: `codemirror` 5 (+modes elixir/luau/zig), `@xterm/xterm` (terminal embutido), `textarea-caret`
-- **Markdown/sanitização**: `marked` 4, `dompurify`
-- **GitHub integrations**: `@github/alive-client` (notificações/eventos), `@github/copilot-sdk` (Copilot)
-- **Fork (claw)**: `basic-ftp` 6.2 (FTP Deployments — ver `.agents/fork-features.md`), `ignore` 7 (padrões .gitignore para upload)
+- **Git**: `dugite` 3.2.2 (runs embedded git; wrapper in `app/src/lib/git/core.ts`)
+- **Persistence**: `dexie` 3.2.3 (IndexedDB); `keytar` 7.8 (OS keychain — credentials)
+- **UI**: `react`/`react-dom` 16.8, `classnames`, `focus-trap-react`, `react-transition-group`, `react-css-transition-replace`, `react-virtualized`, `react-confetti`, `@floating-ui/react-dom` (popovers/tooltips), `fuzzaldrin-plus` (search), `memoize-one`
+- **Editor/terminal**: `codemirror` 5 (+elixir/luau/zig modes), `@xterm/xterm` (embedded terminal), `textarea-caret`
+- **Markdown/sanitization**: `marked` 4, `dompurify`
+- **GitHub integrations**: `@github/alive-client` (notifications/events), `@github/copilot-sdk` (Copilot)
+- **Fork (claw)**: `basic-ftp` 6.2 (FTP Deployments — see `.agents/fork-features.md`), `ignore` 7 (.gitignore patterns for upload)
 - **Logs**: `winston` + `triple-beam`, `split2`, `byline`
-- **Vendor local**: `desktop-notifications`, `desktop-trampoline`, `printenvz`, `windows-argv-parser` (ver `vendor/`; instalados como `file:../vendor/...`)
-- **Ícones**: `@primer/octicons` (na raiz, gerados via `yarn generate-octicons`)
+- **Local vendor**: `desktop-notifications`, `desktop-trampoline`, `printenvz`, `windows-argv-parser` (see `vendor/`; installed as `file:../vendor/...`)
+- **Icons**: `@primer/octicons` (at the root, generated via `yarn generate-octicons`)
 
-## Toolchain de build (raiz `package.json`)
+## Build toolchain (root `package.json`)
 
 - Webpack 5: `webpack`, `ts-loader`, `sass`/`sass-loader`/`style-loader`/`mini-css-extract-plugin`, `css-loader`, `html-webpack-plugin`, `webpack-dev-middleware` + `webpack-hot-middleware` (dev)
-- Bootstrap TS: `ts-node` 7 (scripts em `script/`) + `tsx` (testes)
-- Empacotamento: `electron-builder` 25, `@electron/packager` 18, `electron-winstaller` 5, `electron-installer-debian`/`redhat` (optionalDependencies)
-- Patching de deps: `patch-package` (patch em `patches/electron-installer-redhat+3.4.0.patch`)
-- CLI do app: `ts-node app/src/cli/main.ts` (`yarn cli`)
+- TS bootstrap: `ts-node` 7 (scripts in `script/`) + `tsx` (tests)
+- Packaging: `electron-builder` 25 (AppImage), `@electron/packager` 18, `electron-winstaller` 5 (optionalDependency); Linux tarball built by `script/package-tarball.ts` with plain `tar`
+- Dep patching: `patch-package` (no patches currently applied)
+- App CLI: `ts-node app/src/cli/main.ts` (`yarn cli`)
 
-## Testes
+## Tests
 
-- **Unitários**: `node --test` + `tsx` + `jsdom`/`global-jsdom` + `fake-indexeddb`; `@testing-library/react` 12; runner em `script/test.mjs`; testes em `app/test/unit/**/*-test.ts` (espelham `app/src`)
-- **E2E**: Playwright 1.60 (`app/test/e2e/playwright.config.ts`), com mock de update server (`mock-update-server.ts`) e `DESKTOP_E2E_UPDATES_URL`
-- **Docker**: `script/testing-docker/run.sh` — rodada unitária isolada/reprodutível
-- **Lint**: ESLint 8 + regras custom (`eslint-rules/`, ver `.agents/code-patterns.md`), Prettier 2, markdownlint (`@github/markdownlint-github`)
+- **Unit**: `node --test` + `tsx` + `jsdom`/`global-jsdom` + `fake-indexeddb`; `@testing-library/react` 12; runner in `script/test.mjs`; tests in `app/test/unit/**/*-test.ts` (mirror `app/src`)
+- **E2E**: Playwright 1.60 (`app/test/e2e/playwright.config.ts`), with a mock update server (`mock-update-server.ts`) and `DESKTOP_E2E_UPDATES_URL`
+- **Docker**: `script/testing-docker/run.sh` — isolated/reproducible unit run
+- **Lint**: ESLint 8 + custom rules (`eslint-rules/`, see `.agents/code-patterns.md`), Prettier 2, markdownlint (`@github/markdownlint-github`)
 
-## Submódulos git
+## Git submodules
 
-`.gitmodules`: `gemoji` (emoji), `app/static/common/gitignore`, `app/static/common/choosealicense.com`. Após sync com upstream, rodar `git submodule update --init --recursive`.
+`.gitmodules`: `gemoji` (emoji), `app/static/common/gitignore`, `app/static/common/choosealicense.com`. After syncing with upstream, run `git submodule update --init --recursive`.
 
-## Referência de docs upstream (em `docs/`)
+## Upstream docs reference (in `docs/`)
 
-`docs/documentation/technical/` (rebase-flow, feature-flagging, oauth, pull-requests, dialogs, e2e-smoke-tests...), `docs/documentation/contributing/` (setup, styleguide, linting, tooling...), `docs/documentation/process/` (releases, testing...), `docs/documentation/known-issues.md`, `docs/documentation/cli.md`. Úteis para consulta antes de mexer em área desconhecida.
+`docs/documentation/technical/` (rebase-flow, feature-flagging, oauth, pull-requests, dialogs, e2e-smoke-tests...), `docs/documentation/contributing/` (setup, styleguide, linting, tooling...), `docs/documentation/process/` (releases, testing...), `docs/documentation/known-issues.md`, `docs/documentation/cli.md`. Useful to consult before touching an unfamiliar area.

@@ -1,47 +1,48 @@
-# agents.md — Índice da documentação técnica
+# agents.md — Technical documentation index
 
-Este repositório é o **desktop-claw**, um fork de [desktop-plus](https://github.com/desktop-plus/desktop-plus) (que por sua vez é fork do GitHub Desktop) — um cliente Git desktop em Electron.
+This repository is **desktop-claw**, a fork of [desktop-plus](https://github.com/desktop-plus/desktop-plus) (which is itself a fork of GitHub Desktop) — an Electron desktop Git client.
 
-Toda a documentação técnica consultável vive em [`.agents/`](.agents/). Este arquivo é o sumário: leia-o primeiro para saber onde está cada informação.
+All consultable technical documentation lives in [`.agents/`](.agents/). This file is the index: read it first to know where each piece of information lives.
 
-## Documentos
+## Documents
 
-| Documento | Conteúdo |
+| Document | Content |
 | --- | --- |
-| [.agents/stack.md](.agents/stack.md) | Linguagens, frameworks, versões e toolchain (Node, Electron, React, Webpack, dugite, Dexie...) |
-| [.agents/architecture.md](.agents/architecture.md) | Arquitetura: processos Electron, bundles webpack, fluxo de dados (dispatcher → stores → git/API/DB), camada git, Dexie, IPC |
-| [.agents/code-patterns.md](.agents/code-patterns.md) | Padrões de código e convenções (named exports, interfaces `I`-prefix, readonly, regras eslint custom, estrutura de UI) |
-| [.agents/workflow.md](.agents/workflow.md) | Comandos de dev/build/teste/lint e fluxos de trabalho do dia a dia |
-| [.agents/known-problems.md](.agents/known-problems.md) | Problemas conhecidos, gotchas e armadilhas já encontradas |
-| [.agents/fork-features.md](.agents/fork-features.md) | Features exclusivas deste fork: FTP Deployments e OpenCode (mapa de arquivos, IPC, integração, pendências) |
-| [.agents/upstream-sync.md](.agents/upstream-sync.md) | Como sincronizar com o repositório original desktop-plus (puxar commits novos) |
+| [.agents/stack.md](.agents/stack.md) | Languages, frameworks, versions and toolchain (Node, Electron, React, Webpack, dugite, Dexie...) |
+| [.agents/architecture.md](.agents/architecture.md) | Architecture: Electron processes, webpack bundles, data flow (dispatcher → stores → git/API/DB), git layer, Dexie, IPC |
+| [.agents/code-patterns.md](.agents/code-patterns.md) | Code patterns and conventions (named exports, `I`-prefixed interfaces, readonly, custom eslint rules, UI structure) |
+| [.agents/workflow.md](.agents/workflow.md) | Dev/build/test/lint commands and day-to-day workflows |
+| [.agents/known-problems.md](.agents/known-problems.md) | Known problems, gotchas and pitfalls already encountered |
+| [.agents/fork-features.md](.agents/fork-features.md) | Features exclusive to this fork: FTP Deployments and OpenCode (file map, IPC, integration, pending items) |
+| [.agents/upstream-sync.md](.agents/upstream-sync.md) | How to sync with the original desktop-plus repository (pull new commits) |
 
-## Regras de ouro (resumo)
+## Golden rules (summary)
 
-1. **Node 24.15.0** é obrigatório (`.nvmrc`/`.node-version`/`.tool-versions`).
-2. **Yarn clássico 1.x** via `yarn-path` (`.yarnrc` aponta para `vendor/yarn-1.21.1.js`). Não use npm/yarn moderno.
-3. **Nunca edite o campo `version` em `app/package.json`** — causa merge conflicts com o upstream e é ignorado no build. A versão real é carimbada a partir da data/hora UTC da compilação, no formato `{YY}.{diaDoAno}.{HHMM}` (ex.: `26.225.1942`), definido em [`script/calendar-version.ts`](script/calendar-version.ts). `env.APP_VERSION` sobrescreve, e é assim que o CI usa uma única versão em todas as plataformas.
-4. **Mudanças em código do main process exigem rebuild** (`yarn build:dev`); mudanças de renderer só precisam de reload (`Ctrl+Alt+R`).
-5. **Erro `Invalid header: Does not start with Cr24` no start é normal** — ignorar.
-6. **Credenciais nunca vão para Dexie/localStorage/logs** — sempre OS keychain via `TokenStore` (keytar).
-7. Para puxar commits novos do desktop-plus, siga [.agents/upstream-sync.md](.agents/upstream-sync.md).
-8. **A distribuição é só GitHub Releases** — nada de Winget, Homebrew, APT, DNF, AUR ou Flathub, e não existe auto-update (o app tem "Help > Check for Updates" manual, que consulta a API de releases do GitHub e abre a página de release). Push na `main` (ou workflow_dispatch) compila e publica; veja [docs/documentation/process/releases.md](docs/documentation/process/releases.md).
+1. **Software and documentation are always in English.** Code, comments, commit messages, docs and any project artifact must be written in English.
+2. **Node 24.15.0** is mandatory (`.nvmrc`/`.node-version`/`.tool-versions`).
+3. **Classic Yarn 1.x** via `yarn-path` (`.yarnrc` points to `vendor/yarn-1.21.1.js`). Do not use npm/modern yarn.
+4. **Never edit the `version` field in `app/package.json`** — it causes merge conflicts with upstream and is ignored at build time. The real version is stamped from the UTC date/time of the build, in the `{YY}.{dayOfYear}.{HHMM}` format (e.g. `26.225.1942`), defined in [`script/calendar-version.ts`](script/calendar-version.ts). `env.APP_VERSION` overrides it, and that's how CI uses a single version across all platforms.
+5. **Main process code changes require a rebuild** (`yarn build:dev`); renderer changes only need a reload (`Ctrl+Alt+R`).
+6. **`Invalid header: Does not start with Cr24` error on start is normal** — ignore it.
+7. **Credentials never go to Dexie/localStorage/logs** — always OS keychain via `TokenStore` (keytar).
+8. To pull new commits from desktop-plus, follow [.agents/upstream-sync.md](.agents/upstream-sync.md).
+9. **Distribution is GitHub Releases only** — no Winget, Homebrew, APT, DNF, AUR or Flathub, and there is no auto-update (the app has a manual "Help > Check for Updates" that queries the GitHub releases API and opens the release page). Push to `main` (or workflow_dispatch) builds and publishes; see [docs/documentation/process/releases.md](docs/documentation/process/releases.md).
 
-## Atalhos rápidos
+## Quick shortcuts
 
 ```sh
-yarn            # instalar deps (corepack enable antes se necessário)
-yarn build:dev  # build de desenvolvimento
-yarn start      # rodar app com watch
-yarn test       # testes unitários (node --test + tsx)
-yarn test:docker# testes unitários isolados em Docker (recomendado)
+yarn            # install deps (corepack enable first if needed)
+yarn build:dev  # development build
+yarn start      # run app with watch
+yarn test       # unit tests (node --test + tsx)
+yarn test:docker# unit tests isolated in Docker (recommended)
 yarn lint:src   # eslint + prettier
-yarn version:calendar  # imprime a versão que um build feito agora receberia
+yarn version:calendar  # prints the version a build made now would get
 ```
 
-## Manutenção desta documentação
+## Maintaining this documentation
 
-- Ao descobrir um problema novo ou uma armadilha, registre em `known-problems.md`.
-- Ao mexer em feature do fork, atualize `fork-features.md`.
-- Ao mudar a stack/versões, atualize `stack.md`.
-- O histórico de trabalho fica em `.omo/` (plans/notepads) — não apague.
+- When you discover a new problem or pitfall, record it in `known-problems.md`.
+- When touching a fork feature, update `fork-features.md`.
+- When changing the stack/versions, update `stack.md`.
+- Work history lives in `.omo/` (plans/notepads) — do not delete.

@@ -198,6 +198,14 @@ export class Dispatcher {
   }
 
   /**
+   * Scan the configured repo directory for Git repositories and add them
+   * to the app automatically.
+   */
+  public scanRepoDirectory(): Promise<void> {
+    return this.appStore._scanRepoDirectory()
+  }
+
+  /**
    * Add a tutorial repository.
    *
    * This method differs from the `addRepositories` method in that it
@@ -381,6 +389,32 @@ export class Dispatcher {
     selectedFile: string | null
   ): void {
     this.appStore._setSelectedWorktreeFile(repository, selectedFile)
+  }
+
+  /** Reload the OpenCode sessions of the repository, starting the server if needed. */
+  public refreshOpenCodeSessions(repository: Repository): Promise<void> {
+    return this.appStore._refreshOpenCodeSessions(repository)
+  }
+
+  /** Set the session shown in the OpenCode conversation view. */
+  public setSelectedOpenCodeSession(
+    repository: Repository,
+    sessionID: string | null
+  ): void {
+    this.appStore._setSelectedOpenCodeSession(repository, sessionID)
+  }
+
+  /** Create a new OpenCode session for the repository and select it. */
+  public createOpenCodeSession(repository: Repository): Promise<void> {
+    return this.appStore._createOpenCodeSession(repository)
+  }
+
+  /** Delete an OpenCode session and its message history. */
+  public deleteOpenCodeSession(
+    repository: Repository,
+    sessionID: string
+  ): Promise<void> {
+    return this.appStore._deleteOpenCodeSession(repository, sessionID)
   }
 
   /**
