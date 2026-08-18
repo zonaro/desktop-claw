@@ -133,8 +133,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    # Skip arm64 Linux unless it's a release build (workflow_dispatch or push to main)
-    if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' && github.event_name != 'workflow_dispatch' && github.ref != 'refs/heads/main') }}
     strategy:
       fail-fast: false
       matrix:
@@ -169,6 +167,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           arch: ${{ matrix.arch }}
+      - name: Skip arm64 Linux on non-release events
+        if: ${{ matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' && github.event_name != 'workflow_dispatch' && github.ref != 'refs/heads/main' }}
+        run: |
+          echo "Skipping arm64 Linux build for non-release event (${{ github.event_name }})"
+          exit 0
       - name: Validate macOS version
         if: runner.os == 'macOS'
         run: yarn validate-macos-version
