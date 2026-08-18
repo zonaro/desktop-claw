@@ -46,6 +46,19 @@ export interface IOpenCodeSession {
   /** The agent that handled the session, when known. */
   readonly agent?: string
 
+  /**
+   * The model the session last ran with, recorded by the server. Restored into
+   * the picker when the conversation is reopened.
+   *
+   * `variant` is `'default'` rather than absent when no reasoning preset was
+   * used.
+   */
+  readonly model?: {
+    readonly id: string
+    readonly providerID: string
+    readonly variant?: string
+  }
+
   /** Accumulated cost in USD. */
   readonly cost?: number
 
@@ -146,6 +159,69 @@ export type OpenCodePart =
 export interface IOpenCodeMessage {
   readonly info: IOpenCodeMessageInfo
   readonly parts: ReadonlyArray<OpenCodePart>
+}
+
+/** A model offered by a provider, as listed by `GET /config/providers`. */
+export interface IOpenCodeModel {
+  readonly id: string
+  readonly name?: string
+
+  /**
+   * Reasoning presets the model supports, keyed by name (`low`, `high`,
+   * `max`, …). Absent when the model has none.
+   */
+  readonly variants?: Record<string, unknown>
+}
+
+/** A provider and the models it offers. */
+export interface IOpenCodeProvider {
+  readonly id: string
+  readonly name?: string
+  readonly models: Record<string, IOpenCodeModel>
+}
+
+/** The model picked for a prompt. */
+export interface IOpenCodeModelSelection {
+  readonly providerID: string
+  readonly modelID: string
+}
+
+/** One entry of the model picker, flattened out of the provider list. */
+export interface IOpenCodeModelOption {
+  readonly providerID: string
+  readonly providerName: string
+  readonly modelID: string
+  readonly modelName: string
+  /** The variant names this model accepts, empty when it has none. */
+  readonly variants: ReadonlyArray<string>
+}
+
+/**
+ * A file sent along with a prompt: either attached from disk or referenced
+ * with `@path` in the message text.
+ */
+export interface IOpenCodeAttachment {
+  /** The path shown in the UI, relative to the repository when possible. */
+  readonly path: string
+  /** The file name. */
+  readonly filename: string
+  /** The MIME type, guessed from the extension. */
+  readonly mime: string
+  /**
+   * The content as a data URL for an attachment, or a `file://` URL for a
+   * reference the server reads itself.
+   */
+  readonly url: string
+  /** Whether this came from an `@path` reference rather than a file picker. */
+  readonly isReference: boolean
+}
+
+/** A prompt waiting for the current run to finish before it is sent. */
+export interface IOpenCodeQueuedPrompt {
+  /** Identifier used to drop a single entry from the queue. */
+  readonly id: string
+  readonly text: string
+  readonly attachments: ReadonlyArray<IOpenCodeAttachment>
 }
 
 /** An agent as listed by `GET /agent`. */

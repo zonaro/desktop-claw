@@ -8,6 +8,9 @@ on:
   pull_request:
   # Publishes a release on demand, without waiting for a push to main.
   workflow_dispatch:
+  # Daily E2E smoke tests at 3 AM UTC
+  schedule:
+    - cron: '0 3 * * *'
   workflow_call:
     inputs:
       repository:
@@ -73,14 +76,20 @@ jobs:
           repository: ${{ inputs.repository || github.repository }}
           ref: ${{ inputs.ref }}
           submodules: recursive
-      - uses: actions/setup-node@v6
+      - uses: ./.github/actions/setup-ci-environment
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: yarn
-      - run: yarn
+          arch: x64
       - run: yarn validate-electron-version
       - run: yarn lint
       - run: yarn validate-changelog
+      - name: Test desktop-trampoline (once)
+        run: |
+          cd vendor/desktop-trampoline
+          yarn install --frozen-lockfile
+          yarn test
+      - name: Test scripts (once)
+        run: yarn test:script
       - name: Ensure a clean working directory
         run: git diff --name-status --exit-code
 
@@ -124,11 +133,13 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    # Skip arm64 Linux unless it's a release build (workflow_dispatch or push to main)
+    if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.arch == 'arm64' && github.event_name != 'workflow_dispatch' && github.ref != 'refs/heads/main') }}
     strategy:
       fail-fast: false
       matrix:
         os: [macos-14, windows-2022, ubuntu-latest]
-        arch: [x64, arm64]
+        arch: [x64]
         include:
           - os: macos-14
             friendlyName: macOS
@@ -136,7 +147,11 @@ jobs:
             friendlyName: Windows
           - os: ubuntu-latest
             friendlyName: Linux
-    timeout-minutes: 60
+          # arm64 Linux only for releases (workflow_dispatch or push to main)
+          - os: ubuntu-latest
+            arch: arm64
+            friendlyName: Linux
+    timeout-minutes: 90
     environment: ${{ inputs.environment }}
     env:
       RELEASE_CHANNEL: ${{ inputs.environment }}
@@ -157,11 +172,6 @@ jobs:
       - name: Validate macOS version
         if: runner.os == 'macOS'
         run: yarn validate-macos-version
-      - name: Run desktop-trampoline tests
-        run: |
-          cd vendor/desktop-trampoline
-          yarn install
-          yarn test
       - name: Build production app
         run: yarn build:prod
         env:
@@ -197,10 +207,9 @@ jobs:
           npm_config_arch: ${{ matrix.arch }}
       - name: Run unit tests
         if: |
-          (runner.os == 'Windows' && matrix.arch == 'x64') || (runner.os == 'macOS' && matrix.arch == 'arm64') || (runner.os == 'Linux' && matrix.arch == 'x64')
+          (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') &&
+          ((runner.os == 'Windows' && matrix.arch == 'x64') || (runner.os == 'macOS' && matrix.arch == 'arm64') || (runner.os == 'Linux' && matrix.arch == 'x64'))
         run: yarn test:unit
-      - name: Run script tests
-        run: yarn test:script
       - if: runner.os == 'Windows'
         uses: ./.github/actions/setup-windows-signing
         with:
@@ -236,6 +245,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    # Only run on manual dispatch or scheduled runs (not on push/PR)
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     strategy:
       fail-fast: false
       matrix:
@@ -246,7 +257,7 @@ jobs:
           - os: windows-2022
             friendlyName: Windows
             arch: x64
-    timeout-minutes: 60
+    timeout-minutes: 90
     environment: ${{ inputs.environment }}
     env:
       RELEASE_CHANNEL: ${{ inputs.environment }}

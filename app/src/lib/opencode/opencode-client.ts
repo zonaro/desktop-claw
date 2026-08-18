@@ -1,8 +1,11 @@
 import {
   IOpenCodeAgent,
+  IOpenCodeAttachment,
   IOpenCodeEvent,
   IOpenCodeMessage,
+  IOpenCodeModelSelection,
   IOpenCodePermissionRequest,
+  IOpenCodeProvider,
   IOpenCodeServerStatus,
   IOpenCodeSession,
   OpenCodePermissionResponse,
@@ -110,16 +113,88 @@ export class OpenCodeClient {
     directory: string,
     sessionID: string,
     text: string,
-    agent?: string
+    options: {
+      readonly agent?: string
+      readonly model?: IOpenCodeModelSelection
+      readonly variant?: string
+      readonly attachments?: ReadonlyArray<IOpenCodeAttachment>
+    } = {}
   ): Promise<void> {
+    const { agent, model, variant, attachments = [] } = options
+
+    const fileParts = attachments.map(attachment => ({
+      type: 'file',
+      mime: attachment.mime,
+      filename: attachment.filename,
+      url: attachment.url,
+    }))
+
     await this.request(
       'POST',
       `/session/${encodeURIComponent(sessionID)}/prompt_async`,
       directory,
       {
-        parts: [{ type: 'text', text }],
+        parts: [...fileParts, { type: 'text', text }],
         ...(agent === undefined ? {} : { agent }),
+        ...(model === undefined ? {} : { model }),
+        ...(variant === undefined ? {} : { variant }),
       }
+    )
+  }
+
+  /**
+   * Rewinds the session to just before the given message, undoing the file
+   * changes made after it. The revert is undone by `unrevertSession`.
+   */
+  public async revertSession(
+    directory: string,
+    sessionID: string,
+    messageID: string
+  ): Promise<void> {
+    await this.request(
+      'POST',
+      `/session/${encodeURIComponent(sessionID)}/revert`,
+      directory,
+      { messageID }
+    )
+  }
+
+  /** Restores everything a previous revert took away. */
+  public async unrevertSession(
+    directory: string,
+    sessionID: string
+  ): Promise<void> {
+    await this.request(
+      'POST',
+      `/session/${encodeURIComponent(sessionID)}/unrevert`,
+      directory,
+      {}
+    )
+  }
+
+  /** Lists the providers and their models, for the model picker. */
+  public async listProviders(
+    directory: string
+  ): Promise<ReadonlyArray<IOpenCodeProvider>> {
+    const response = await this.request<{
+      readonly providers: ReadonlyArray<IOpenCodeProvider>
+    }>('GET', '/config/providers', directory)
+
+    return response?.providers ?? []
+  }
+
+  /**
+   * Finds files in the repository whose path matches the query, for `@`
+   * autocompletion. Paths are relative to the repository root.
+   */
+  public findFiles(
+    directory: string,
+    query: string
+  ): Promise<ReadonlyArray<string>> {
+    return this.request<ReadonlyArray<string>>(
+      'GET',
+      `/find/file?query=${encodeURIComponent(query)}`,
+      directory
     )
   }
 
@@ -142,6 +217,20 @@ export class OpenCodeClient {
       'GET',
       '/agent',
       directory
+    )
+  }
+
+  /** Updates a session's title. */
+  public async updateSession(
+    directory: string,
+    sessionID: string,
+    title: string
+  ): Promise<IOpenCodeSession> {
+    return this.request<IOpenCodeSession>(
+      'PATCH',
+      `/session/${encodeURIComponent(sessionID)}`,
+      directory,
+      { title }
     )
   }
 
@@ -251,7 +340,7 @@ export class OpenCodeClient {
 
   /** Performs a JSON request against the server. */
   private async request<T>(
-    method: 'GET' | 'POST' | 'DELETE',
+    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
     path: string,
     directory: string,
     body?: unknown
@@ -280,7 +369,13 @@ export class OpenCodeClient {
 
   /** Builds an absolute URL scoped to the given repository directory. */
   private url(path: string, directory: string): string {
-    return `${this.baseUrl}${path}?directory=${encodeURIComponent(directory)}`
+    // Some endpoints carry their own query string, so the separator depends on
+    // what the caller already put in the path.
+    const separator = path.includes('?') ? '&' : '?'
+
+    return `${this.baseUrl}${path}${separator}directory=${encodeURIComponent(
+      directory
+    )}`
   }
 
   /** The headers sent with every request, including basic auth. */

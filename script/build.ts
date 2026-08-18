@@ -348,7 +348,7 @@ function copyDependencies() {
   })
 
   console.log('  Installing dependencies via yarn…')
-  cp.execSync('yarn install', { cwd: outRoot, env: process.env })
+  cp.execSync('npx yarn install', { cwd: outRoot, env: process.env })
 
   console.log('  Copying desktop-askpass-trampoline…')
   const trampolineSource = path.resolve(

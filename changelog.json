@@ -1,7 +1,11 @@
 {
   "releases": {
     "3.6.5-beta1": [
-      "[Added] New OpenCode tab in the repository view: the repository's OpenCode sessions in the sidebar and the selected conversation in the main area, with live streaming, agent selection and inline permission prompts",
+      "[Added] New Agent tab in the repository view: the repository's OpenCode sessions in the sidebar and the selected conversation in the main area, with live streaming, chat-style alignment, inline permission prompts, and agent, model and reasoning-variant pickers",
+      "[Added] Attach files to an Agent prompt, or reference repository files with @path autocompletion",
+      "[Added] Queue follow-up messages while the agent works, steer the turn in progress, and rewind a conversation to an earlier message",
+      "[Improved] The Agent tab remembers the model and reasoning variant per conversation, falling back to the default only for a new one",
+      "[Added] Point the Agent tab at an OpenCode server you already run by setting a host and port in Options > Copilot",
       "[Fixed] Find the OpenCode CLI when the app is launched from a desktop entry, which does not inherit the PATH set by the shell profile",
       "[Fixed] Hooks taking input via stdin no longer error on Windows - #22620",
       "[Improved] Update Git for Windows to v2.53.0.windows.4",

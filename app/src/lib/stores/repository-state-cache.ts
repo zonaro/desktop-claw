@@ -396,6 +396,7 @@ function getInitialRepositoryState(): IRepositoryState {
     worktreeState: {
       files: null,
       selectedFile: null,
+      showHiddenFiles: false,
     },
     openCodeState: {
       server: null,

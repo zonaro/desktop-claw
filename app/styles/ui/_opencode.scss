@@ -273,9 +273,59 @@
   }
 }
 
-.opencode-message-user .opencode-message-body {
-  padding: var(--spacing-half) var(--spacing);
-  border-left: 2px solid var(--box-border-color);
+// A conversation reads as one: the user's turns sit on the right, the agent's
+// on the left. The agent's side stays wide because it carries code and tool
+// output, which don't survive a narrow column.
+.opencode-message-user {
+  align-items: flex-end;
+
+  .opencode-message-header {
+    flex-direction: row-reverse;
+  }
+
+  .opencode-message-body {
+    align-items: flex-end;
+    max-width: 80%;
+    padding: var(--spacing-half) var(--spacing);
+    background: var(--box-alt-background-color);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+  }
+
+  .opencode-text {
+    text-align: left;
+  }
+}
+
+.opencode-message-assistant {
+  align-items: flex-start;
+
+  .opencode-message-body {
+    width: 100%;
+  }
+}
+
+.opencode-message-revert {
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary-color);
+  cursor: pointer;
+  opacity: 0;
+
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:hover {
+    color: var(--text-color);
+  }
+}
+
+.opencode-message:hover .opencode-message-revert {
+  opacity: 1;
 }
 
 // Reasoning and tool calls share the same collapsed presentation.
@@ -403,6 +453,8 @@
 
   .opencode-prompt-input {
     width: 100%;
+    // Roughly three lines, so a paragraph-length prompt is visible as typed.
+    min-height: 76px;
     resize: none;
     padding: var(--spacing-half);
     font-family: var(--font-family-sans-serif);
@@ -425,10 +477,213 @@
     justify-content: flex-end;
     gap: var(--spacing-half);
 
-    .opencode-agent-picker {
-      margin-right: auto;
+    .opencode-agent-picker,
+    .opencode-model-picker,
+    .opencode-variant-picker {
       min-width: 0;
+    }
+
+    .opencode-agent-picker {
+      max-width: 150px;
+    }
+
+    .opencode-model-picker {
       max-width: 220px;
+    }
+
+    .opencode-variant-picker {
+      max-width: 110px;
+      margin-right: auto;
+    }
+
+    // Without a variant picker the model picker is the last control on the
+    // left, so it takes over pushing the buttons to the right.
+    .opencode-model-picker:last-of-type {
+      margin-right: auto;
+    }
+
+    .opencode-queue-count {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary-color);
+      white-space: nowrap;
+    }
+  }
+}
+
+.opencode-attachments {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--spacing-half);
+
+  .opencode-attachment {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    max-width: 260px;
+    padding: 2px var(--spacing-half);
+    font-size: var(--font-size-sm);
+    background: var(--box-alt-background-color);
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+
+    .opencode-attachment-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      direction: rtl;
+      text-align: left;
+    }
+
+    .opencode-attachment-remove {
+      display: flex;
+      align-items: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary-color);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text-color);
+      }
+    }
+  }
+}
+
+.opencode-file-suggestions {
+  display: flex;
+  flex-direction: column;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--box-background-color);
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+
+  .opencode-file-suggestion {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    padding: var(--spacing-half);
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font-size: var(--font-size-sm);
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:hover {
+      background: var(--list-item-hover-background-color);
+    }
+
+    &.selected {
+      background: var(--box-selected-background-color);
+      color: var(--box-selected-text-color);
+    }
+  }
+}
+
+.opencode-queued-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-half);
+  margin-bottom: var(--spacing);
+
+  .opencode-queued-prompt {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-half);
+    align-self: flex-end;
+    max-width: 80%;
+    padding: var(--spacing-half) var(--spacing);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
+    border: 1px dashed var(--box-border-color);
+    border-radius: var(--border-radius);
+
+    .opencode-queued-prompt-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .opencode-queued-prompt-remove {
+      display: flex;
+      align-items: center;
+      padding: 0;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary-color);
+      cursor: pointer;
+
+      &:hover {
+        color: var(--text-color);
+      }
+    }
+  }
+}
+
+.opencode-revert-banner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--spacing-half);
+  margin-bottom: var(--spacing);
+  padding: var(--spacing-half) var(--spacing);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary-color);
+  background: var(--box-alt-background-color);
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+}
+
+.opencode-rename-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.opencode-rename-dialog {
+  background: var(--box-background-color);
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing);
+  min-width: 300px;
+  max-width: 400px;
+  box-shadow: var(--shadow-large);
+
+  h3 {
+    margin: 0 0 var(--spacing) 0;
+    font-size: var(--font-size);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-color);
+  }
+
+  .text-box-component {
+    margin-bottom: var(--spacing);
+  }
+
+  .opencode-rename-dialog-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: var(--spacing-half);
+
+    .button-component {
+      flex-shrink: 0;
     }
   }
 }

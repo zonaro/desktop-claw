@@ -8,7 +8,9 @@ import { TitleBarStyle } from '../lib/title-bar-style'
 import { Row } from '../lib/row'
 import { DialogContent } from '../dialog'
 import { RadioGroup } from '../lib/radio-group'
+import { Button } from '../lib/button'
 import { Select } from '../lib/select'
+import { defaultTintColor } from '../lib/application-tint'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { encodePathAsUrl } from '../../lib/path'
 import { tabSizeDefault } from '../../lib/stores/app-store'
@@ -39,6 +41,8 @@ import { formatNumber } from '../../lib/format-number'
 interface IAppearanceProps {
   readonly selectedTheme: ApplicationTheme
   readonly onSelectedThemeChanged: (theme: ApplicationTheme) => void
+  readonly selectedTint: string | null
+  readonly onSelectedTintChanged: (tint: string | null) => void
   readonly selectedTabSize: number
   readonly onSelectedTabSizeChanged: (tabSize: number) => void
   readonly selectedDiffFontSize: number
@@ -406,6 +410,45 @@ export class Appearance extends React.Component<
     )
   }
 
+  private onSelectedTintChanged = (
+    event: React.FormEvent<HTMLInputElement>
+  ) => {
+    this.props.onSelectedTintChanged(event.currentTarget.value)
+  }
+
+  private onClearTint = () => {
+    this.props.onSelectedTintChanged(null)
+  }
+
+  private renderTint() {
+    const { selectedTint } = this.props
+
+    return (
+      <div className="advanced-section tint-section">
+        <h2>Interface tint</h2>
+
+        <div className="tint-selector">
+          <label htmlFor="interface-tint-color">Color</label>
+          <input
+            id="interface-tint-color"
+            type="color"
+            value={selectedTint ?? defaultTintColor}
+            onChange={this.onSelectedTintChanged}
+            aria-describedby="interface-tint-description"
+          />
+          <Button onClick={this.onClearTint} disabled={selectedTint === null}>
+            {__DARWIN__ ? 'No Tint' : 'No tint'}
+          </Button>
+        </div>
+
+        <p id="interface-tint-description" className="settings-description">
+          Colors the interface with the hue you pick. Light stays light and dark
+          stays dark — only the grays of the current theme follow the color.
+        </p>
+      </div>
+    )
+  }
+
   private onShowBranchNameInRepoListChanged = (
     event: React.FormEvent<HTMLSelectElement>
   ) => {
@@ -670,6 +713,7 @@ export class Appearance extends React.Component<
     return (
       <DialogContent className="appearance-tab">
         {this.renderSelectedTheme()}
+        {this.renderTint()}
         {this.renderFormatting()}
         {this.renderRepositoryList()}
         {this.renderBranchSortOrder()}

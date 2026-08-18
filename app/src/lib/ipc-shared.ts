@@ -19,6 +19,7 @@ import { DesktopAliveEvent } from './stores/alive-store'
 import { CLIAction } from './cli-action'
 import { MainProcessConfig } from './main-process-config'
 import { IOpenCodeAvailability, IOpenCodeRunRequest } from '../models/opencode'
+import type { IMemoryEntry } from './opencode/opencode-config'
 import { IOpenCodeServerStatus } from '../models/opencode-session'
 import type { IFtpDeployment } from '../models/ftp-deployment'
 import {
@@ -168,6 +169,10 @@ export type RequestResponseChannels = {
   'opencode-list-models': (command: string) => Promise<ReadonlyArray<string>>
   'opencode-run-prompt': (request: IOpenCodeRunRequest) => Promise<string>
   'opencode-server-start': (command: string) => Promise<IOpenCodeServerStatus>
+  'opencode-get-memory-dir': () => Promise<string>
+  'opencode-read-memory-files': () => Promise<ReadonlyArray<IMemoryEntry>>
+  'opencode-write-memory-file': (entry: IMemoryEntry) => Promise<void>
+  'opencode-delete-memory-file': (id: string) => Promise<void>
   'ftp-test-connection': (
     deployment: IFtpDeployment,
     password: string

@@ -93,6 +93,12 @@ describe('OpenCode config', () => {
       model: 'deepseek/deepseek-chat',
       timeoutMs: 120000,
       reviewOnCommit: false,
+      serverHost: null,
+      serverPort: null,
+      serverUser: null,
+      serverPassword: null,
+      userName: null,
+      memory: [],
     }
     saveOpenCodeConfig(config)
     assert.deepStrictEqual(loadOpenCodeConfig(), config)
@@ -169,6 +175,12 @@ describe('OpenCodeCommitMessageGenerator', () => {
       model: 'deepseek/deepseek-chat',
       timeoutMs: 30000,
       reviewOnCommit: false,
+      serverHost: null,
+      serverPort: null,
+      serverUser: null,
+      serverPassword: null,
+      userName: null,
+      memory: [],
     }
     saveOpenCodeConfig(config)
 

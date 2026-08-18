@@ -229,7 +229,7 @@ export function buildDefaultMenuTemplate({
         click: emit('show-worktree'),
       },
       {
-        label: __DARWIN__ ? 'Show OpenCode' : 'Show Open&Code',
+        label: __DARWIN__ ? 'Show Agent' : 'Show A&gent',
         id: 'show-opencode',
         accelerator: 'CmdOrCtrl+5',
         click: emit('show-opencode'),

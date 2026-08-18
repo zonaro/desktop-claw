@@ -27,6 +27,12 @@ interface IOpenCodeSessionListProps {
 interface IOpenCodeSessionListState {
   /** The text used to filter the session list. */
   readonly filterText: string
+  /** The session being renamed, or null. */
+  readonly renamingSessionId: string | null
+  /** The new title for the session being renamed. */
+  readonly renameTitle: string
+  /** Whether we're generating a title with AI. */
+  readonly isGeneratingTitle: boolean
 }
 
 /** The title shown for a session OpenCode hasn't named yet. */
@@ -43,7 +49,7 @@ export class OpenCodeSessionList extends React.Component<
   public constructor(props: IOpenCodeSessionListProps) {
     super(props)
 
-    this.state = { filterText: '' }
+    this.state = { filterText: '', renamingSessionId: null, renameTitle: '', isGeneratingTitle: false }
   }
 
   private onFilterTextChanged = (filterText: string) => {
@@ -80,7 +86,15 @@ export class OpenCodeSessionList extends React.Component<
       return
     }
 
+    const session = this.props.state.sessions?.find(s => s.id === sessionId)
+    const currentTitle = session?.title ?? UntitledSessionLabel
+
     const items: ReadonlyArray<IMenuItem> = [
+      {
+        label: 'Rename Session…',
+        action: () => this.startRenaming(sessionId, currentTitle),
+      },
+      { type: 'separator' },
       {
         label: 'Delete Session',
         action: () =>
@@ -92,6 +106,80 @@ export class OpenCodeSessionList extends React.Component<
     ]
 
     showContextualMenu(items)
+  }
+
+  private startRenaming = (sessionId: string, currentTitle: string) => {
+    this.setState({
+      renamingSessionId: sessionId,
+      renameTitle: currentTitle === UntitledSessionLabel ? '' : currentTitle,
+      isGeneratingTitle: false,
+    })
+  }
+
+  private cancelRenaming = () => {
+    this.setState({ renamingSessionId: null, renameTitle: '', isGeneratingTitle: false })
+  }
+
+  private confirmRenaming = async () => {
+    const { renamingSessionId, renameTitle } = this.state
+    if (renamingSessionId === null || renameTitle.trim() === '') {
+      return
+    }
+
+    try {
+      await this.props.dispatcher.renameOpenCodeSession(
+        this.props.repository,
+        renamingSessionId,
+        renameTitle.trim()
+      )
+    } catch (e) {
+      log.error('Failed to rename session', e)
+    } finally {
+      this.cancelRenaming()
+    }
+  }
+
+  private onRenameTitleChange = (title: string) => {
+    this.setState({ renameTitle: title })
+  }
+
+  private generateTitleWithAI = async (sessionId: string) => {
+    this.setState({ isGeneratingTitle: true })
+
+    try {
+      const server = this.props.state.server
+      if (!server?.running || !server.baseUrl) {
+        return
+      }
+
+      const { OpenCodeClient } = await import('../../lib/opencode/opencode-client')
+      const client = OpenCodeClient.fromStatus(server)
+      if (!client) {
+        return
+      }
+
+      // Get the session messages to generate a title from
+      const messages = await client.getMessages(this.props.repository.path, sessionId)
+      if (messages.length === 0) {
+        return
+      }
+
+      // Use the title agent to generate a title
+      // We'll send a prompt to the title agent
+      await client.sendPrompt(this.props.repository.path, sessionId, 
+        'Generate a short, descriptive title for this conversation based on the messages so far. Return only the title, no extra text.',
+        { agent: 'title' }
+      )
+
+      // Wait a bit for the response, then refresh sessions to get the new title
+      setTimeout(async () => {
+        await this.props.dispatcher.refreshOpenCodeSessions(this.props.repository)
+        this.setState({ isGeneratingTitle: false })
+      }, 2000)
+    } catch (e) {
+      log.error('Failed to generate title with AI', e)
+      this.setState({ isGeneratingTitle: false })
+    }
   }
 
   /** Filters sessions by title, case insensitively. */
@@ -205,6 +293,7 @@ export class OpenCodeSessionList extends React.Component<
 
   public render() {
     const isServerAvailable = this.props.state.server?.running === true
+    const { renamingSessionId, renameTitle, isGeneratingTitle } = this.state
 
     return (
       <div className="opencode-session-list" id="opencode-session-list">
@@ -226,6 +315,56 @@ export class OpenCodeSessionList extends React.Component<
           </Button>
         </div>
         {this.renderContents()}
+        {renamingSessionId !== null && (
+          <div className="opencode-rename-dialog-overlay" onClick={this.cancelRenaming}>
+            <div className="opencode-rename-dialog" onClick={e => e.stopPropagation()}>
+              <h3>Rename Session</h3>
+              <TextBox
+                value={renameTitle}
+                onValueChanged={this.onRenameTitleChange}
+                placeholder="Enter new title"
+                autoFocus={true}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    this.confirmRenaming()
+                  } else if (e.key === 'Escape') {
+                    this.cancelRenaming()
+                  }
+                }}
+              />
+              <div className="opencode-rename-dialog-actions">
+                <Button
+                  onClick={() => this.generateTitleWithAI(renamingSessionId!)}
+                  disabled={isGeneratingTitle}
+                  size="small"
+                >
+                  {isGeneratingTitle ? (
+                    <>
+                      <Loading /> Generating…
+                    </>
+                  ) : (
+                    <>
+                      <Octicon symbol={octicons.sparkle} /> Generate with AI
+                    </>
+                  )}
+                </Button>
+                <Button
+                  onClick={this.cancelRenaming}
+                  size="small"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={this.confirmRenaming}
+                  size="small"
+                  className="primary"
+                >
+                  Rename
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

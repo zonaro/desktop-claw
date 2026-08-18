@@ -179,6 +179,7 @@ interface IRepositoryViewProps {
 interface IRepositoryViewState {
   readonly changesListScrollTop: number
   readonly compareListScrollTop: number
+  readonly worktreeFilterText: string
 }
 
 /** The index of a tab in the repository tab bar. */
@@ -210,6 +211,7 @@ export class RepositoryView extends React.Component<
     this.state = {
       changesListScrollTop: 0,
       compareListScrollTop: 0,
+      worktreeFilterText: '',
     }
   }
 
@@ -276,7 +278,7 @@ export class RepositoryView extends React.Component<
         </div>
 
         <div className="with-indicator" id="opencode-tab">
-          <span>OpenCode</span>
+          <span>Agent</span>
         </div>
       </TabBar>
     )
@@ -825,7 +827,7 @@ export class RepositoryView extends React.Component<
 
   private renderWorktreeSidebar(): JSX.Element {
     const { worktreeState } = this.props.state
-    const { files, selectedFile } = worktreeState
+    const { files, selectedFile, showHiddenFiles } = worktreeState
 
     return (
       <WorktreeFileTree
@@ -834,8 +836,20 @@ export class RepositoryView extends React.Component<
         repository={this.props.repository}
         dispatcher={this.props.dispatcher}
         onFileSelected={this.onWorktreeFileSelected}
+        showHiddenFiles={showHiddenFiles}
+        onToggleHiddenFiles={this.onToggleWorktreeHiddenFiles}
+        filterText={this.state.worktreeFilterText}
+        onFilterTextChanged={this.onWorktreeFilterTextChanged}
       />
     )
+  }
+
+  private onToggleWorktreeHiddenFiles = () => {
+    this.props.dispatcher.toggleWorktreeShowHiddenFiles(this.props.repository)
+  }
+
+  private onWorktreeFilterTextChanged = (text: string) => {
+    this.setState({ worktreeFilterText: text })
   }
 
   private renderWorktreeContent(): JSX.Element | null {

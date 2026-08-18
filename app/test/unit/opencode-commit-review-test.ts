@@ -50,17 +50,17 @@ describe('buildCommitReviewPrompt', () => {
   const commitSha = 'abc1234'
 
   it('includes the commit sha', () => {
-    const prompt = buildCommitReviewPrompt(diff, commitSha)
+    const prompt = buildCommitReviewPrompt(diff, commitSha, '')
     assert.ok(prompt.includes(commitSha))
   })
 
   it('includes the diff', () => {
-    const prompt = buildCommitReviewPrompt(diff, commitSha)
+    const prompt = buildCommitReviewPrompt(diff, commitSha, '')
     assert.ok(prompt.includes(diff))
   })
 
   it('includes all required section headings', () => {
-    const prompt = buildCommitReviewPrompt(diff, commitSha)
+    const prompt = buildCommitReviewPrompt(diff, commitSha, '')
     assert.ok(prompt.includes('## Issues encontrados'))
     assert.ok(prompt.includes('## Caveats'))
     assert.ok(prompt.includes('## Melhorias'))
@@ -70,11 +70,18 @@ describe('buildCommitReviewPrompt', () => {
   })
 
   it('instructs markdown-only output', () => {
-    const prompt = buildCommitReviewPrompt(diff, commitSha)
+    const prompt = buildCommitReviewPrompt(diff, commitSha, '')
     assert.ok(
       prompt.includes('APENAS') || prompt.includes('ONLY'),
       'prompt should instruct markdown-only output'
     )
+  })
+
+  it('includes memory context when provided', () => {
+    const memoryContext = '## Custom instructions\n\nAlways use TypeScript.'
+    const prompt = buildCommitReviewPrompt(diff, commitSha, memoryContext)
+    assert.ok(prompt.includes('Always use TypeScript'))
+    assert.ok(prompt.includes('Custom instructions'))
   })
 })
 
@@ -104,6 +111,12 @@ describe('OpenCode config type guard', () => {
       model: null,
       timeoutMs: 60000,
       reviewOnCommit: true,
+      serverHost: null,
+      serverPort: null,
+      serverUser: null,
+      serverPassword: null,
+      userName: null,
+      memory: [],
     }
     saveOpenCodeConfig(config)
     assert.deepStrictEqual(loadOpenCodeConfig(), config)

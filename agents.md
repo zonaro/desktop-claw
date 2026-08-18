@@ -27,6 +27,7 @@ All consultable technical documentation lives in [`.agents/`](.agents/). This fi
 7. **Credentials never go to Dexie/localStorage/logs** — always OS keychain via `TokenStore` (keytar).
 8. To pull new commits from desktop-plus, follow [.agents/upstream-sync.md](.agents/upstream-sync.md).
 9. **Distribution is GitHub Releases only** — no Winget, Homebrew, APT, DNF, AUR or Flathub, and there is no auto-update (the app has a manual "Help > Check for Updates" that queries the GitHub releases API and opens the release page). Push to `main` (or workflow_dispatch) builds and publishes; see [docs/documentation/process/releases.md](docs/documentation/process/releases.md).
+10. **Never run tests automatically after implementing a new feature.** The user must explicitly ask for tests to be run. Running tests overflows the computer memory.
 
 ## Quick shortcuts
 

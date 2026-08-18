@@ -2,14 +2,22 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 
 import {
+  formatModelValue,
+  getFileReferenceQuery,
+  getFileReferences,
+  getModelOptions,
+  getSessionModelSelection,
   getToolSummary,
   isSessionBusy,
   MaxToolOutputLength,
+  parseModelValue,
   truncateToolOutput,
 } from '../../src/lib/opencode/opencode-session-helpers'
 import {
   getOpenCodeErrorText,
   IOpenCodeMessage,
+  IOpenCodeProvider,
+  IOpenCodeSession,
   IOpenCodeToolPart,
   IOpenCodeToolState,
 } from '../../src/models/opencode-session'
@@ -164,5 +172,204 @@ describe('getOpenCodeErrorText', () => {
 
   it('describes an unrecognised error object', () => {
     assert.equal(getOpenCodeErrorText({}), 'The agent run failed.')
+  })
+})
+
+describe('getModelOptions', () => {
+  const providers: ReadonlyArray<IOpenCodeProvider> = [
+    {
+      id: 'opencode',
+      name: 'OpenCode Zen',
+      models: {
+        'deepseek-v4-flash-free': {
+          id: 'deepseek-v4-flash-free',
+          name: 'DeepSeek V4 Flash Free',
+          variants: { low: {}, high: {}, max: {} },
+        },
+        'nemotron-3.5-lightning-free': {
+          id: 'nemotron-3.5-lightning-free',
+          name: 'Nemotron 3.5 Lightning Free',
+        },
+      },
+    },
+    {
+      id: 'google',
+      models: { 'gemini-3-pro': { id: 'gemini-3-pro', name: 'Gemini 3 Pro' } },
+    },
+  ]
+
+  it('flattens providers into pickable entries', () => {
+    const options = getModelOptions(providers)
+
+    assert.equal(options.length, 3)
+    assert.deepStrictEqual(options[0], {
+      providerID: 'google',
+      providerName: 'google',
+      modelID: 'gemini-3-pro',
+      modelName: 'Gemini 3 Pro',
+      variants: [],
+    })
+  })
+
+  it('exposes the variant names of a model that has them', () => {
+    const deepseek = getModelOptions(providers).find(
+      o => o.modelID === 'deepseek-v4-flash-free'
+    )
+
+    assert.deepStrictEqual(deepseek?.variants, ['low', 'high', 'max'])
+  })
+
+  it('sorts by provider, then by model name', () => {
+    const names = getModelOptions(providers).map(o => o.modelName)
+
+    assert.deepStrictEqual(names, [
+      'Gemini 3 Pro',
+      'DeepSeek V4 Flash Free',
+      'Nemotron 3.5 Lightning Free',
+    ])
+  })
+
+  it('falls back to ids when names are missing', () => {
+    const options = getModelOptions([
+      { id: 'custom', models: { 'my-model': { id: 'my-model' } } },
+    ])
+
+    assert.equal(options[0].providerName, 'custom')
+    assert.equal(options[0].modelName, 'my-model')
+  })
+})
+
+describe('formatModelValue / parseModelValue', () => {
+  it('round-trips a selection', () => {
+    const value = formatModelValue('opencode', 'deepseek-v4-flash-free')
+
+    assert.deepStrictEqual(parseModelValue(value), {
+      providerID: 'opencode',
+      modelID: 'deepseek-v4-flash-free',
+    })
+  })
+
+  it('keeps slashes that belong to the model id', () => {
+    assert.deepStrictEqual(parseModelValue('openrouter/meta/llama-3'), {
+      providerID: 'openrouter',
+      modelID: 'meta/llama-3',
+    })
+  })
+
+  it('rejects values that are not a pair', () => {
+    assert.equal(parseModelValue('opencode'), null)
+    assert.equal(parseModelValue('/model'), null)
+    assert.equal(parseModelValue('provider/'), null)
+  })
+})
+
+describe('getFileReferenceQuery', () => {
+  it('finds the reference being typed at the caret', () => {
+    const text = 'look at @app/src'
+
+    assert.deepStrictEqual(getFileReferenceQuery(text, text.length), {
+      query: 'app/src',
+      start: 8,
+    })
+  })
+
+  it('matches an @ at the very start', () => {
+    assert.deepStrictEqual(getFileReferenceQuery('@readme', 7), {
+      query: 'readme',
+      start: 0,
+    })
+  })
+
+  it('offers every file right after the @', () => {
+    assert.deepStrictEqual(getFileReferenceQuery('check @', 7), {
+      query: '',
+      start: 6,
+    })
+  })
+
+  it('ignores an @ inside a word, such as an email address', () => {
+    const text = 'mail me at bob@example.com'
+
+    assert.equal(getFileReferenceQuery(text, text.length), null)
+  })
+
+  it('closes once the reference is finished', () => {
+    const text = 'see @app/main.ts please'
+
+    assert.equal(getFileReferenceQuery(text, text.length), null)
+  })
+
+  it('uses the caret rather than the end of the text', () => {
+    const text = '@one and @two'
+
+    assert.deepStrictEqual(getFileReferenceQuery(text, 4), {
+      query: 'one',
+      start: 0,
+    })
+  })
+})
+
+describe('getFileReferences', () => {
+  it('collects every reference in the prompt', () => {
+    assert.deepStrictEqual(
+      getFileReferences('compare @app/a.ts with @app/b.ts'),
+      ['app/a.ts', 'app/b.ts']
+    )
+  })
+
+  it('ignores @ inside words', () => {
+    assert.deepStrictEqual(getFileReferences('write to bob@example.com'), [])
+  })
+
+  it('returns nothing for a prompt without references', () => {
+    assert.deepStrictEqual(getFileReferences('just a question'), [])
+  })
+})
+
+describe('getSessionModelSelection', () => {
+  const session = (model?: IOpenCodeSession['model']): IOpenCodeSession => ({
+    id: 'ses_1',
+    directory: '/repo',
+    time: { created: 1, updated: 2 },
+    ...(model === undefined ? {} : { model }),
+  })
+
+  it('restores the model a conversation last ran with', () => {
+    assert.deepStrictEqual(
+      getSessionModelSelection(
+        session({ id: 'deepseek-v4-flash-free', providerID: 'opencode' })
+      ),
+      {
+        model: { providerID: 'opencode', modelID: 'deepseek-v4-flash-free' },
+        variant: null,
+      }
+    )
+  })
+
+  it('restores the reasoning variant too', () => {
+    const { variant } = getSessionModelSelection(
+      session({ id: 'm', providerID: 'p', variant: 'high' })
+    )
+
+    assert.equal(variant, 'high')
+  })
+
+  it("treats the server's 'default' variant as no variant", () => {
+    const { variant } = getSessionModelSelection(
+      session({ id: 'm', providerID: 'p', variant: 'default' })
+    )
+
+    assert.equal(variant, null)
+  })
+
+  it('starts a conversation that never ran on the default model', () => {
+    assert.deepStrictEqual(getSessionModelSelection(session()), {
+      model: null,
+      variant: null,
+    })
+    assert.deepStrictEqual(getSessionModelSelection(undefined), {
+      model: null,
+      variant: null,
+    })
   })
 })

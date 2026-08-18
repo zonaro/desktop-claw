@@ -58,6 +58,7 @@ import {
   defaultCopyPathNormalization,
 } from '../../models/copy-path-normalization'
 import { CopilotPreferences } from './copilot'
+import { OpenCodePreferences } from './opencode'
 import type {
   CopilotFeature,
   CopilotModelsByAccount,
@@ -126,6 +127,7 @@ interface IPreferencesProps {
   readonly selectedExternalEditor: string | null
   readonly selectedShell: Shell
   readonly selectedTheme: ApplicationTheme
+  readonly selectedTint: string | null
   readonly selectedTabSize: number
   readonly selectedDiffFontSize: number
   readonly selectedDiffFontFamily: DiffFontFamily
@@ -158,6 +160,8 @@ interface IPreferencesProps {
 
 interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
+  /** The sub-tab shown inside the AI tab: 0 = Copilot, 1 = OpenCode. */
+  readonly selectedAITabIndex: number
   readonly committerName: string
   readonly committerEmail: string
   readonly defaultBranch: string
@@ -213,6 +217,7 @@ interface IPreferencesState {
   readonly hideWindowOnQuit: boolean
 
   readonly initiallySelectedTheme: ApplicationTheme
+  readonly initiallySelectedTint: string | null
   readonly initiallySelectedTabSize: number
   readonly initiallySelectedDiffFontSize: number
   readonly initiallySelectedDiffFontFamily: DiffFontFamily
@@ -260,6 +265,7 @@ export class Preferences extends React.Component<
 
     this.state = {
       selectedIndex: this.props.initialSelectedTab || PreferencesTab.Accounts,
+      selectedAITabIndex: 0,
       committerName: '',
       committerEmail: '',
       defaultBranch: '',
@@ -307,6 +313,7 @@ export class Preferences extends React.Component<
       branchSortOrder: this.props.branchSortOrder,
       hideWindowOnQuit: this.props.hideWindowOnQuit,
       initiallySelectedTheme: this.props.selectedTheme,
+      initiallySelectedTint: this.props.selectedTint,
       initiallySelectedTabSize: this.props.selectedTabSize,
       initiallySelectedDiffFontSize: this.props.selectedDiffFontSize,
       initiallySelectedDiffFontFamily: this.props.selectedDiffFontFamily,
@@ -434,6 +441,9 @@ export class Preferences extends React.Component<
   private onCancel = () => {
     if (this.state.initiallySelectedTheme !== this.props.selectedTheme) {
       this.onSelectedThemeChanged(this.state.initiallySelectedTheme)
+    }
+    if (this.state.initiallySelectedTint !== this.props.selectedTint) {
+      this.onSelectedTintChanged(this.state.initiallySelectedTint)
     }
     if (this.state.initiallySelectedTabSize !== this.props.selectedTabSize) {
       this.onSelectedTabSizeChanged(this.state.initiallySelectedTabSize)
@@ -685,32 +695,7 @@ export class Preferences extends React.Component<
         break
       }
       case PreferencesTab.Copilot:
-        View = (
-          <CopilotPreferences
-            selectedCopilotModelsByAccount={
-              this.state.selectedCopilotModelsByAccount
-            }
-            copilotModelsByAccount={this.props.copilotModelsByAccount}
-            copilotQuotaSnapshotsByAccount={
-              this.props.copilotQuotaSnapshotsByAccount
-            }
-            accounts={this.props.accounts}
-            byokProviders={this.props.byokProviders}
-            showBYOKSettings={this.shouldShowBYOKSettings()}
-            onSignIn={this.onCopilotSignIn}
-            onOpenCopilotPlans={this.onOpenCopilotPlans}
-            onOpenCopilotFeatureSettings={this.onOpenCopilotFeatureSettings}
-            alwaysUseCopilotForConflictResolution={
-              this.state.alwaysUseCopilotForConflictResolution
-            }
-            onSelectedCopilotModelChanged={this.onSelectedCopilotModelChanged}
-            onAlwaysUseCopilotForConflictResolutionChanged={
-              this.onAlwaysUseCopilotForConflictResolutionChanged
-            }
-            onConfigureCustomProviders={this.onConfigureCustomProviders}
-            onConfigureModels={this.onConfigureCopilotModels}
-          />
-        )
+        View = this.renderAITabs()
         break
       case PreferencesTab.Git: {
         const { existingLockFilePath } = this.state
@@ -771,6 +756,8 @@ export class Preferences extends React.Component<
           <Appearance
             selectedTheme={this.props.selectedTheme}
             onSelectedThemeChanged={this.onSelectedThemeChanged}
+            selectedTint={this.props.selectedTint}
+            onSelectedTintChanged={this.onSelectedTintChanged}
             selectedTabSize={this.props.selectedTabSize}
             onSelectedTabSizeChanged={this.onSelectedTabSizeChanged}
             selectedDiffFontSize={this.props.selectedDiffFontSize}
@@ -929,6 +916,81 @@ export class Preferences extends React.Component<
         {View}
       </div>
     )
+  }
+
+  /**
+   * Renders the AI tab, split into "Copilot" and "OpenCode" sub-tabs. When
+   * only one of the two is available the tab bar is hidden entirely.
+   */
+  private renderAITabs(): JSX.Element {
+    const showCopilotTab = this.isCopilotSdkEnabled
+    const showOpenCodeTab = enableOpenCodeCommitMessages()
+    const showTabBar = showCopilotTab && showOpenCodeTab
+
+    // Keep a valid index when one of the sub-tabs isn't shown at all.
+    const selectedIndex = showCopilotTab
+      ? showOpenCodeTab
+        ? this.state.selectedAITabIndex
+        : 0
+      : 1
+
+    return (
+      <>
+        {showTabBar && (
+          <TabBar
+            selectedIndex={selectedIndex}
+            onTabClicked={this.onAITabClicked}
+          >
+            <span>Copilot</span>
+            <span>OpenCode</span>
+          </TabBar>
+        )}
+        <div className="ai-preferences-content">
+          {selectedIndex === 0 ? this.renderCopilotTab() : this.renderOpenCodeTab()}
+        </div>
+      </>
+    )
+  }
+
+  private renderCopilotTab(): JSX.Element {
+    return (
+      <CopilotPreferences
+        dispatcher={this.props.dispatcher}
+        selectedCopilotModelsByAccount={this.state.selectedCopilotModelsByAccount}
+        copilotModelsByAccount={this.props.copilotModelsByAccount}
+        copilotQuotaSnapshotsByAccount={
+          this.props.copilotQuotaSnapshotsByAccount
+        }
+        accounts={this.props.accounts}
+        byokProviders={this.props.byokProviders}
+        showBYOKSettings={this.shouldShowBYOKSettings()}
+        onSignIn={this.onCopilotSignIn}
+        onOpenCopilotPlans={this.onOpenCopilotPlans}
+        onOpenCopilotFeatureSettings={this.onOpenCopilotFeatureSettings}
+        alwaysUseCopilotForConflictResolution={
+          this.state.alwaysUseCopilotForConflictResolution
+        }
+        onSelectedCopilotModelChanged={this.onSelectedCopilotModelChanged}
+        onAlwaysUseCopilotForConflictResolutionChanged={
+          this.onAlwaysUseCopilotForConflictResolutionChanged
+        }
+        onConfigureCustomProviders={this.onConfigureCustomProviders}
+        onConfigureModels={this.onConfigureCopilotModels}
+      />
+    )
+  }
+
+  private renderOpenCodeTab(): JSX.Element {
+    return (
+      <OpenCodePreferences
+        dispatcher={this.props.dispatcher}
+        accounts={this.props.accounts}
+      />
+    )
+  }
+
+  private onAITabClicked = (index: number) => {
+    this.setState({ selectedAITabIndex: index })
   }
 
   private onRepositoryIndicatorsEnabledChanged = (
@@ -1116,6 +1178,10 @@ export class Preferences extends React.Component<
 
   private onSelectedThemeChanged = (theme: ApplicationTheme) => {
     this.props.dispatcher.setSelectedTheme(theme)
+  }
+
+  private onSelectedTintChanged = (tint: string | null) => {
+    this.props.dispatcher.setSelectedTint(tint)
   }
 
   private onUnderlineLinksChanged = (underlineLinks: boolean) => {

@@ -6,11 +6,11 @@
     <title>Desktop Claw: GitHub Desktop fork for power users</title>
     <meta
       name="description"
-      content="An actively-maintained, open-source fork of GitHub Desktop with worktrees, FTP deployments, a built-in file and markdown editor, OpenCode integration, commit search, multiple accounts, a commit graph and more. Free for Windows, macOS and Linux."
+      content="An actively-maintained, open-source fork of GitHub Desktop with worktrees, FTP deployments, a built-in file and markdown editor, a built-in OpenCode agent tab, commit search, multiple accounts, a commit graph and more. Free for Windows, macOS and Linux."
     />
     <meta
       name="keywords"
-      content="GitHub Desktop fork, GitHub Desktop Linux, Git GUI, git worktree GUI, FTP deploy from git, markdown editor git client, OpenCode, Bitbucket GUI client, GitLab desktop client, Codeberg, Forgejo, Gitea desktop client, open source git client, GitHub Desktop alternative"
+      content="GitHub Desktop fork, GitHub Desktop Linux, Git GUI, git worktree GUI, FTP deploy from git, markdown editor git client, OpenCode, AI agent git client, AI coding agent GUI, Bitbucket GUI client, GitLab desktop client, Codeberg, Forgejo, Gitea desktop client, open source git client, GitHub Desktop alternative"
     />
     <meta name="theme-color" content="#0d1117" />
     <meta name="color-scheme" content="dark" />
@@ -25,7 +25,7 @@
     <meta property="og:title" content="Desktop Claw: GitHub Desktop fork for power users" />
     <meta
       property="og:description"
-      content="An actively-maintained, open-source fork of GitHub Desktop with worktrees, FTP deployments, a built-in file and markdown editor, OpenCode integration and more."
+      content="An actively-maintained, open-source fork of GitHub Desktop with worktrees, FTP deployments, a built-in file and markdown editor, a built-in OpenCode agent and more."
     />
     <meta property="og:url" content="https://zonaro.github.io/desktop-claw/" />
     <meta property="og:image" content="https://zonaro.github.io/desktop-claw/og.png" />
@@ -36,7 +36,7 @@
     <meta name="twitter:title" content="Desktop Claw: GitHub Desktop fork for power users" />
     <meta
       name="twitter:description"
-      content="An actively-maintained, open-source fork of GitHub Desktop with worktrees, FTP deployments, a built-in file and markdown editor, OpenCode integration and more."
+      content="An actively-maintained, open-source fork of GitHub Desktop with worktrees, FTP deployments, a built-in file and markdown editor, a built-in OpenCode agent and more."
     />
     <meta name="twitter:image" content="https://zonaro.github.io/desktop-claw/og.png" />
 
@@ -46,7 +46,7 @@
         "@type": "SoftwareApplication",
         "name": "Desktop Claw",
         "alternateName": "GH Desktop Claw",
-        "description": "An actively-maintained, open-source fork of GitHub Desktop with worktrees, FTP deployments, a built-in file and markdown editor, OpenCode integration, commit search, multiple accounts, a commit graph and more.",
+        "description": "An actively-maintained, open-source fork of GitHub Desktop with worktrees, FTP deployments, a built-in file and markdown editor, a built-in OpenCode agent tab, commit search, multiple accounts, a commit graph and more.",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Windows, macOS, Linux",
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -71,6 +71,7 @@
       <symbol id="i-octicon-download-16" viewBox="0 0 16 16"><path fill="currentColor" d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path fill="currentColor" d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06z"/></symbol>
       <symbol id="i-octicon-copy-16" viewBox="0 0 16 16"><path fill="currentColor" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path fill="currentColor" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></symbol>
       <symbol id="i-octicon-sparkle-fill-16" viewBox="0 0 16 16"><path fill="currentColor" d="M7.53 1.282a.5.5 0 0 1 .94 0l.478 1.306a7.5 7.5 0 0 0 4.464 4.464l1.305.478a.5.5 0 0 1 0 .94l-1.305.478a7.5 7.5 0 0 0-4.464 4.464l-.478 1.305a.5.5 0 0 1-.94 0l-.478-1.305a7.5 7.5 0 0 0-4.464-4.464L1.282 8.47a.5.5 0 0 1 0-.94l1.306-.478a7.5 7.5 0 0 0 4.464-4.464Z"/></symbol>
+      <symbol id="i-octicon-comment-discussion-16" viewBox="0 0 16 16"><path fill="currentColor" d="M1.75 1h8.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 10.25 10H7.061l-2.574 2.573A1.458 1.458 0 0 1 2 11.543V10h-.25A1.75 1.75 0 0 1 0 8.25v-5.5C0 1.784.784 1 1.75 1ZM1.5 2.75v5.5c0 .138.112.25.25.25h1a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h3.5a.25.25 0 0 0 .25-.25v-5.5a.25.25 0 0 0-.25-.25h-8.5a.25.25 0 0 0-.25.25Zm13 2a.25.25 0 0 0-.25-.25h-.5a.75.75 0 0 1 0-1.5h.5c.966 0 1.75.784 1.75 1.75v5.5A1.75 1.75 0 0 1 14.25 12H14v1.543a1.458 1.458 0 0 1-2.487 1.03L9.22 12.28a.749.749 0 0 1 .326-1.275.749.749 0 0 1 .734.215l2.22 2.22v-2.19a.75.75 0 0 1 .75-.75h1a.25.25 0 0 0 .25-.25Z"/></symbol>
       <symbol id="i-octicon-git-branch-16" viewBox="0 0 16 16"><path fill="currentColor" d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.5 2.5 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25m-6 0a.75.75 0 1 0 1.5 0a.75.75 0 0 0-1.5 0m8.25-.75a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5M4.25 12a.75.75 0 1 0 0 1.5a.75.75 0 0 0 0-1.5"/></symbol>
       <symbol id="i-octicon-check-16" viewBox="0 0 16 16"><path fill="currentColor" d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 .018-1.042a.75.75 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0"/></symbol>
       <symbol id="i-octicon-pencil-16" viewBox="0 0 16 16"><path fill="currentColor" d="M11.013 1.427a1.75 1.75 0 0 1 2.474 0l1.086 1.086a1.75 1.75 0 0 1 0 2.474l-8.61 8.61c-.21.21-.47.364-.756.445l-3.251.93a.75.75 0 0 1-.927-.928l.929-3.25c.081-.286.235-.547.445-.758l8.61-8.61Zm.176 4.823L9.75 4.81l-6.286 6.287a.25.25 0 0 0-.064.108l-.558 1.953l1.953-.558a.25.25 0 0 0 .108-.064Zm1.238-3.763a.25.25 0 0 0-.354 0L10.811 3.75l1.439 1.44l1.263-1.263a.25.25 0 0 0 0-.354Z"/></symbol>
@@ -126,8 +127,9 @@
 
             <p class="hero-sub">
               An up-to-date fork of GitHub Desktop that keeps the interface you know and adds
-              worktrees, FTP deployments, a built-in file and markdown editor, commit search,
-              multiple accounts, and <a href="#feature-list" class="link">much more</a>.
+              worktrees, FTP deployments, a built-in file and markdown editor, a coding agent tab,
+              commit search, multiple accounts, and
+              <a href="#feature-list" class="link">much more</a>.
             </p>
             <p class="hero-aside">(And yes, Linux is fully supported.)</p>
 
@@ -193,6 +195,42 @@
           </div>
 
           <div class="grid grid-2 grid-3">
+            <article class="card feature-card">
+              <div class="feature-head">
+                <span class="badge-icon">
+                  <svg class="icon"><use href="#i-octicon-comment-discussion-16" /></svg>
+                </span>
+                <h3>Agent tab</h3>
+              </div>
+              <p>
+                A full OpenCode chat inside the repository view: sessions in the sidebar, the
+                conversation in the main area, streaming live as the agent works &mdash; no second
+                window, no terminal.
+              </p>
+              <ul class="checklist">
+                <li>
+                  <svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg>
+                  <span>Markdown replies with collapsible reasoning and tool calls, and inline
+                    permission prompts before anything runs.</span>
+                </li>
+                <li>
+                  <svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg>
+                  <span>Pick the agent, the model and its reasoning effort &mdash; remembered per
+                    conversation.</span>
+                </li>
+                <li>
+                  <svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg>
+                  <span>Attach files to a prompt, or point at repository files with
+                    <code>@path</code> autocompletion.</span>
+                </li>
+                <li>
+                  <svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg>
+                  <span>Queue follow-ups while it works, steer the turn in progress, or rewind the
+                    conversation and try again.</span>
+                </li>
+              </ul>
+            </article>
+
             <article class="card feature-card">
               <div class="feature-head">
                 <span class="badge-icon">
@@ -309,11 +347,11 @@
                 <span class="badge-icon">
                   <svg class="icon"><use href="#i-octicon-sparkle-fill-16" /></svg>
                 </span>
-                <h3>OpenCode integration</h3>
+                <h3>Commit messages &amp; reviews</h3>
               </div>
               <p>
-                Wire up the OpenCode CLI and let it draft your commit messages and review your work
-                &mdash; running locally, against whichever model you have configured.
+                Beyond the Agent tab, OpenCode can also draft your commit messages and review your
+                work &mdash; running locally, against whichever model you have configured.
               </p>
               <ul class="checklist">
                 <li>
@@ -497,7 +535,24 @@
                 <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Generate branch-name presets from an external script (e.g. append ticket number prefix).</span></li>
                 <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Speeds up your clicks with distinct icons for similar-looking buttons and red backgrounds on destructive actions.</span></li>
                 <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>All GitHub / Microsoft telemetry is fully disabled.</span></li>
-                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Optional OpenCode CLI integration: generate commit messages from the staged diff, and optionally a Markdown code review after each commit.</span></li>
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Optional OpenCode integration: a built-in agent tab, commit messages generated from the staged diff, and optionally a Markdown code review after each commit.</span></li>
+              </ul>
+            </div>
+
+            <div class="card cat-card">
+              <div class="feature-head">
+                <span class="badge-icon"><svg class="icon"><use href="#i-octicon-comment-discussion-16" /></svg></span>
+                <h3>Agent</h3>
+              </div>
+              <ul class="checklist">
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Dedicated Agent tab listing the current repository's OpenCode sessions, with the selected conversation alongside them.</span></li>
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Replies stream in live, rendered as markdown, with collapsible reasoning and tool calls.</span></li>
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Inline permission prompts: approve or deny what the agent wants to run without leaving the app.</span></li>
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Agent, model and reasoning-variant pickers, remembered per conversation.</span></li>
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Attach files to a prompt, or reference repository files with <code>@path</code> autocompletion.</span></li>
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Queue follow-up messages while the agent works, or steer the turn already in progress.</span></li>
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Rewind a conversation to an earlier message &mdash; and undo the rewind if you change your mind.</span></li>
+                <li><svg class="icon-sm icon"><use href="#i-octicon-check-16" /></svg><span>Talks to a local OpenCode server the app starts on demand, or to one you already run (host and port in Options &rarr; Copilot).</span></li>
               </ul>
             </div>
 
@@ -884,7 +939,7 @@
             </div>
             <p>
               An up-to-date fork of GitHub Desktop with worktrees, FTP deployments, a built-in editor
-              and more, on Windows, macOS and Linux.
+              and a coding agent, on Windows, macOS and Linux.
             </p>
           </div>
 

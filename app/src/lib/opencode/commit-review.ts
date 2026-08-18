@@ -5,6 +5,7 @@ import { git } from '../git/core'
 import { invoke } from '../ipc-renderer'
 import { Repository } from '../../models/repository'
 import { loadOpenCodeConfig } from './opencode-config'
+import { buildOpenCodeMemoryContext } from './opencode-memory'
 
 /**
  * Builds the prompt sent to the OpenCode CLI to generate a code review for a
@@ -13,11 +14,13 @@ import { loadOpenCodeConfig } from './opencode-config'
  *
  * @param diff - The raw git diff for the commit.
  * @param commitSha - The SHA of the commit being reviewed.
+ * @param memoryContext - Optional custom instructions from the user's memory entries.
  * @returns The composed system + user prompt string.
  */
 export function buildCommitReviewPrompt(
   diff: string,
-  commitSha: string
+  commitSha: string,
+  memoryContext: string
 ): string {
   const system = `Você é um revisor de código sênior. Analise o diff do commit fornecido e escreva uma revisão em Markdown em português com as seguintes seções:
 
@@ -29,7 +32,9 @@ export function buildCommitReviewPrompt(
 
 Cada item deve ser um bullet \`- **Severidade:** ...\` com contexto de arquivo/linha quando determinável. Termine com um curto \`## Resumo\`. Saída APENAS o markdown da revisão, sem preâmbulo, sem comentário final, não envolvido em um bloco de código.`
 
-  const user = `Commit: ${commitSha}\n\n\`\`\`diff\n${diff}\n\`\`\``
+  const user = memoryContext.length > 0
+    ? `${memoryContext}\n\n---\n\nCommit: ${commitSha}\n\n\`\`\`diff\n${diff}\n\`\`\``
+    : `Commit: ${commitSha}\n\n\`\`\`diff\n${diff}\n\`\`\``
 
   return `${system}\n\n${user}`
 }
@@ -66,7 +71,8 @@ export async function generateCommitReview(
     diff = diff.slice(0, 120000)
   }
 
-  const prompt = buildCommitReviewPrompt(diff, commitSha)
+  const memoryContext = buildOpenCodeMemoryContext(config)
+  const prompt = buildCommitReviewPrompt(diff, commitSha, memoryContext)
 
   const review = await invoke('opencode-run-prompt', {
     requestId: crypto.randomUUID(),

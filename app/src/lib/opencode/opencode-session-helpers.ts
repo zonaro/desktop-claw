@@ -1,5 +1,9 @@
 import {
   IOpenCodeMessage,
+  IOpenCodeModelOption,
+  IOpenCodeModelSelection,
+  IOpenCodeProvider,
+  IOpenCodeSession,
   IOpenCodeToolPart,
 } from '../../models/opencode-session'
 
@@ -79,4 +83,133 @@ export function isSessionBusy(
     last.info.time.completed === undefined &&
     last.info.error === undefined
   )
+}
+
+/**
+ * Flattens the provider list into the entries the model picker renders,
+ * sorted by provider and then by model name so the grouped list is stable.
+ */
+export function getModelOptions(
+  providers: ReadonlyArray<IOpenCodeProvider>
+): ReadonlyArray<IOpenCodeModelOption> {
+  const options = new Array<IOpenCodeModelOption>()
+
+  for (const provider of providers) {
+    const providerName = provider.name ?? provider.id
+
+    for (const [modelID, model] of Object.entries(provider.models ?? {})) {
+      options.push({
+        providerID: provider.id,
+        providerName,
+        modelID,
+        modelName: model.name ?? modelID,
+        variants: Object.keys(model.variants ?? {}),
+      })
+    }
+  }
+
+  return options.sort(
+    (x, y) =>
+      x.providerName.localeCompare(y.providerName) ||
+      x.modelName.localeCompare(y.modelName)
+  )
+}
+
+/** Serializes a model selection into a single value usable as an option key. */
+export function formatModelValue(providerID: string, modelID: string): string {
+  return `${providerID}/${modelID}`
+}
+
+/**
+ * Parses a value produced by {@link formatModelValue}. Model ids may contain
+ * slashes, so only the first segment is treated as the provider.
+ */
+export function parseModelValue(
+  value: string
+): { readonly providerID: string; readonly modelID: string } | null {
+  const separatorIndex = value.indexOf('/')
+
+  if (separatorIndex <= 0 || separatorIndex === value.length - 1) {
+    return null
+  }
+
+  return {
+    providerID: value.slice(0, separatorIndex),
+    modelID: value.slice(separatorIndex + 1),
+  }
+}
+
+/**
+ * The `@` reference being typed at the caret, or null when the caret isn't in
+ * one. Used to drive the file autocompletion popup.
+ *
+ * A reference starts at an `@` that follows whitespace (or the start of the
+ * text) and runs until the next whitespace, so an email address or a decorator
+ * mid-word doesn't open the popup.
+ */
+export function getFileReferenceQuery(
+  text: string,
+  caret: number
+): { readonly query: string; readonly start: number } | null {
+  const before = text.slice(0, caret)
+  const atIndex = before.lastIndexOf('@')
+
+  if (atIndex === -1) {
+    return null
+  }
+
+  if (atIndex > 0 && !/\s/.test(before[atIndex - 1])) {
+    return null
+  }
+
+  const query = before.slice(atIndex + 1)
+
+  if (/\s/.test(query)) {
+    return null
+  }
+
+  return { query, start: atIndex }
+}
+
+/** Extracts the `@path` references present in a prompt. */
+export function getFileReferences(text: string): ReadonlyArray<string> {
+  const references = new Array<string>()
+  const pattern = /(^|\s)@(\S+)/g
+
+  let match = pattern.exec(text)
+
+  while (match !== null) {
+    references.push(match[2])
+    match = pattern.exec(text)
+  }
+
+  return references
+}
+
+/**
+ * The model and variant a session last ran with, in the shape the pickers use.
+ *
+ * A session that has never run carries no model, which is what makes a new
+ * conversation start on the default again.
+ */
+export function getSessionModelSelection(
+  session: IOpenCodeSession | undefined
+): {
+  readonly model: IOpenCodeModelSelection | null
+  readonly variant: string | null
+} {
+  const model = session?.model
+
+  if (model === undefined) {
+    return { model: null, variant: null }
+  }
+
+  return {
+    model: { providerID: model.providerID, modelID: model.id },
+    // The server writes 'default' instead of leaving the variant out.
+    variant:
+      model.variant === undefined || model.variant === 'default'
+        ? null
+        : model.variant,
+  }
 }

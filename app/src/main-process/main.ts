@@ -73,6 +73,13 @@ import {
 } from './opencode-runner'
 import { ensureOpenCodeServer, stopOpenCodeServer } from './opencode-server'
 import {
+  getOpenCodeMemoryDirectory,
+  readOpenCodeMemoryFiles,
+  writeOpenCodeMemoryFile,
+  deleteOpenCodeMemoryFile,
+} from './opencode-memory-files'
+import { isMemoryEntry } from '../lib/opencode/opencode-config'
+import {
   uploadFtpDeployment,
   testFtpConnection,
   FtpUploadCancelledError,
@@ -1045,6 +1052,28 @@ app.on('ready', () => {
     if (typeof requestId === 'string' && requestId.length > 0) {
       cancelOpenCodeRun(requestId)
     }
+  })
+
+  ipcMain.handle('opencode-get-memory-dir', () => {
+    return getOpenCodeMemoryDirectory()
+  })
+
+  ipcMain.handle('opencode-read-memory-files', () => {
+    return readOpenCodeMemoryFiles()
+  })
+
+  ipcMain.handle('opencode-write-memory-file', (_, entry: unknown) => {
+    if (!isMemoryEntry(entry)) {
+      throw new Error('Invalid OpenCode memory entry')
+    }
+    return writeOpenCodeMemoryFile(entry)
+  })
+
+  ipcMain.handle('opencode-delete-memory-file', (_, id) => {
+    if (typeof id !== 'string' || id.length === 0) {
+      throw new Error('Invalid OpenCode memory id')
+    }
+    return deleteOpenCodeMemoryFile(id)
   })
 
   const activeFtpUploads = new Map<string, AbortController>()

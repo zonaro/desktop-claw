@@ -232,6 +232,39 @@
       }
     }
   }
+  .tint-selector {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+
+    label {
+      margin-bottom: 0;
+    }
+
+    input[type='color'] {
+      width: 48px;
+      height: var(--button-height);
+      padding: 2px;
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+      background-color: var(--box-background-color);
+      cursor: pointer;
+
+      &::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      &::-webkit-color-swatch {
+        border: none;
+        border-radius: calc(var(--border-radius) - 1px);
+      }
+    }
+
+    .button-component {
+      margin-right: 0;
+    }
+  }
+
   select {
     margin-bottom: var(--spacing-half);
   }

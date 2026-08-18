@@ -41,7 +41,7 @@ describe('helper side-effect surfaces', () => {
     try {
       document.body.style.setProperty('--background-color', 'rgb(1, 2, 3)')
 
-      const view = render(<AppTheme theme={ApplicationTheme.Dark} />)
+      const view = render(<AppTheme theme={ApplicationTheme.Dark} tint={null} />)
 
       assert.ok(document.body.classList.contains('theme-dark'))
       assert.equal(document.documentElement.style.colorScheme, 'dark')
@@ -49,7 +49,7 @@ describe('helper side-effect surfaces', () => {
         ['update-window-background-color', 'rgb(1, 2, 3)'],
       ])
 
-      view.rerender(<AppTheme theme={ApplicationTheme.Light} />)
+      view.rerender(<AppTheme theme={ApplicationTheme.Light} tint={null} />)
 
       assert.equal(document.body.classList.contains('theme-dark'), false)
       assert.ok(document.body.classList.contains('theme-light'))

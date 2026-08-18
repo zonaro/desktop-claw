@@ -1,15 +1,12 @@
 import * as React from 'react'
 import * as Path from 'path'
-import { readFile } from 'fs/promises'
-import { clipboard } from 'electron'
 
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
-import { showContextualMenu, IMenuItem } from '../../lib/menu-item'
-import { openFile } from '../lib/open-file'
-import { getAvailableEditors } from '../../lib/editors/lookup'
-import { launchExternalEditor } from '../../lib/editors/launch'
-import { PopupType } from '../../models/popup'
+import { TextBox } from '../lib/text-box'
+import { Button } from '../lib/button'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
+import { showFileContextMenu } from '../lib/file-context-menu'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher/dispatcher'
 
@@ -27,7 +24,7 @@ interface IFileTreeNode {
 /**
  * Returns whether a file should be treated as binary based on its extension.
  */
-function isLikelyBinary(filePath: string): boolean {
+export function isLikelyBinary(filePath: string): boolean {
   const binaryExtensions = new Set([
     '.png',
     '.jpg',
@@ -71,6 +68,14 @@ interface IWorktreeFileTreeProps {
   readonly dispatcher: Dispatcher
   /** Called when a file is clicked. */
   readonly onFileSelected: (filePath: string) => void
+  /** Whether to show hidden/untracked files. */
+  readonly showHiddenFiles: boolean
+  /** Called when the showHiddenFiles toggle is changed. */
+  readonly onToggleHiddenFiles: () => void
+  /** The current search filter text. */
+  readonly filterText: string
+  /** Called when the filter text changes. */
+  readonly onFilterTextChanged: (text: string) => void
 }
 
 interface IWorktreeFileTreeState {
@@ -113,6 +118,44 @@ function buildTree(files: ReadonlyArray<string>): IFileTreeNode {
   }
 
   return root
+}
+
+/**
+ * Filters a tree to only include nodes matching the search text.
+ */
+function filterTree(tree: IFileTreeNode, filterText: string): IFileTreeNode | null {
+  if (!filterText.trim()) {
+    return tree
+  }
+
+  const lowerFilter = filterText.toLowerCase()
+
+  function filterNode(node: IFileTreeNode): IFileTreeNode | null {
+    const nameMatches = node.name.toLowerCase().includes(lowerFilter)
+    const pathMatches = node.path.toLowerCase().includes(lowerFilter)
+    const matches = nameMatches || pathMatches
+
+    if (node.isFile) {
+      return matches ? node : null
+    }
+
+    const filteredChildren = node.children
+      .map(filterNode)
+      .filter((child): child is IFileTreeNode => child !== null)
+
+    // Show directory if it matches or if any children match
+    if (matches || filteredChildren.length > 0) {
+      return {
+        ...node,
+        children: filteredChildren,
+      }
+    }
+
+    return null
+  }
+
+  const filtered = filterNode(tree)
+  return filtered
 }
 
 /**
@@ -352,97 +395,105 @@ export class WorktreeFileTree extends React.Component<
     filePath: string,
     event: React.MouseEvent<HTMLDivElement>
   ) => {
-    event.preventDefault()
-    event.stopPropagation()
-
     const { repository, dispatcher } = this.props
-    const fullPath = Path.join(repository.path, filePath)
 
-    const showMenu = async () => {
-      const editors = await getAvailableEditors().catch(() => [])
-      const vsCode = editors.find(
-        editor => editor.editor === 'Visual Studio Code'
-      )
+    showFileContextMenu(
+      {
+        repository,
+        dispatcher,
+        filePath,
+        isWorkingDirectory: false,
+        onAddToCurrentChat: this.onAddToCurrentChat,
+        onAddToNewChat: this.onAddToNewChat,
+      },
+      event
+    )
+  }
 
-      const items: IMenuItem[] = [
-        {
-          label: 'Open File',
-          action: () => openFile(fullPath, dispatcher),
-        },
-        {
-          label: 'Open in VS Code',
-          enabled: vsCode !== undefined,
-          action: () => {
-            if (vsCode !== undefined) {
-              launchExternalEditor(fullPath, vsCode)
-            }
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'Copy Path',
-          action: () => dispatcher.copyPathToClipboard(fullPath),
-        },
-        {
-          label: 'Copy Content',
-          enabled: !isLikelyBinary(fullPath),
-          action: async () => {
-            try {
-              const content = await readFile(fullPath, 'utf8')
-              clipboard.writeText(content)
-            } catch (e) {
-              log.error('Failed to copy file content', e)
-            }
-          },
-        },
-        { type: 'separator' },
-        {
-          label: 'Delete',
-          action: () =>
-            dispatcher.showPopup({
-              type: PopupType.ConfirmDeleteFile,
-              repository,
-              filePath,
-            }),
-        },
-      ]
+  private onAddToCurrentChat = (filePath: string) => {
+    this.props.dispatcher.addFileToCurrentChat(this.props.repository, filePath)
+  }
 
-      showContextualMenu(items)
-    }
-
-    showMenu().catch(e => {
-      log.error('Failed to show worktree file context menu', e)
-    })
+  private onAddToNewChat = (filePath: string) => {
+    this.props.dispatcher.addFileToNewChat(this.props.repository, filePath)
   }
 
   public render() {
-    const { files, selectedFile, onFileSelected } = this.props
-
-    if (files.length === 0) {
-      return (
-        <div className="worktree-file-tree-empty">
-          No files found in this repository.
-        </div>
-      )
-    }
+    const { files, selectedFile, onFileSelected, showHiddenFiles, onToggleHiddenFiles, filterText, onFilterTextChanged } = this.props
 
     const tree = buildTree(files)
+    const filteredTree = filterTree(tree, filterText)
+
+    const hasFiles = filteredTree !== null && filteredTree.children.length > 0
 
     return (
-      <div className="worktree-file-tree">
-        {tree.children.map(child => (
-          <FileTreeNode
-            key={child.path}
-            node={child}
-            depth={0}
-            selectedFile={selectedFile}
-            expandedDirs={this.state.expandedDirs}
-            onFileSelected={onFileSelected}
-            onToggleDir={this.onToggleDir}
-            onFileContextMenu={this.onFileContextMenu}
-          />
-        ))}
+      <div className="worktree-file-tree-container">
+        <div className="worktree-file-tree-header">
+          <div className="worktree-file-tree-search">
+            <TextBox
+              type="search"
+              placeholder="Search files"
+              ariaLabel="Search files"
+              value={filterText}
+              onValueChanged={onFilterTextChanged}
+              displayClearButton={true}
+            />
+          </div>
+          <div className="worktree-file-tree-actions">
+            <Button
+              onClick={this.onNewFile}
+              tooltip="New File"
+              ariaLabel="New File"
+              size="small"
+            >
+              <Octicon symbol={octicons.fileAdded} />
+            </Button>
+            <Button
+              onClick={this.onNewFolder}
+              tooltip="New Folder"
+              ariaLabel="New Folder"
+              size="small"
+            >
+              <Octicon symbol={octicons.fileDirectory} />
+            </Button>
+            <Checkbox
+              value={showHiddenFiles ? CheckboxValue.On : CheckboxValue.Off}
+              onChange={onToggleHiddenFiles}
+              label="Show hidden files"
+            />
+          </div>
+        </div>
+        {hasFiles ? (
+          <div className="worktree-file-tree">
+            {filteredTree!.children.map(child => (
+              <FileTreeNode
+                key={child.path}
+                node={child}
+                depth={0}
+                selectedFile={selectedFile}
+                expandedDirs={this.state.expandedDirs}
+                onFileSelected={onFileSelected}
+                onToggleDir={this.onToggleDir}
+                onFileContextMenu={this.onFileContextMenu}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="worktree-file-tree-empty">
+            {filterText ? 'No files match your search.' : 'No files found in this repository.'}
+          </div>
+        )}
       </div>
     )
+  }
+
+  private onNewFile = () => {
+    // TODO: Implement new file creation
+    console.log('New file')
+  }
+
+  private onNewFolder = () => {
+    // TODO: Implement new folder creation
+    console.log('New folder')
   }
 }

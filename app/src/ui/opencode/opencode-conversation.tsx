@@ -2,18 +2,30 @@ import * as React from 'react'
 
 import { IOpenCodeState } from '../../lib/app-state'
 import { OpenCodeClient } from '../../lib/opencode/opencode-client'
-import { isSessionBusy } from '../../lib/opencode/opencode-session-helpers'
+import {
+  getFileReferences,
+  getModelOptions,
+  getSessionModelSelection,
+  isSessionBusy,
+} from '../../lib/opencode/opencode-session-helpers'
+import { createFileReference } from '../../lib/opencode/opencode-attachments'
 import {
   IOpenCodeAgent,
+  IOpenCodeAttachment,
   IOpenCodeEvent,
   IOpenCodeMessage,
   IOpenCodeMessageInfo,
+  IOpenCodeModelOption,
+  IOpenCodeModelSelection,
   IOpenCodePermissionRequest,
+  IOpenCodeProvider,
+  IOpenCodeQueuedPrompt,
   OpenCodePart,
   OpenCodePermissionResponse,
 } from '../../models/opencode-session'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../dispatcher/dispatcher'
+import { Button } from '../lib/button'
 import { Loading } from '../lib/loading'
 import { Octicon } from '../octicons'
 import * as octicons from '../octicons/octicons.generated'
@@ -60,6 +72,21 @@ interface IOpenCodeConversationState {
   /** The agent picked for the next prompt, or null for OpenCode's default. */
   readonly selectedAgent: string | null
 
+  /** Every model the configured providers offer. */
+  readonly modelOptions: ReadonlyArray<IOpenCodeModelOption>
+
+  /** The model picked for the next prompt, or null for OpenCode's default. */
+  readonly selectedModel: IOpenCodeModelSelection | null
+
+  /** The reasoning variant picked for the next prompt, or null. */
+  readonly selectedVariant: string | null
+
+  /** Prompts waiting for the current run to finish. */
+  readonly queuedPrompts: ReadonlyArray<IOpenCodeQueuedPrompt>
+
+  /** Whether a revert is in effect and can still be undone. */
+  readonly isReverted: boolean
+
   /** Permissions the agent is waiting on, in the order they were asked. */
   readonly pendingPermissions: ReadonlyArray<IOpenCodePermissionRequest>
 
@@ -95,6 +122,22 @@ export class OpenCodeConversation extends React.Component<
   /** The pending event stream reconnection, if any. */
   private reconnectTimeoutId: number | null = null
 
+  /** Source of identifiers for queued prompts. */
+  private nextQueuedPromptId = 0
+
+  /**
+   * Model picks per session, so a choice made before the first prompt survives
+   * switching conversations. Sessions that already ran carry their model on the
+   * server, which is what this falls back to.
+   */
+  private readonly modelBySession = new Map<
+    string,
+    {
+      readonly model: IOpenCodeModelSelection | null
+      readonly variant: string | null
+    }
+  >()
+
   public constructor(props: IOpenCodeConversationProps) {
     super(props)
 
@@ -104,6 +147,11 @@ export class OpenCodeConversation extends React.Component<
       isBusy: false,
       agents: [],
       selectedAgent: null,
+      modelOptions: [],
+      selectedModel: null,
+      selectedVariant: null,
+      queuedPrompts: [],
+      isReverted: false,
       pendingPermissions: [],
       error: null,
     }
@@ -235,6 +283,15 @@ export class OpenCodeConversation extends React.Component<
         }
       })
       .catch(e => log.warn('Failed to list OpenCode agents', e))
+
+    client
+      .listProviders(this.props.repository.path)
+      .then((providers: ReadonlyArray<IOpenCodeProvider>) => {
+        if (!this.isUnmounted) {
+          this.setState({ modelOptions: getModelOptions(providers) })
+        }
+      })
+      .catch(e => log.warn('Failed to list OpenCode providers', e))
   }
 
   private loadMessages() {
@@ -242,9 +299,17 @@ export class OpenCodeConversation extends React.Component<
     const sessionID = this.props.state.selectedSessionID
 
     if (client === null || sessionID === null) {
-      this.setState({ messages: [], isBusy: false, pendingPermissions: [] })
+      this.setState({
+        messages: [],
+        isBusy: false,
+        pendingPermissions: [],
+        queuedPrompts: [],
+        isReverted: false,
+      })
       return
     }
+
+    this.restoreModelSelection(sessionID)
 
     this.setState({ isLoading: true, error: null })
     this.isPinnedToBottom = true
@@ -266,6 +331,9 @@ export class OpenCodeConversation extends React.Component<
           messages,
           isLoading: false,
           isBusy: isSessionBusy(messages),
+          // A queue belongs to the conversation it was typed in.
+          queuedPrompts: [],
+          isReverted: false,
           pendingPermissions: permissions.filter(
             p => p.sessionID === sessionID
           ),
@@ -282,6 +350,23 @@ export class OpenCodeConversation extends React.Component<
           error: e instanceof Error ? e.message : String(e),
         })
       })
+  }
+
+  /**
+   * Puts the pickers back on the model this conversation last used, falling
+   * back to a pick the user made in this session but hasn't sent yet. A brand
+   * new conversation has neither, so it starts on the default again.
+   */
+  private restoreModelSelection(sessionID: string) {
+    const pending = this.modelBySession.get(sessionID)
+
+    const { model, variant } =
+      pending ??
+      getSessionModelSelection(
+        this.props.state.sessions?.find(s => s.id === sessionID)
+      )
+
+    this.setState({ selectedModel: model, selectedVariant: variant })
   }
 
   /** Applies a server event to the conversation. */
@@ -336,7 +421,7 @@ export class OpenCodeConversation extends React.Component<
 
       case 'session.idle': {
         if (properties.sessionID === sessionID) {
-          this.setState({ isBusy: false })
+          this.setState({ isBusy: false }, () => this.sendNextQueuedPrompt())
         }
         break
       }
@@ -442,7 +527,61 @@ export class OpenCodeConversation extends React.Component<
     }
   }
 
-  private onSubmit = (text: string) => {
+  /**
+   * Sends the prompt, or queues it when the agent is still working.
+   *
+   * Queueing (rather than sending straight away) is what makes a follow-up
+   * land as its own turn once the current one finishes; to steer the agent
+   * mid-run instead, the user stops it and sends.
+   */
+  private onSubmit = (
+    text: string,
+    attachments: ReadonlyArray<IOpenCodeAttachment>
+  ) => {
+    this.isPinnedToBottom = true
+
+    if (this.state.isBusy) {
+      this.setState(state => ({
+        queuedPrompts: [
+          ...state.queuedPrompts,
+          { id: `queued-${this.nextQueuedPromptId++}`, text, attachments },
+        ],
+      }))
+      return
+    }
+
+    this.sendPrompt(text, attachments)
+  }
+
+  /**
+   * Sends the prompt straight away, even while the agent is working, so it
+   * lands in the turn already in progress rather than after it.
+   */
+  private onSteer = (
+    text: string,
+    attachments: ReadonlyArray<IOpenCodeAttachment>
+  ) => {
+    this.isPinnedToBottom = true
+    this.sendPrompt(text, attachments)
+  }
+
+  /** Sends the oldest queued prompt, if the queue isn't empty. */
+  private sendNextQueuedPrompt() {
+    const next = this.state.queuedPrompts[0]
+
+    if (next === undefined || this.isUnmounted) {
+      return
+    }
+
+    this.setState(state => ({ queuedPrompts: state.queuedPrompts.slice(1) }))
+    this.sendPrompt(next.text, next.attachments)
+  }
+
+  /** Posts a prompt with the selected agent, model, variant and files. */
+  private sendPrompt(
+    text: string,
+    attachments: ReadonlyArray<IOpenCodeAttachment>
+  ) {
     const client = this.getClient()
     const sessionID = this.props.state.selectedSessionID
 
@@ -450,16 +589,23 @@ export class OpenCodeConversation extends React.Component<
       return
     }
 
-    this.isPinnedToBottom = true
+    const { selectedAgent, selectedModel, selectedVariant } = this.state
+
+    // `@path` mentions in the text are sent as file parts too, so the agent
+    // gets the content rather than just the string.
+    const references = getFileReferences(text).map(path =>
+      createFileReference(path, this.props.repository.path)
+    )
+
     this.setState({ isBusy: true, error: null })
 
     client
-      .sendPrompt(
-        this.props.repository.path,
-        sessionID,
-        text,
-        this.state.selectedAgent ?? undefined
-      )
+      .sendPrompt(this.props.repository.path, sessionID, text, {
+        agent: selectedAgent ?? undefined,
+        model: selectedModel ?? undefined,
+        variant: selectedVariant ?? undefined,
+        attachments: [...attachments, ...references],
+      })
       .catch(e => {
         if (this.isUnmounted) {
           return
@@ -488,6 +634,90 @@ export class OpenCodeConversation extends React.Component<
 
   private onAgentChanged = (selectedAgent: string | null) => {
     this.setState({ selectedAgent })
+  }
+
+  private onModelChanged = (selectedModel: IOpenCodeModelSelection | null) => {
+    // A variant belongs to the model it was chosen for.
+    this.setState({ selectedModel, selectedVariant: null })
+    this.rememberModelSelection(selectedModel, null)
+  }
+
+  private onVariantChanged = (selectedVariant: string | null) => {
+    this.setState({ selectedVariant })
+    this.rememberModelSelection(this.state.selectedModel, selectedVariant)
+  }
+
+  /** Keeps the pick with its conversation across session switches. */
+  private rememberModelSelection(
+    model: IOpenCodeModelSelection | null,
+    variant: string | null
+  ) {
+    const sessionID = this.props.state.selectedSessionID
+
+    if (sessionID !== null) {
+      this.modelBySession.set(sessionID, { model, variant })
+    }
+  }
+
+  private onRemoveQueuedPrompt = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    const { promptId } = event.currentTarget.dataset
+
+    this.setState(state => ({
+      queuedPrompts: state.queuedPrompts.filter(p => p.id !== promptId),
+    }))
+  }
+
+  /**
+   * Rewinds the conversation to just before the given message, undoing the
+   * file changes made after it.
+   */
+  private onRevertToMessage = (messageID: string) => {
+    const client = this.getClient()
+    const sessionID = this.props.state.selectedSessionID
+
+    if (client === null || sessionID === null) {
+      return
+    }
+
+    client
+      .revertSession(this.props.repository.path, sessionID, messageID)
+      .then(() => {
+        if (!this.isUnmounted) {
+          this.setState({ isReverted: true })
+          this.loadMessages()
+        }
+      })
+      .catch(e => {
+        if (this.isUnmounted) {
+          return
+        }
+
+        log.error('Failed to revert the OpenCode session', e)
+        this.setState({
+          error: e instanceof Error ? e.message : String(e),
+        })
+      })
+  }
+
+  private onUnrevert = () => {
+    const client = this.getClient()
+    const sessionID = this.props.state.selectedSessionID
+
+    if (client === null || sessionID === null) {
+      return
+    }
+
+    client
+      .unrevertSession(this.props.repository.path, sessionID)
+      .then(() => {
+        if (!this.isUnmounted) {
+          this.setState({ isReverted: false })
+          this.loadMessages()
+        }
+      })
+      .catch(e => log.error('Failed to undo the OpenCode revert', e))
   }
 
   /**
@@ -595,9 +825,41 @@ export class OpenCodeConversation extends React.Component<
     return (
       <>
         {messages.map(message => (
-          <OpenCodeMessageView key={message.info.id} message={message} />
+          <OpenCodeMessageView
+            key={message.info.id}
+            message={message}
+            onRevertToMessage={this.onRevertToMessage}
+          />
         ))}
       </>
+    )
+  }
+
+  /** The prompts waiting for the current run, with a way to drop them. */
+  private renderQueuedPrompts(): JSX.Element | null {
+    const { queuedPrompts } = this.state
+
+    if (queuedPrompts.length === 0) {
+      return null
+    }
+
+    return (
+      <div className="opencode-queued-prompts">
+        {queuedPrompts.map(prompt => (
+          <div key={prompt.id} className="opencode-queued-prompt">
+            <Octicon symbol={octicons.history} />
+            <span className="opencode-queued-prompt-text">{prompt.text}</span>
+            <button
+              className="opencode-queued-prompt-remove"
+              data-prompt-id={prompt.id}
+              onClick={this.onRemoveQueuedPrompt}
+              aria-label="Remove queued message"
+            >
+              <Octicon symbol={octicons.x} />
+            </button>
+          </div>
+        ))}
+      </div>
     )
   }
 
@@ -641,6 +903,14 @@ export class OpenCodeConversation extends React.Component<
               <Loading /> OpenCode is working…
             </div>
           )}
+          {this.renderQueuedPrompts()}
+          {this.state.isReverted && (
+            <div className="opencode-revert-banner">
+              <Octicon symbol={octicons.history} />
+              <span>This conversation was rewound.</span>
+              <Button onClick={this.onUnrevert}>Undo revert</Button>
+            </div>
+          )}
           {error !== null && (
             <div className="opencode-conversation-error">
               <Octicon symbol={octicons.alert} />
@@ -649,14 +919,41 @@ export class OpenCodeConversation extends React.Component<
           )}
         </div>
         <OpenCodePrompt
+          repositoryPath={this.props.repository.path}
           agents={this.state.agents}
           selectedAgent={this.state.selectedAgent}
+          modelOptions={this.state.modelOptions}
+          selectedModel={this.state.selectedModel}
+          selectedVariant={this.state.selectedVariant}
           isBusy={isBusy}
+          queuedCount={this.state.queuedPrompts.length}
           onSubmit={this.onSubmit}
+          onSteer={this.onSteer}
           onAbort={this.onAbort}
           onAgentChanged={this.onAgentChanged}
+          onModelChanged={this.onModelChanged}
+          onVariantChanged={this.onVariantChanged}
+          onFindFiles={this.onFindFiles}
+          onAttachmentError={this.onAttachmentError}
         />
       </div>
     )
+  }
+
+  private onAttachmentError = (error: string) => {
+    this.setState({ error })
+  }
+
+  /** Searches the repository for the `@` autocompletion in the prompt box. */
+  private onFindFiles = async (
+    query: string
+  ): Promise<ReadonlyArray<string>> => {
+    const client = this.getClient()
+
+    if (client === null) {
+      return []
+    }
+
+    return client.findFiles(this.props.repository.path, query)
   }
 }

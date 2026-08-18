@@ -391,6 +391,26 @@ export class Dispatcher {
     this.appStore._setSelectedWorktreeFile(repository, selectedFile)
   }
 
+  /** Toggle the showHiddenFiles setting in the Worktree tab. */
+  public toggleWorktreeShowHiddenFiles(repository: Repository): Promise<void> {
+    return this.appStore._toggleWorktreeShowHiddenFiles(repository)
+  }
+
+  /** Add a file to the current OpenCode chat session. */
+  public addFileToCurrentChat(repository: Repository, filePath: string): Promise<void> {
+    return this.appStore._addFileToCurrentChat(repository, filePath)
+  }
+
+  /** Add a file to a new OpenCode chat session. */
+  public addFileToNewChat(repository: Repository, filePath: string): Promise<void> {
+    return this.appStore._addFileToNewChat(repository, filePath)
+  }
+
+  /** Drop the cached OpenCode connection after the server settings changed. */
+  public resetOpenCodeServer(): void {
+    this.appStore._resetOpenCodeServer()
+  }
+
   /** Reload the OpenCode sessions of the repository, starting the server if needed. */
   public refreshOpenCodeSessions(repository: Repository): Promise<void> {
     return this.appStore._refreshOpenCodeSessions(repository)
@@ -415,6 +435,15 @@ export class Dispatcher {
     sessionID: string
   ): Promise<void> {
     return this.appStore._deleteOpenCodeSession(repository, sessionID)
+  }
+
+  /** Rename an OpenCode session. */
+  public renameOpenCodeSession(
+    repository: Repository,
+    sessionID: string,
+    title: string
+  ): Promise<void> {
+    return this.appStore._renameOpenCodeSession(repository, sessionID, title)
   }
 
   /**
@@ -3137,6 +3166,13 @@ export class Dispatcher {
    */
   public setSelectedTheme(theme: ApplicationTheme) {
     return this.appStore._setSelectedTheme(theme)
+  }
+
+  /**
+   * Set the color the interface is tinted with, or null for no tint
+   */
+  public setSelectedTint(tint: string | null) {
+    return this.appStore._setSelectedTint(tint)
   }
 
   /**

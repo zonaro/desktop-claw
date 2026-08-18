@@ -75,6 +75,12 @@ describe('OpenCode model picker', () => {
       model: null,
       timeoutMs: 60000,
       reviewOnCommit: false,
+      serverHost: null,
+      serverPort: null,
+      serverUser: null,
+      serverPassword: null,
+      userName: null,
+      memory: [],
     }
     saveOpenCodeConfig(config)
 
@@ -98,6 +104,12 @@ describe('OpenCode model picker', () => {
       model: 'anthropic/claude-3-5-sonnet-20241022',
       timeoutMs: 60000,
       reviewOnCommit: false,
+      serverHost: null,
+      serverPort: null,
+      serverUser: null,
+      serverPassword: null,
+      userName: null,
+      memory: [],
     }
     saveOpenCodeConfig(config)
 

@@ -12,6 +12,7 @@ import {
   buildCommitMessageUserPrompt,
 } from '../stores/copilot-store'
 import { loadOpenCodeConfig } from '../opencode/opencode-config'
+import { buildOpenCodeMemoryContext } from '../opencode/opencode-memory'
 import { invoke, send } from '../ipc-renderer'
 import type { IOpenCodeAvailability } from '../../models/opencode'
 
@@ -37,10 +38,11 @@ export class OpenCodeCommitMessageGenerator implements ICommitMessageGenerator {
     const config = loadOpenCodeConfig()
     const tags = generateCommitMessagePromptTags()
     const rules = getCleanedEnforcedRuleDescriptions(request.commitMessageRules)
+    const memoryContext = buildOpenCodeMemoryContext(config)
     const prompt =
       buildCommitMessageSystemPrompt(rules.length > 0, tags) +
       '\n\n' +
-      buildCommitMessageUserPrompt(request.diff, tags, rules)
+      buildCommitMessageUserPrompt(request.diff, tags, rules, memoryContext)
 
     const requestId = crypto.randomUUID()
 

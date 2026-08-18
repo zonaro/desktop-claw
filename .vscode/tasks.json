@@ -15,6 +15,33 @@
         "reveal": "never",
         "close": true
       }
+    },
+    {
+      // =========================================================================
+      // Package & Install (Linux)
+      // -------------------------------------------------------------------------
+      // 1. Builds a .tar.gz of the project  ->  dist/<app>-<version>.tar.gz
+      // 2. Installs it system-wide           ->  /opt/<app>
+      // 3. Exposes the binary on PATH        ->  /usr/local/bin/<app> (symlink)
+      //
+      // The sudo password is requested with a custom prompt (sudo -p).
+      // POSIX-friendly bash script; adjust APP_NAME/ENTRY_POINT in
+      // script/install-linux.sh before running.
+      // =========================================================================
+      "label": "Package & Install (Linux)",
+      "detail": "Build tar.gz and install system-wide with sudo (/opt + /usr/local/bin)",
+      "type": "shell",
+      "command": "${workspaceFolder}/script/install-linux.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
     }
   ]
 }

@@ -11,6 +11,7 @@ import type { IBYOKProvider } from '../../../src/lib/copilot/byok'
 import { Account } from '../../../src/models/account'
 import type { Model } from '@github/copilot-sdk/dist/generated/rpc'
 import { deriveApiType } from '../../../src/lib/api'
+import type { Dispatcher } from '../../../src/ui/dispatcher'
 import { within } from './render'
 
 // Shared fixtures for the copilot-preferences-*-test.tsx files, split out of
@@ -266,6 +267,9 @@ afterEach(() => {
 
 export function defaults() {
   return {
+    // The component only calls the dispatcher when the OpenCode server
+    // settings change, so a stub covers every rendering test.
+    dispatcher: { resetOpenCodeServer: () => {} } as unknown as Dispatcher,
     selectedCopilotModelsByAccount: new Map(),
     copilotModelsByAccount: modelsForDefaultAccount(models),
     copilotQuotaSnapshotsByAccount:

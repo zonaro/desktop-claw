@@ -4,10 +4,14 @@ import {
   getThemeName,
   getCurrentlyAppliedTheme,
 } from './lib/application-theme'
+import { applyTint } from './lib/application-tint'
 import * as ipcRenderer from '../lib/ipc-renderer'
 
 interface IAppThemeProps {
   readonly theme: ApplicationTheme
+
+  /** The color to tint the theme with, or null to use it as-is */
+  readonly tint: string | null
 }
 
 /**
@@ -33,6 +37,7 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
 
   public componentWillUnmount() {
     this.clearThemes()
+    applyTint(null)
   }
 
   private async ensureTheme() {
@@ -47,8 +52,12 @@ export class AppTheme extends React.PureComponent<IAppThemeProps> {
     if (!document.body.classList.contains(newThemeClassName)) {
       this.clearThemes()
       document.body.classList.add(newThemeClassName)
-      this.updateColorScheme()
     }
+
+    // The tint takes the colors of the theme that's applied and gives them a
+    // hue, so it has to be recomputed whenever either of them changes.
+    applyTint(this.props.tint)
+    this.updateColorScheme()
   }
 
   private updateColorScheme = () => {

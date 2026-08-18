@@ -339,6 +339,12 @@ export interface IAppState {
   /** The currently applied appearance (aka theme) */
   readonly currentTheme: ApplicableTheme
 
+  /**
+   * The color the interface is tinted with, or null when the theme is used
+   * as-is.
+   */
+  readonly selectedTint: string | null
+
   /** The selected tab size preference */
   readonly selectedTabSize: number
 
@@ -626,6 +632,11 @@ export interface IWorktreeState {
    * or `null` when no file is selected.
    */
   readonly selectedFile: string | null
+
+  /**
+   * Whether to show hidden/untracked files in the file tree.
+   */
+  readonly showHiddenFiles: boolean
 }
 
 /**

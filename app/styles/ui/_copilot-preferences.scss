@@ -20,9 +20,18 @@
 }
 
 #preferences .dialog-content.copilot-tab {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  // The tab itself is the scroll container and provides the padding for
+  // every section, including the ones (provider picker, OpenCode settings)
+  // that live outside of `.copilot-tab-content`. The nested scroll wrappers
+  // only do their own scrolling in the standalone Copilot settings dialog.
+  .copilot-tab-content,
+  .copilot-settings-scroll {
+    display: block;
+    min-height: 0;
+    max-height: none;
+    padding: 0;
+    overflow: visible;
+  }
 }
 
 #preferences,
@@ -389,6 +398,21 @@
     .text-box-component {
       margin-top: var(--spacing);
       margin-bottom: var(--spacing-half);
+    }
+
+    .opencode-server-row {
+      display: flex;
+      align-items: flex-end;
+      gap: var(--spacing);
+
+      // Host takes the room it needs, the port only ever holds a few digits.
+      .text-box-component:first-child {
+        flex: 2;
+      }
+
+      .text-box-component:last-child {
+        flex: 1;
+      }
     }
 
     .opencode-availability-row {

@@ -17,3 +17,24 @@ export async function getTrackedFiles(
 
   return result.stdout.split('\0').filter(f => f.length > 0)
 }
+
+/**
+ * Returns the list of all files in the working directory (tracked + untracked),
+ * relative to the repository root. Includes hidden files.
+ */
+export async function getAllFiles(
+  repository: Repository
+): Promise<ReadonlyArray<string>> {
+  const result = await git(
+    ['ls-files', '-z', '--others', '--exclude-standard'],
+    repository.path,
+    'getAllFiles'
+  )
+
+  const untrackedFiles = result.stdout.split('\0').filter(f => f.length > 0)
+  const trackedFiles = await getTrackedFiles(repository)
+
+  // Combine and deduplicate
+  const allFiles = new Set([...trackedFiles, ...untrackedFiles])
+  return Array.from(allFiles).sort()
+}

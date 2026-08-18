@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { readdir, writeFile } from 'fs/promises'
+import { readdir, writeFile, readFile } from 'fs/promises'
 import {
   defaultShowBranchNameInRepoListSetting,
   ShowBranchNameInRepoListSetting,
@@ -24,7 +24,7 @@ import {
 } from '../../models/diff-font'
 import { EditorOverride } from '../../models/editor-override'
 import { stageResolvedConflictFiles } from '../git/stage'
-import { getTrackedFiles } from '../git/ls-files'
+import { getTrackedFiles, getAllFiles } from '../git/ls-files'
 import {
   AccountsStore,
   CloningRepositoriesStore,
@@ -150,6 +150,10 @@ import {
   getPersistedThemeName,
   setPersistedTheme,
 } from '../../ui/lib/application-theme'
+import {
+  getPersistedTint,
+  setPersistedTint,
+} from '../../ui/lib/application-tint'
 import {
   getAppMenu,
   getCurrentWindowState,
@@ -406,7 +410,11 @@ import { OpenCodeCommitMessageGenerator } from '../commit-message-generator/open
 import { CopilotCommitMessageGenerator } from '../commit-message-generator/copilot-commit-message-generator'
 import { generateCommitReview } from '../opencode/commit-review'
 import { OpenCodeClient } from '../opencode/opencode-client'
-import { loadOpenCodeConfig } from '../opencode/opencode-config'
+import {
+  getOpenCodeServerUrl,
+  loadOpenCodeConfig,
+} from '../opencode/opencode-config'
+import { loadOpenCodeMemoryIntoConfig } from '../opencode/opencode-memory'
 import { IOpenCodeServerStatus } from '../../models/opencode-session'
 import { RepositoryIndicatorUpdater } from './helpers/repository-indicator-updater'
 import { isAttributableEmailFor } from '../email'
@@ -797,6 +805,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
   private selectedBranchesTab = BranchesTab.Branches
   private selectedTheme = ApplicationTheme.System
   private currentTheme: ApplicableTheme = ApplicationTheme.Light
+  private selectedTint: string | null = null
   private selectedTabSize = tabSizeDefault
   private selectedDiffFontSize = defaultDiffFontSize
   private selectedDiffFontFamily = defaultDiffFontFamily
@@ -1499,6 +1508,7 @@ export class AppStore extends TypedBaseStore<IAppState> {
       selectedBranchesTab: this.selectedBranchesTab,
       selectedTheme: this.selectedTheme,
       currentTheme: this.currentTheme,
+      selectedTint: this.selectedTint,
       selectedTabSize: this.selectedTabSize,
       selectedDiffFontSize: this.selectedDiffFontSize,
       selectedDiffFontFamily: this.selectedDiffFontFamily,
@@ -2988,6 +2998,13 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.accounts = accounts
     this.repositories = repositories
 
+    // Load the OpenCode memory (custom instructions) from disk into the
+    // configuration so commit reviews pick them up. Best-effort: a missing or
+    // unreadable memory directory keeps whatever config is already stored.
+    loadOpenCodeMemoryIntoConfig().catch(e =>
+      log.error('Failed to load OpenCode memory at startup', e)
+    )
+
     this.updateRepositorySelectionAfterRepositoriesChanged()
 
     this.sidebarWidth = constrain(
@@ -3138,6 +3155,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.selectedTheme = getPersistedThemeName()
     // Make sure the persisted theme is applied
     setPersistedTheme(this.selectedTheme)
+
+    this.selectedTint = getPersistedTint()
 
     this.currentTheme = await getCurrentlyAppliedTheme()
 
@@ -4033,7 +4052,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   public async loadWorktreeFiles(repository: Repository): Promise<void> {
     try {
-      const files = await getTrackedFiles(repository)
+      const state = this.repositoryStateCache.get(repository)
+      const showHiddenFiles = state.worktreeState.showHiddenFiles
+      const files = showHiddenFiles
+        ? await getAllFiles(repository)
+        : await getTrackedFiles(repository)
+
       this.repositoryStateCache.update(repository, state => {
         // Preserve the current selection when the file list refreshes, as long
         // as the selected file still exists in the repository.
@@ -4044,12 +4068,133 @@ export class AppStore extends TypedBaseStore<IAppState> {
           worktreeState: {
             files,
             selectedFile: stillExists ? selectedFile : null,
+            showHiddenFiles: state.worktreeState.showHiddenFiles,
           },
         }
       })
       this.emitUpdate()
     } catch (e) {
       log.error('Failed to load worktree files', e)
+    }
+  }
+
+  /**
+   * Toggles the showHiddenFiles setting for the Worktree tab.
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _toggleWorktreeShowHiddenFiles(
+    repository: Repository
+  ): Promise<void> {
+    const state = this.repositoryStateCache.get(repository)
+    const newShowHiddenFiles = !state.worktreeState.showHiddenFiles
+
+    this.repositoryStateCache.update(repository, state => ({
+      worktreeState: {
+        ...state.worktreeState,
+        showHiddenFiles: newShowHiddenFiles,
+      },
+    }))
+    this.emitUpdate()
+
+    // Reload the file list with the new setting
+    await this.loadWorktreeFiles(repository)
+  }
+
+  /**
+   * Adds a file to the current OpenCode chat session.
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _addFileToCurrentChat(
+    repository: Repository,
+    filePath: string
+  ): Promise<void> {
+    const server = await this.ensureOpenCodeServer()
+    const client = OpenCodeClient.fromStatus(server)
+
+    if (client === null) {
+      this.setOpenCodeError(repository, server, server.error)
+      return
+    }
+
+    const state = this.repositoryStateCache.get(repository)
+    const sessionId = state.openCodeState.selectedSessionID
+
+    if (!sessionId) {
+      // No session selected, create a new one
+      await this._createOpenCodeSession(repository)
+      const newState = this.repositoryStateCache.get(repository)
+      const newSessionId = newState.openCodeState.selectedSessionID
+      if (newSessionId) {
+        await this._addFileToSession(repository, newSessionId, filePath)
+      }
+      return
+    }
+
+    await this._addFileToSession(repository, sessionId, filePath)
+  }
+
+  /**
+   * Adds a file to a new OpenCode chat session.
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _addFileToNewChat(
+    repository: Repository,
+    filePath: string
+  ): Promise<void> {
+    const server = await this.ensureOpenCodeServer()
+    const client = OpenCodeClient.fromStatus(server)
+
+    if (client === null) {
+      this.setOpenCodeError(repository, server, server.error)
+      return
+    }
+
+    // Create a new session
+    await this._createOpenCodeSession(repository)
+    const state = this.repositoryStateCache.get(repository)
+    const sessionId = state.openCodeState.selectedSessionID
+
+    if (sessionId) {
+      await this._addFileToSession(repository, sessionId, filePath)
+    }
+  }
+
+  /**
+   * Adds a file as an attachment to an OpenCode session.
+   */
+  private async _addFileToSession(
+    repository: Repository,
+    sessionId: string,
+    filePath: string
+  ): Promise<void> {
+    try {
+      const server = await this.ensureOpenCodeServer()
+      const client = OpenCodeClient.fromStatus(server)
+
+      if (client === null) {
+        return
+      }
+
+      // Read the file content
+      const fullPath = Path.join(repository.path, filePath)
+      const content = await readFile(fullPath, 'utf8')
+
+      // Create a file attachment
+      const attachment = {
+        path: filePath,
+        filename: Path.basename(filePath),
+        mime: 'text/plain',
+        url: `data:text/plain;base64,${Buffer.from(content).toString('base64')}`,
+        isReference: false,
+      }
+
+      // Send a prompt with the file attachment
+      await client.sendPrompt(repository.path, sessionId, 
+        `File: ${filePath}`,
+        { attachments: [attachment] }
+      )
+    } catch (e) {
+      log.error(`Failed to add file ${filePath} to chat`, e)
     }
   }
 
@@ -4078,10 +4223,24 @@ export class AppStore extends TypedBaseStore<IAppState> {
    */
   private ensureOpenCodeServer(): Promise<IOpenCodeServerStatus> {
     if (this.openCodeServerPromise === null) {
-      const { command } = loadOpenCodeConfig()
+      const config = loadOpenCodeConfig()
+      const configuredUrl = getOpenCodeServerUrl(config)
+
+      // A server the user points at is theirs to run; the app connects to it
+      // rather than starting one of its own.
+      if (configuredUrl !== null) {
+        this.openCodeServerPromise = Promise.resolve({
+          running: true,
+          baseUrl: configuredUrl,
+          password: null,
+          error: null,
+        })
+
+        return this.openCodeServerPromise
+      }
 
       this.openCodeServerPromise = ipcRenderer
-        .invoke('opencode-server-start', command)
+        .invoke('opencode-server-start', config.command)
         .then(status => {
           // Only a running server is worth caching; a failed attempt should be
           // retried the next time the user opens the tab.
@@ -4093,6 +4252,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
     }
 
     return this.openCodeServerPromise
+  }
+
+  /**
+   * Drops the cached OpenCode connection so the next request re-reads the
+   * configuration. Called when the user changes the server settings.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public _resetOpenCodeServer(): void {
+    this.openCodeServerPromise = null
   }
 
   /**
@@ -4240,6 +4409,33 @@ export class AppStore extends TypedBaseStore<IAppState> {
       await this._refreshOpenCodeSessions(repository)
     } catch (e) {
       log.error(`Failed to delete the OpenCode session ${sessionID}`, e)
+      this.setOpenCodeError(repository, server, e)
+    }
+  }
+
+  /**
+   * Renames an OpenCode session.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _renameOpenCodeSession(
+    repository: Repository,
+    sessionID: string,
+    title: string
+  ): Promise<void> {
+    const server = await this.ensureOpenCodeServer()
+    const client = OpenCodeClient.fromStatus(server)
+
+    if (client === null) {
+      this.setOpenCodeError(repository, server, server.error)
+      return
+    }
+
+    try {
+      await client.updateSession(repository.path, sessionID, title)
+      await this._refreshOpenCodeSessions(repository)
+    } catch (e) {
+      log.error(`Failed to rename the OpenCode session ${sessionID}`, e)
       this.setOpenCodeError(repository, server, e)
     }
   }
@@ -10643,6 +10839,17 @@ export class AppStore extends TypedBaseStore<IAppState> {
   public _setSelectedTheme(theme: ApplicationTheme) {
     setPersistedTheme(theme)
     this.selectedTheme = theme
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /**
+   * Set the color the interface is tinted with, or null for no tint
+   */
+  public _setSelectedTint(tint: string | null) {
+    setPersistedTint(tint)
+    this.selectedTint = tint
     this.emitUpdate()
 
     return Promise.resolve()

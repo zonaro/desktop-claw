@@ -57,13 +57,13 @@ Commit message generation via the OpenCode CLI, with a selectable abstract provi
 Implemented: provider abstraction, adapters, OpenCode runner, IPC. Feature flag/model ok.
 **Pending**: OpenCode section in Preferences (`app/src/ui/preferences/` — Copilot|OpenCode radio + command/model/timeout sub-form/Test button) and OpenCode unit tests — verify before assuming they exist.
 
-## 3. OpenCode tab (repository view)
+## 3. Agent tab (repository view)
 
-An "OpenCode" tab after "Files" in the repository tab bar: the sidebar lists the OpenCode sessions of the current repository, the main area shows the selected conversation with a prompt box — the same shape as OpenCode's own web UI, built with desktop-claw components.
+An "Agent" tab after "Files" in the repository tab bar: the sidebar lists the OpenCode sessions of the current repository, the main area shows the selected conversation with a prompt box — the same shape as OpenCode's own web UI, built with desktop-claw components. User turns are aligned right, the agent's left.
 
 ### How it talks to OpenCode
 
-The main process spawns **one** headless `opencode serve --port 0 --hostname 127.0.0.1` for the whole app, on demand. Every request is scoped to a repository with the `directory=<repo path>` query parameter, which is how a single server serves all open repositories. The renderer talks HTTP to it directly (loopback), authenticating with HTTP basic auth using a per-run random password passed to the server via `OPENCODE_SERVER_PASSWORD`.
+By default the main process spawns **one** headless `opencode serve --port 0 --hostname 127.0.0.1` for the whole app, on demand. When `serverHost` **and** `serverPort` are set in the OpenCode config the app connects to that server instead and starts nothing (`getOpenCodeServerUrl`); changing either setting calls `dispatcher.resetOpenCodeServer()` so the cached connection is re-read. Every request is scoped to a repository with the `directory=<repo path>` query parameter, which is how a single server serves all open repositories. The renderer talks HTTP to it directly (loopback), authenticating with HTTP basic auth using a per-run random password passed to the server via `OPENCODE_SERVER_PASSWORD`.
 
 Streaming uses `GET /event` consumed through `fetch` + a `ReadableStream` reader (not `EventSource`, which can't send an `Authorization` header). Prompts go through `POST /session/{id}/prompt_async`, which returns 204 immediately; the reply arrives as `message.updated` / `message.part.updated` events.
 
@@ -75,12 +75,14 @@ Streaming uses `GET /event` consumed through `fetch` + a `ReadableStream` reader
 | Server (main process) | `app/src/main-process/opencode-server.ts` — `ensureOpenCodeServer` / `stopOpenCodeServer` / `parseListeningUrl`; killed on `app.on('will-quit')` in `main.ts` |
 | CLI lookup (main process) | `app/src/main-process/opencode-command.ts` — `resolveOpenCodeCommand` resolves the binary against PATH and the known install directories (`~/.opencode/bin`, `~/.bun/bin`, `~/.local/bin`, `/usr/local/bin`, `/opt/homebrew/bin`). Shared with the commit-message runner |
 | IPC | `opencode-server-start` in `app/src/lib/ipc-shared.ts`, handler in `main.ts` |
-| HTTP client (renderer) | `app/src/lib/opencode/opencode-client.ts` — `OpenCodeClient` (sessions, messages, prompts, abort, agents, permissions, SSE) + `parseEventFrame` |
-| Helpers | `app/src/lib/opencode/opencode-session-helpers.ts` — `getToolSummary`, `truncateToolOutput`, `isSessionBusy` |
+| HTTP client (renderer) | `app/src/lib/opencode/opencode-client.ts` — `OpenCodeClient` (sessions, messages, prompts, abort, agents, permissions, providers, revert/unrevert, file search, SSE) + `parseEventFrame` |
+| Helpers | `app/src/lib/opencode/opencode-session-helpers.ts` — `getToolSummary`, `truncateToolOutput`, `isSessionBusy`, `getModelOptions`, `formatModelValue`/`parseModelValue`, `getFileReferenceQuery`, `getFileReferences` |
+| Attachments | `app/src/lib/opencode/opencode-attachments.ts` — `createFileAttachment` (data URL), `createFileReference` (`file://` for `@path`), `getAttachmentMimeType` |
+| Config | `app/src/lib/opencode/opencode-config.ts` — adds `serverHost`/`serverPort` + `getOpenCodeServerUrl`; fields are merged over the defaults on load so older configs survive |
 | State | `IOpenCodeState` in `app/src/lib/app-state.ts` (+ `RepositorySectionTab.OpenCode`), initial value in `repository-state-cache.ts`, `_refreshOpenCodeSessions` / `_setSelectedOpenCodeSession` / `_createOpenCodeSession` / `_deleteOpenCodeSession` in `app-store.ts`, matching methods on the dispatcher |
 | UI | `app/src/ui/opencode/` — `opencode-session-list.tsx` (sidebar), `opencode-conversation.tsx` (main area + event stream), `opencode-message.tsx` (markdown/reasoning/tool rendering), `opencode-prompt.tsx` (prompt box + agent picker); styles in `app/styles/ui/_opencode.scss` |
 | Routing | Tab in `app/src/ui/repository.tsx`; `View > Show OpenCode` (Ctrl+5) in `build-default-menu.ts`, `show-opencode` in `menu-event.ts`/`menu-ids.ts`, handled in `app.tsx` |
-| Tests | `app/test/unit/opencode-client-test.ts`, `opencode-session-helpers-test.ts`, `opencode-server-test.ts` |
+| Tests | `app/test/unit/opencode-client-test.ts`, `opencode-session-helpers-test.ts`, `opencode-server-test.ts`, `opencode-command-test.ts`, `opencode-attachments-test.ts`, `opencode-config-test.ts` |
 
 ### Locked rules
 
@@ -91,10 +93,17 @@ Streaming uses `GET /event` consumed through `fetch` + a `ReadableStream` reader
 - Session list and selection live in the app store (low frequency); the streaming conversation lives in the conversation component's own state, because part deltas would otherwise re-render the whole app
 - The CLI command comes from the existing `IOpenCodeConfig.command` (`opencode-config.ts`), shared with the commit-message generator
 
+### Conversation controls
+
+- **Queue vs steer**: `Enter` while the agent works queues the prompt (client side — the server has no queue); it is sent on `session.idle`. The **Steer** button posts it immediately so it reaches the turn in progress. Queued entries are listed above the prompt and can be dropped individually
+- **Revert**: the clock button on a user message calls `POST /session/{id}/revert`; a banner offers `unrevert` afterwards
+- **Model/variant**: `GET /config/providers` fills a picker grouped by provider; the variant picker only appears for models that declare `variants` (`low`/`high`/`max`…) and resets when the model changes. The pick is restored per conversation from the session's recorded `model` (`getSessionModelSelection`), with an in-memory per-session map covering a pick made before the first prompt — only a brand new conversation starts on the default
+- **Files**: the paperclip embeds a file as a data URL (works outside the repository); `@path` autocompletes from `GET /find/file` and is sent as a `file://` part so the server reads it
+
 ### Status
 
-Implemented: server lifecycle, IPC, HTTP/SSE client, app-store/dispatcher wiring, session list (filter, create, delete via context menu), conversation with markdown, collapsible reasoning and tool calls, inline permission prompts, agent picker, abort, menu item and unit tests.
-**Not implemented**: model picker (uses the agent's/OpenCode's default), file attachments, subagent (child session) drill-down, `question.asked` prompts.
+Implemented: server lifecycle (local or configured host/port), IPC, HTTP/SSE client, app-store/dispatcher wiring, session list (filter, create, delete via context menu), conversation with markdown, collapsible reasoning and tool calls, inline permission prompts, agent/model/variant pickers, attachments and `@` references, message queue, steering, revert/unrevert, abort, menu item and unit tests.
+**Not implemented**: subagent (child session) drill-down, `question.asked` prompts.
 
 ## 4. Check for Updates (Help > Check for Updates)
 

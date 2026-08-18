@@ -540,14 +540,12 @@ dialog {
         overflow: auto;
       }
 
+      // Unlike the standalone Copilot settings dialog the AI tab scrolls as a
+      // whole (see _copilot-preferences.scss), so it keeps the regular dialog
+      // content padding and owns the scrollbar.
       &.copilot-tab {
-        padding: 0;
-
-        .copilot-tab-content {
-          padding: 0;
-          max-height: $default-tab-height;
-          overflow: hidden;
-        }
+        max-height: $default-tab-height;
+        overflow-y: auto;
       }
     }
   }

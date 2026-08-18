@@ -416,23 +416,31 @@ constraint.
 export function buildCommitMessageUserPrompt(
   diff: string,
   tags: ICommitMessagePromptTags,
-  cleanedRuleDescriptions: ReadonlyArray<string> = []
+  cleanedRuleDescriptions: ReadonlyArray<string> = [],
+  memoryContext: string = ''
 ): string {
   const diffBlock = `${tags.diffOpen}\n${diff}\n${tags.diffClose}`
 
-  if (cleanedRuleDescriptions.length === 0) {
-    return diffBlock
+  const parts: string[] = []
+
+  if (memoryContext.length > 0) {
+    parts.push(memoryContext)
   }
 
-  const bullets = cleanedRuleDescriptions.map(d => `- ${d}`).join('\n')
+  if (cleanedRuleDescriptions.length > 0) {
+    const bullets = cleanedRuleDescriptions.map(d => `- ${d}`).join('\n')
+    parts.push(
+      `${tags.repoRulesOpen}\n` +
+      'The combined commit message (the title followed by a blank line and then\n' +
+      'the description) MUST satisfy ALL of the following constraints:\n' +
+      `${bullets}\n` +
+      `${tags.repoRulesClose}`
+    )
+  }
 
-  return `${tags.repoRulesOpen}
-The combined commit message (the title followed by a blank line and then
-the description) MUST satisfy ALL of the following constraints:
-${bullets}
-${tags.repoRulesClose}
+  parts.push(diffBlock)
 
-${diffBlock}`
+  return parts.join('\n\n')
 }
 
 /** Ordered reasoning effort levels from lowest to highest. */

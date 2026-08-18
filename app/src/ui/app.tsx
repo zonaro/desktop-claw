@@ -2030,6 +2030,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
             selectedShell={this.state.selectedShell}
             selectedTheme={this.state.selectedTheme}
+            selectedTint={this.state.selectedTint}
             selectedTabSize={this.state.selectedTabSize}
             selectedDiffFontSize={this.state.selectedDiffFontSize}
             selectedDiffFontFamily={this.state.selectedDiffFontFamily}
@@ -4593,6 +4594,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? ApplicationTheme.Light
       : this.state.currentTheme
 
+    // The welcome flow is shown in the plain light theme, tint included.
+    const currentTint = this.state.showWelcomeFlow
+      ? null
+      : this.state.selectedTint
+
     const currentTabSize = this.state.selectedTabSize
     const appStyle = {
       tabSize: currentTabSize,
@@ -4607,7 +4613,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <div id="desktop-app-chrome" className={className} style={appStyle}>
-        <AppTheme theme={currentTheme} />
+        <AppTheme theme={currentTheme} tint={currentTint} />
         {this.renderTitlebar()}
         {this.state.showWelcomeFlow
           ? this.renderWelcomeFlow()

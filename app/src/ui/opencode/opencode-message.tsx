@@ -78,6 +78,9 @@ class Collapsible extends React.Component<
 interface IOpenCodeMessageProps {
   /** The message to render, with all of its parts. */
   readonly message: IOpenCodeMessage
+
+  /** Rewinds the conversation to just before this message. */
+  readonly onRevertToMessage: (messageID: string) => void
 }
 
 /**
@@ -88,6 +91,10 @@ export class OpenCodeMessageView extends React.Component<
   IOpenCodeMessageProps,
   {}
 > {
+  private onRevertClick = () => {
+    this.props.onRevertToMessage(this.props.message.info.id)
+  }
+
   private renderToolPart(part: IOpenCodeToolPart): JSX.Element {
     const { status, input, output, error } = part.state
     const summary = getToolSummary(part)
@@ -228,6 +235,15 @@ export class OpenCodeMessageView extends React.Component<
           </span>
           {!isUser && info.modelID !== undefined && (
             <span className="opencode-message-model">{info.modelID}</span>
+          )}
+          {isUser && (
+            <button
+              className="opencode-message-revert"
+              onClick={this.onRevertClick}
+              aria-label="Rewind the conversation to this message"
+            >
+              <Octicon symbol={octicons.history} />
+            </button>
           )}
         </div>
         <div className="opencode-message-body">
