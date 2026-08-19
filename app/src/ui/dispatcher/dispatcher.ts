@@ -2,59 +2,60 @@ import { Disposable } from 'event-kit'
 import { clipboard } from 'electron'
 
 import {
-  IAPIOrganization,
-  IAPIPullRequest,
-  IAPIFullRepository,
-  IAPICheckSuite,
-  IAPIRepoRuleset,
-  getDotComAPIEndpoint,
-  IAPICreatePushProtectionBypassResponse,
+    IAPIOrganization,
+    IAPIPullRequest,
+    IAPIFullRepository,
+    IAPICheckSuite,
+    IAPIRepoRuleset,
+    getDotComAPIEndpoint,
+    IAPICreatePushProtectionBypassResponse,
 } from '../../lib/api'
 import { shell } from '../../lib/app-shell'
 import {
-  CompareAction,
-  Foldout,
-  FoldoutType,
-  ICompareFormUpdate,
-  RepositorySectionTab,
-  RebaseConflictState,
-  isRebaseConflictState,
-  isCherryPickConflictState,
-  CherryPickConflictState,
-  MultiCommitOperationConflictState,
-  IMultiCommitOperationState,
-  CommitOptions,
+    CompareAction,
+    Foldout,
+    FoldoutType,
+    ICompareFormUpdate,
+    RepositorySectionTab,
+    RebaseConflictState,
+    isRebaseConflictState,
+    isCherryPickConflictState,
+    CherryPickConflictState,
+    MultiCommitOperationConflictState,
+    IMultiCommitOperationState,
+    CommitOptions,
 } from '../../lib/app-state'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import {
-  setGenericPassword,
-  setGenericUsername,
+    setGenericPassword,
+    setGenericUsername,
 } from '../../lib/generic-git-auth'
 import {
-  RebaseResult,
-  PushOptions,
-  getCommitsBetweenCommits,
-  getBranches,
-  getRebaseSnapshot,
-  getRepositoryType,
-  listWorktrees,
+    RebaseResult,
+    PushOptions,
+    getCommitsBetweenCommits,
+    getBranches,
+    getRebaseSnapshot,
+    getRepositoryType,
+    listWorktrees,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
 import {
-  IOpenRepositoryFromURLAction,
-  IUnknownAction,
-  URLActionType,
+    IOpenRepositoryFromURLAction,
+    IUnknownAction,
+    URLActionType,
 } from '../../lib/parse-app-url'
 import {
-  matchExistingRepository,
-  urlsMatch,
+    matchExistingRepository,
+    urlsMatch,
 } from '../../lib/repository-matching'
 import { Shell } from '../../lib/shells'
 import { ILaunchStats, StatsStore } from '../../lib/stats'
 import { AppStore } from '../../lib/stores/app-store'
+import { ThreadStore } from '../../lib/stores/thread-store'
 import type {
-  CopilotFeature,
-  CopilotModelSelectionsByAccount,
+    CopilotFeature,
+    CopilotModelSelectionsByAccount,
 } from '../../lib/stores/copilot-store'
 import type { IBYOKProvider } from '../../lib/copilot/byok'
 import { RepositoryStateCache } from '../../lib/stores/repository-state-cache'
@@ -76,22 +77,22 @@ import { ManualConflictResolution } from '../../models/manual-conflict-resolutio
 import { Popup, PopupType } from '../../models/popup'
 import { IRemote } from '../../models/remote'
 import {
-  PullRequest,
-  PullRequestSuggestedNextAction,
+    PullRequest,
+    PullRequestSuggestedNextAction,
 } from '../../models/pull-request'
 import {
-  Repository,
-  RepositoryWithGitHubRepository,
-  isRepositoryWithGitHubRepository,
-  getGitHubHtmlUrl,
-  isRepositoryWithForkedGitHubRepository,
-  getNonForkGitHubRepository,
+    Repository,
+    RepositoryWithGitHubRepository,
+    isRepositoryWithGitHubRepository,
+    getGitHubHtmlUrl,
+    isRepositoryWithForkedGitHubRepository,
+    getNonForkGitHubRepository,
 } from '../../models/repository'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
-  CommittedFileChange,
-  WorkingDirectoryFileChange,
-  WorkingDirectoryStatus,
+    CommittedFileChange,
+    WorkingDirectoryFileChange,
+    WorkingDirectoryStatus,
 } from '../../models/status'
 import { TipState, IValidBranch } from '../../models/tip'
 import { Banner, BannerType } from '../../models/banner'
@@ -100,13 +101,13 @@ import { ApplicationTheme } from '../lib/application-theme'
 import { TitleBarStyle } from '../lib/title-bar-style'
 import { installCLI } from '../lib/install-cli'
 import {
-  executeMenuItem,
-  moveToApplicationsFolder,
-  isWindowFocused,
+    executeMenuItem,
+    moveToApplicationsFolder,
+    isWindowFocused,
 } from '../main-process-proxy'
 import {
-  CommitStatusStore,
-  StatusCallBack,
+    CommitStatusStore,
+    StatusCallBack,
 } from '../../lib/stores/commit-status-store'
 import { MergeTreeResult } from '../../models/merge'
 import { UncommittedChangesStrategy } from '../../models/uncommitted-changes-strategy'
@@ -125,11 +126,11 @@ import { DragElement, DragType } from '../../models/drag-drop'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { dragAndDropManager } from '../../lib/drag-and-drop-manager'
 import {
-  CreateBranchStep,
-  MultiCommitOperationDetail,
-  MultiCommitOperationKind,
-  MultiCommitOperationStep,
-  MultiCommitOperationStepKind,
+    CreateBranchStep,
+    MultiCommitOperationDetail,
+    MultiCommitOperationKind,
+    MultiCommitOperationStep,
+    MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
 import { getMultiCommitOperationChooseBranchStep } from '../../lib/multi-commit-operation'
 import { ICombinedRefCheck, IRefCheck } from '../../lib/ci-checks/ci-checks'
@@ -147,9 +148,9 @@ import { EditorOverride } from '../../models/editor-override'
 import { convertToCopyPath } from '../../lib/helpers/path'
 import { EOL } from 'os'
 import {
-  IConflictResolutionProgress,
-  IFileResolution,
-  ICopilotResolutionSummary,
+    IConflictResolutionProgress,
+    IFileResolution,
+    ICopilotResolutionSummary,
 } from '../../lib/copilot-conflict-resolution'
 import { WorktreeEntry } from '../../models/worktree'
 
@@ -397,12 +398,18 @@ export class Dispatcher {
   }
 
   /** Add a file to the current OpenCode chat session. */
-  public addFileToCurrentChat(repository: Repository, filePath: string): Promise<void> {
+  public addFileToCurrentChat(
+    repository: Repository,
+    filePath: string
+  ): Promise<void> {
     return this.appStore._addFileToCurrentChat(repository, filePath)
   }
 
   /** Add a file to a new OpenCode chat session. */
-  public addFileToNewChat(repository: Repository, filePath: string): Promise<void> {
+  public addFileToNewChat(
+    repository: Repository,
+    filePath: string
+  ): Promise<void> {
     return this.appStore._addFileToNewChat(repository, filePath)
   }
 
@@ -444,6 +451,97 @@ export class Dispatcher {
     title: string
   ): Promise<void> {
     return this.appStore._renameOpenCodeSession(repository, sessionID, title)
+  }
+
+  // Threads methods
+
+  public getThreadStore(repository: Repository): ThreadStore {
+    return this.appStore.getThreadStore(repository)
+  }
+
+  public loadThreads(repository: Repository): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.loadThreads()
+  }
+
+  /** Selects a thread and loads its messages. */
+  public selectThread(repository: Repository, threadId: string): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.selectThread(threadId)
+  }
+
+  /** Creates a new thread. */
+  public createThread(
+    repository: Repository,
+    title: string,
+    tags: readonly string[],
+    author: string
+  ): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.createThread(title, tags, author).then(() => {})
+  }
+
+  /** Sends a message to the selected thread. */
+  public sendThreadMessage(
+    repository: Repository,
+    content: string,
+    author: string,
+    attachments?: readonly string[],
+    replyTo?: string
+  ): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.sendMessage(content, author, attachments, replyTo).then(() => {})
+  }
+
+  /** Edits a message in the selected thread. */
+  public editThreadMessage(
+    repository: Repository,
+    messageHash: string,
+    newContent: string
+  ): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.editMessage(messageHash, newContent)
+  }
+
+  /** Deletes a message from the selected thread. */
+  public deleteThreadMessage(
+    repository: Repository,
+    messageHash: string
+  ): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.deleteMessage(messageHash)
+  }
+
+  /** Adds an attachment to a message. */
+  public addThreadAttachment(
+    repository: Repository,
+    messageHash: string,
+    fileName: string,
+    fileContent: Buffer
+  ): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.addAttachment(messageHash, fileName, fileContent).then(() => {})
+  }
+
+  /** Loads older messages for infinite scroll. */
+  public loadOlderThreadMessages(repository: Repository): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.loadOlderMessages()
+  }
+
+  /** Updates the polling configuration for threads. */
+  public setThreadPollingConfig(
+    repository: Repository,
+    config: Partial<import('../../models/thread').IThreadPollingConfig>
+  ): void {
+    const threadStore = this.appStore.getThreadStore(repository)
+    threadStore.setPollingConfig(config)
+  }
+
+  /** Refreshes threads and messages. */
+  public refreshThreads(repository: Repository): Promise<void> {
+    const threadStore = this.appStore.getThreadStore(repository)
+    return threadStore.refreshThreads()
   }
 
   /**

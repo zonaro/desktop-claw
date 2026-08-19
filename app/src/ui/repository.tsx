@@ -11,15 +11,14 @@ import { FilesChangedBadge } from './changes/files-changed-badge'
 import { SelectedCommits, CompareSidebar, CommitGraphSidebar } from './history'
 import { WorktreeFileTree, WorktreeFilePreview } from './worktree'
 import { OpenCodeSessionList, OpenCodeConversation } from './opencode'
+import { ThreadList, ChatView } from './threads'
 import { Resizable } from './resizable'
-import { TabBar } from './tab-bar'
+import { TwoRowTabBar, ITabConfig } from './tab-bar'
 import {
-  IRepositoryState,
-  RepositorySectionTab,
-  ChangesSelectionKind,
-  IConstrainedValue,
-  HistoryTabMode,
-  CommitOptions,
+    IRepositoryState,
+    RepositorySectionTab,
+    ChangesSelectionKind,
+    IConstrainedValue, CommitOptions
 } from '../lib/app-state'
 import { Dispatcher } from './dispatcher'
 import { IssuesStore, GitHubUserStore } from '../lib/stores'
@@ -182,9 +181,6 @@ interface IRepositoryViewState {
   readonly worktreeFilterText: string
 }
 
-/** The index of a tab in the repository tab bar. */
-type Tab = number
-
 export class RepositoryView extends React.Component<
   IRepositoryViewProps,
   IRepositoryViewState
@@ -255,33 +251,41 @@ export class RepositoryView extends React.Component<
   }
 
   private renderTabs(): JSX.Element {
-    const selectedTab = this.sectionToTab(this.props.state.selectedSection)
+    const selectedSection = this.props.state.selectedSection
+
+    // Tab configurations for the two-row layout
+    const primaryTabs: ReadonlyArray<ITabConfig> = [
+      { id: 'changes', label: 'Changes', icon: 'diff', badge: this.renderChangesBadge(), tooltip: 'Pending changes (staging, commit)' },
+      { id: 'history', label: 'History', icon: 'history', tooltip: 'Commit history' },
+      { id: 'compare', label: 'Compare', icon: 'git-compare', tooltip: 'Compare branches/tags' },
+    ]
+
+    const secondaryTabs: ReadonlyArray<ITabConfig> = [
+      { id: 'files', label: 'Files', icon: 'repo', tooltip: 'File explorer' },
+      { id: 'threads', label: 'Threads', icon: 'comment-discussion', tooltip: 'Collaborative discussions' },
+      { id: 'agent', label: 'Agent', icon: 'copilot', tooltip: 'OpenCode AI Assistant' },
+    ]
+
+    // Filter out Compare tab if not shown
+    const visiblePrimaryTabs = this.props.showCompareTab
+      ? primaryTabs
+      : primaryTabs.filter(t => t.id !== 'compare')
+
     return (
-      <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
-        <span className="with-indicator" id="changes-tab">
-          <span>Changes</span>
-          {this.renderChangesBadge()}
-        </span>
-
-        <div className="with-indicator" id="history-tab">
-          <span>History</span>
-        </div>
-
-        {this.props.showCompareTab && (
-          <div className="with-indicator" id="compare-tab">
-            <span>Compare</span>
-          </div>
-        )}
-
-        <div className="with-indicator" id="worktree-tab">
-          <span>Files</span>
-        </div>
-
-        <div className="with-indicator" id="opencode-tab">
-          <span>Agent</span>
-        </div>
-      </TabBar>
+      <TwoRowTabBar
+        selectedTabId={this.sectionToTab(selectedSection)}
+        onTabClicked={this.onTabClicked}
+        primaryTabs={visiblePrimaryTabs}
+        secondaryTabs={secondaryTabs}
+      />
     )
+  }
+
+  private onTabClicked = (tabId: string): void => {
+    const section = this.tabIdToSection(tabId)
+    if (section !== undefined) {
+      this.props.dispatcher.changeRepositorySection(this.props.repository, section)
+    }
   }
 
   /**
@@ -295,18 +299,45 @@ export class RepositoryView extends React.Component<
       RepositorySectionTab.History,
       ...(this.props.showCompareTab ? [RepositorySectionTab.Compare] : []),
       RepositorySectionTab.Worktree,
+      RepositorySectionTab.Threads,
       RepositorySectionTab.OpenCode,
     ]
   }
 
-  private sectionToTab(section: RepositorySectionTab): Tab {
-    const index = this.getVisibleSections().indexOf(section)
-
-    return index === -1 ? 0 : index
+  private tabIdToSection(tabId: string): RepositorySectionTab | undefined {
+    switch (tabId) {
+      case 'changes':
+        return RepositorySectionTab.Changes
+      case 'history':
+        return RepositorySectionTab.History
+      case 'compare':
+        return RepositorySectionTab.Compare
+      case 'files':
+        return RepositorySectionTab.Worktree
+      case 'threads':
+        return RepositorySectionTab.Threads
+      case 'agent':
+        return RepositorySectionTab.OpenCode
+      default:
+        return undefined
+    }
   }
 
-  private tabToSection(tab: Tab): RepositorySectionTab {
-    return this.getVisibleSections()[tab] ?? RepositorySectionTab.Changes
+  private sectionToTab(section: RepositorySectionTab): string {
+    switch (section) {
+      case RepositorySectionTab.Changes:
+        return 'changes'
+      case RepositorySectionTab.History:
+        return 'history'
+      case RepositorySectionTab.Compare:
+        return 'compare'
+      case RepositorySectionTab.Worktree:
+        return 'files'
+      case RepositorySectionTab.Threads:
+        return 'threads'
+      case RepositorySectionTab.OpenCode:
+        return 'agent'
+    }
   }
 
   private nextSection(section: RepositorySectionTab): RepositorySectionTab {
@@ -555,6 +586,8 @@ export class RepositoryView extends React.Component<
       return this.renderCompareSidebar()
     } else if (selectedSection === RepositorySectionTab.Worktree) {
       return this.renderWorktreeSidebar()
+    } else if (selectedSection === RepositorySectionTab.Threads) {
+      return this.renderThreadsSidebar()
     } else if (selectedSection === RepositorySectionTab.OpenCode) {
       return this.renderOpenCodeSidebar()
     } else {
@@ -818,6 +851,8 @@ export class RepositoryView extends React.Component<
       return this.renderContentForHistory()
     } else if (selectedSection === RepositorySectionTab.Worktree) {
       return this.renderWorktreeContent()
+    } else if (selectedSection === RepositorySectionTab.Threads) {
+      return this.renderThreadsContent()
     } else if (selectedSection === RepositorySectionTab.OpenCode) {
       return this.renderOpenCodeContent()
     } else {
@@ -882,12 +917,43 @@ export class RepositoryView extends React.Component<
     )
   }
 
+  private renderThreadsSidebar(): JSX.Element {
+    const threadStore = this.props.dispatcher.getThreadStore(this.props.repository)
+    const threadState = threadStore.getState()
+    return (
+      <ThreadList
+        repository={this.props.repository}
+        threadStore={threadStore}
+        selectedThreadId={threadState.selectedThreadId}
+        onThreadSelected={(threadId) => this.props.dispatcher.selectThread(this.props.repository, threadId)}
+      />
+    )
+  }
+
   private renderOpenCodeContent(): JSX.Element {
     return (
       <OpenCodeConversation
         repository={this.props.repository}
         state={this.props.state.openCodeState}
         dispatcher={this.props.dispatcher}
+      />
+    )
+  }
+
+  private renderThreadsContent(): JSX.Element {
+    const threadStore = this.props.dispatcher.getThreadStore(this.props.repository)
+    const threadState = threadStore.getState()
+    if (!threadState.selectedThreadId) {
+      return (
+        <div className="threads-content panel" style={{ padding: 'var(--spacing)', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <p style={{ color: 'var(--text-secondary-color)' }}>Select a thread from the sidebar to start chatting</p>
+        </div>
+      )
+    }
+    return (
+      <ChatView
+        threadStore={threadStore}
+        threadId={threadState.selectedThreadId}
       />
     )
   }
@@ -968,30 +1034,6 @@ export class RepositoryView extends React.Component<
 
     if (section === RepositorySectionTab.Changes) {
       this.focusChangesNeeded = true
-    }
-  }
-
-  private onTabClicked = (tab: Tab) => {
-    const section = this.tabToSection(tab)
-
-    this.props.dispatcher.changeRepositorySection(
-      this.props.repository,
-      section
-    )
-    if (section === RepositorySectionTab.Changes) {
-      this.focusChangesNeeded = true
-    }
-    if (!!section) {
-      this.props.dispatcher.updateCompareForm(this.props.repository, {
-        filterText: '',
-        showBranchList: true,
-      })
-    }
-    if (section === RepositorySectionTab.History) {
-      this.props.dispatcher.setCommitSearchQuery(this.props.repository, '')
-      this.props.dispatcher.executeCompare(this.props.repository, {
-        kind: HistoryTabMode.History,
-      })
     }
   }
 

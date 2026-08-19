@@ -1,15 +1,15 @@
 import type {
-  CopilotModelsByAccount,
-  CopilotModelSelectionsByAccount,
-  CopilotQuotaSnapshotsByAccount,
+    CopilotModelsByAccount,
+    CopilotModelSelectionsByAccount,
+    CopilotQuotaSnapshotsByAccount,
 } from './stores/copilot-store'
 import type { IBYOKProvider } from './copilot/byok'
 import type { IConflictResolutionModelDisplay } from './copilot/conflict-resolution-model'
 import type {
-  IFileResolution,
-  IConflictResolutionProgress,
-  ICopilotResolutionSummary,
-  ICopilotSkippedFile,
+    IFileResolution,
+    IConflictResolutionProgress,
+    ICopilotResolutionSummary,
+    ICopilotSkippedFile,
 } from './copilot-conflict-resolution'
 import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
@@ -22,8 +22,8 @@ import { Commit } from '../models/commit'
 import { CommittedFileChange, WorkingDirectoryStatus } from '../models/status'
 import { WorktreeEntry } from '../models/worktree'
 import {
-  IOpenCodeServerStatus,
-  IOpenCodeSession,
+    IOpenCodeServerStatus,
+    IOpenCodeSession,
 } from '../models/opencode-session'
 import { CloningRepository } from '../models/cloning-repository'
 import { IMenu } from '../models/app-menu'
@@ -31,18 +31,18 @@ import { IRemote } from '../models/remote'
 import { CloneRepositoryTab } from '../models/clone-repository-tab'
 import { BranchesTab } from '../models/branches-tab'
 import {
-  PullRequest,
-  PullRequestSuggestedNextAction,
+    PullRequest,
+    PullRequestSuggestedNextAction,
 } from '../models/pull-request'
 import { Author } from '../models/author'
 import { MergeTreeResult } from '../models/merge'
 import { ICommitMessage } from '../models/commit-message'
 import {
-  IRevertProgress,
-  Progress,
-  ICheckoutProgress,
-  ICloneProgress,
-  IMultiCommitOperationProgress,
+    IRevertProgress,
+    Progress,
+    ICheckoutProgress,
+    ICloneProgress,
+    IMultiCommitOperationProgress,
 } from '../models/progress'
 
 import { SignInState } from './stores/sign-in-store'
@@ -65,13 +65,13 @@ import { DiffFontFamily } from '../models/diff-font'
 import { DragElement } from '../models/drag-drop'
 import { ILastThankYou } from '../models/last-thank-you'
 import {
-  MultiCommitOperationDetail,
-  MultiCommitOperationStep,
+    MultiCommitOperationDetail,
+    MultiCommitOperationStep,
 } from '../models/multi-commit-operation'
 import type {
-  HookProgress,
-  IChangesetData,
-  TerminalOutputListener,
+    HookProgress,
+    IChangesetData,
+    TerminalOutputListener,
 } from './git'
 import { Popup } from '../models/popup'
 import { RepoRulesInfo } from '../models/repo-rules'
@@ -545,6 +545,7 @@ export enum RepositorySectionTab {
   History,
   Compare,
   Worktree,
+  Threads,
   OpenCode,
 }
 

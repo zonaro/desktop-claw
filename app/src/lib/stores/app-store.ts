@@ -1,77 +1,79 @@
 import * as Path from 'path'
 import { readdir, writeFile, readFile } from 'fs/promises'
 import {
-  defaultShowBranchNameInRepoListSetting,
-  ShowBranchNameInRepoListSetting,
+    defaultShowBranchNameInRepoListSetting,
+    ShowBranchNameInRepoListSetting,
 } from '../../models/show-branch-name-in-repo-list'
 import { TitleBarStyle } from '../../ui/lib/title-bar-style'
 import {
-  IBranchNamePreset,
-  parseBranchNamePresets,
+    IBranchNamePreset,
+    parseBranchNamePresets,
 } from '../../models/branch-preset'
 import {
-  BranchSortOrder,
-  DEFAULT_BRANCH_SORT_ORDER,
+    BranchSortOrder,
+    DEFAULT_BRANCH_SORT_ORDER,
 } from '../../models/branch-sort-order'
 import {
-  CopyPathNormalization,
-  defaultCopyPathNormalization,
+    CopyPathNormalization,
+    defaultCopyPathNormalization,
 } from '../../models/copy-path-normalization'
 import {
-  defaultDiffFontSize,
-  defaultDiffFontFamily,
-  DiffFontFamily,
+    defaultDiffFontSize,
+    defaultDiffFontFamily,
+    DiffFontFamily,
 } from '../../models/diff-font'
 import { EditorOverride } from '../../models/editor-override'
 import { stageResolvedConflictFiles } from '../git/stage'
 import { getTrackedFiles, getAllFiles } from '../git/ls-files'
 import {
-  AccountsStore,
-  CloningRepositoriesStore,
-  CopilotStore,
-  GitHubUserStore,
-  GitStore,
-  IssuesStore,
-  PullRequestCoordinator,
-  RepositoriesStore,
-  SelfHostedApiType,
-  SignInResult,
-  SignInStore,
-  UpstreamRemoteName,
+    AccountsStore,
+    CloningRepositoriesStore,
+    CopilotStore,
+    GitHubUserStore,
+    GitStore,
+    IssuesStore,
+    PullRequestCoordinator,
+    RepositoriesStore,
+    SelfHostedApiType,
+    SignInResult,
+    SignInStore,
+    ThreadStore,
+    ThreadStoreCache,
+    UpstreamRemoteName,
 } from '.'
 import type {
-  CopilotFeature,
-  CopilotModelSelections,
-  CopilotModelSelectionsByAccount,
-  CopilotModelsByAccount,
-  CopilotQuotaSnapshots,
-  CopilotQuotaSnapshotsByAccount,
+    CopilotFeature,
+    CopilotModelSelections,
+    CopilotModelSelectionsByAccount,
+    CopilotModelsByAccount,
+    CopilotQuotaSnapshots,
+    CopilotQuotaSnapshotsByAccount,
 } from './copilot-store'
 import { DisabledCopilotModel } from './copilot-store'
 import {
-  CommitMessageGenerationCancelledError,
-  getCopilotAccountCacheKey,
-  migrateCopilotModelSelectionsToAccounts,
+    CommitMessageGenerationCancelledError,
+    getCopilotAccountCacheKey,
+    migrateCopilotModelSelectionsToAccounts,
 } from './copilot-store'
 import {
-  IBYOKProvider,
-  loadBYOKProviders,
-  saveBYOKProviders,
-  setBYOKSecret,
-  deleteBYOKSecret,
-  getBYOKSecret,
-  parseModelKey,
+    IBYOKProvider,
+    loadBYOKProviders,
+    saveBYOKProviders,
+    setBYOKSecret,
+    deleteBYOKSecret,
+    getBYOKSecret,
+    parseModelKey,
 } from '../copilot/byok'
 import { getConflictResolutionModelDisplay } from '../copilot/conflict-resolution-model'
 import type {
-  CopilotModelRequest,
-  CopilotProviderConfig,
+    CopilotModelRequest,
+    CopilotProviderConfig,
 } from './copilot-store'
 import {
-  Account,
-  CopilotLicenseTypeNoAccess,
-  isDotComAccount,
-  UnknownLogin,
+    Account,
+    CopilotLicenseTypeNoAccess,
+    isDotComAccount,
+    UnknownLogin,
 } from '../../models/account'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { Author } from '../../models/author'
@@ -80,234 +82,234 @@ import { BranchesTab } from '../../models/branches-tab'
 import { CloneRepositoryTab } from '../../models/clone-repository-tab'
 import { CloningRepository } from '../../models/cloning-repository'
 import {
-  getPreferAbsoluteDates,
-  setPreferAbsoluteDates,
+    getPreferAbsoluteDates,
+    setPreferAbsoluteDates,
 } from '../../models/formatting-preferences'
 import {
-  Commit,
-  ICommitContext,
-  CommitOneLine,
-  shortenSHA,
+    Commit,
+    ICommitContext,
+    CommitOneLine,
+    shortenSHA,
 } from '../../models/commit'
 import {
-  DiffSelection,
-  DiffSelectionType,
-  DiffType,
-  ImageDiffType,
-  ITextDiff,
+    DiffSelection,
+    DiffSelectionType,
+    DiffType,
+    ImageDiffType,
+    ITextDiff,
 } from '../../models/diff'
 import { FetchType } from '../../models/fetch'
 import {
-  GitHubRepository,
-  hasWritePermission,
+    GitHubRepository,
+    hasWritePermission,
 } from '../../models/github-repository'
 import {
-  defaultPullRequestSuggestedNextAction,
-  PullRequest,
-  PullRequestSuggestedNextAction,
+    defaultPullRequestSuggestedNextAction,
+    PullRequest,
+    PullRequestSuggestedNextAction,
 } from '../../models/pull-request'
 import {
-  forkPullRequestRemoteName,
-  IRemote,
-  remoteEquals,
+    forkPullRequestRemoteName,
+    IRemote,
+    remoteEquals,
 } from '../../models/remote'
 import {
-  ILocalRepositoryState,
-  nameOf,
-  Repository,
-  isRepositoryWithGitHubRepository,
-  RepositoryWithGitHubRepository,
-  getNonForkGitHubRepository,
-  isForkedRepositoryContributingToParent,
+    ILocalRepositoryState,
+    nameOf,
+    Repository,
+    isRepositoryWithGitHubRepository,
+    RepositoryWithGitHubRepository,
+    getNonForkGitHubRepository,
+    isForkedRepositoryContributingToParent,
 } from '../../models/repository'
 import {
-  CommittedFileChange,
-  WorkingDirectoryFileChange,
-  WorkingDirectoryStatus,
-  AppFileStatusKind,
-  isConflictedFileStatus,
-  GitStatusEntry,
+    CommittedFileChange,
+    WorkingDirectoryFileChange,
+    WorkingDirectoryStatus,
+    AppFileStatusKind,
+    isConflictedFileStatus,
+    GitStatusEntry,
 } from '../../models/status'
 import { TipState, tipEquals, IValidBranch } from '../../models/tip'
 import {
-  DefaultCommitMessage,
-  ICommitMessage,
+    DefaultCommitMessage,
+    ICommitMessage,
 } from '../../models/commit-message'
 import {
-  Progress,
-  ICheckoutProgress,
-  IFetchProgress,
-  IRevertProgress,
-  IMultiCommitOperationProgress,
+    Progress,
+    ICheckoutProgress,
+    IFetchProgress,
+    IRevertProgress,
+    IMultiCommitOperationProgress,
 } from '../../models/progress'
 import { Popup, PopupType } from '../../models/popup'
 import { themeChangeMonitor } from '../../ui/lib/theme-change-monitor'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import {
-  ApplicableTheme,
-  ApplicationTheme,
-  getCurrentlyAppliedTheme,
-  getPersistedThemeName,
-  setPersistedTheme,
+    ApplicableTheme,
+    ApplicationTheme,
+    getCurrentlyAppliedTheme,
+    getPersistedThemeName,
+    setPersistedTheme,
 } from '../../ui/lib/application-theme'
 import {
-  getPersistedTint,
-  setPersistedTint,
+    getPersistedTint,
+    setPersistedTint,
 } from '../../ui/lib/application-tint'
 import {
-  getAppMenu,
-  getCurrentWindowState,
-  getCurrentWindowZoomFactor,
-  updatePreferredAppMenuItemLabels,
-  updateAccounts,
-  setWindowZoomFactor,
-  onShowInstallingUpdate,
-  sendWillQuitEvenIfUpdatingSync,
-  quitApp,
-  sendCancelQuittingSync,
-  getMainProcessConfig,
-  getConfigMigrationResult,
-  updateMainProcessConfig,
-  showOpenDialog,
+    getAppMenu,
+    getCurrentWindowState,
+    getCurrentWindowZoomFactor,
+    updatePreferredAppMenuItemLabels,
+    updateAccounts,
+    setWindowZoomFactor,
+    onShowInstallingUpdate,
+    sendWillQuitEvenIfUpdatingSync,
+    quitApp,
+    sendCancelQuittingSync,
+    getMainProcessConfig,
+    getConfigMigrationResult,
+    updateMainProcessConfig,
+    showOpenDialog,
 } from '../../ui/main-process-proxy'
 import {
-  API,
-  getAccountForEndpoint,
-  IAPIOrganization,
-  getEndpointForRepository,
-  IAPIFullRepository,
-  IAPIComment,
-  IAPIRepoRuleset,
-  deleteToken,
-  IAPICreatePushProtectionBypassResponse,
+    API,
+    getAccountForEndpoint,
+    IAPIOrganization,
+    getEndpointForRepository,
+    IAPIFullRepository,
+    IAPIComment,
+    IAPIRepoRuleset,
+    deleteToken,
+    IAPICreatePushProtectionBypassResponse,
 } from '../api'
 import { shell } from '../app-shell'
 import {
-  CompareAction,
-  HistoryTabMode,
-  Foldout,
-  FoldoutType,
-  IAppState,
-  ICompareBranch,
-  ICompareFormUpdate,
-  ICompareToBranch,
-  IDisplayHistory,
-  PossibleSelections,
-  RepositorySectionTab,
-  SelectionType,
-  IRepositoryState,
-  ChangesSelectionKind,
-  ChangesWorkingDirectorySelection,
-  isRebaseConflictState,
-  isCherryPickConflictState,
-  IFileListFilterState,
-  isMergeConflictState,
-  IMultiCommitOperationState,
-  ConflictState,
-  IConstrainedValue,
-  ICompareState,
-  CommitOptions,
-  IChangesState,
+    CompareAction,
+    HistoryTabMode,
+    Foldout,
+    FoldoutType,
+    IAppState,
+    ICompareBranch,
+    ICompareFormUpdate,
+    ICompareToBranch,
+    IDisplayHistory,
+    PossibleSelections,
+    RepositorySectionTab,
+    SelectionType,
+    IRepositoryState,
+    ChangesSelectionKind,
+    ChangesWorkingDirectorySelection,
+    isRebaseConflictState,
+    isCherryPickConflictState,
+    IFileListFilterState,
+    isMergeConflictState,
+    IMultiCommitOperationState,
+    ConflictState,
+    IConstrainedValue,
+    ICompareState,
+    CommitOptions,
+    IChangesState,
 } from '../app-state'
 import {
-  findEditorOrDefault,
-  getAvailableEditors,
-  launchAndReturnStdout,
-  launchCustomExternalEditor,
-  launchExternalEditor,
+    findEditorOrDefault,
+    getAvailableEditors,
+    launchAndReturnStdout,
+    launchCustomExternalEditor,
+    launchExternalEditor,
 } from '../editors'
 import { assertNever, fatalError, forceUnwrap } from '../fatal-error'
 
 import { formatCommitMessage } from '../format-commit-message'
 import {
-  getAccountForCommitMessageGeneration,
-  getAccountForCopilotConflictResolution,
-  getAccountForRepository,
+    getAccountForCommitMessageGeneration,
+    getAccountForCopilotConflictResolution,
+    getAccountForRepository,
 } from '../get-account-for-repository'
 import {
-  abortMerge,
-  addRemote,
-  checkoutBranch,
-  createCommit,
-  getAuthorIdentity,
-  getChangedFiles,
-  getCommitDiff,
-  getMergeBase,
-  getRemotes,
-  getWorkingDirectoryDiff,
-  isCoAuthoredByTrailer,
-  pull as pullRepo,
-  push as pushRepo,
-  renameBranch,
-  saveGitIgnore,
-  appendIgnoreRule,
-  createMergeCommit,
-  getBranchesPointedAt,
-  abortRebase,
-  continueRebase,
-  rebase,
-  PushOptions,
-  RebaseResult,
-  getRebaseSnapshot,
-  IStatusResult,
-  GitError,
-  MergeResult,
-  getBranchesDifferingFromUpstream,
-  deleteLocalBranch,
-  deleteRemoteBranch,
-  fastForwardBranches,
-  GitResetMode,
-  reset,
-  getBranchAheadBehind,
-  getRebaseInternalState,
-  getCommit,
-  appendIgnoreFile,
-  getRepositoryType,
-  RepositoryType,
-  listWorktrees,
-  resolveMainWorktreePath,
-  removeWorktree,
-  moveWorktree,
-  getCommitRangeDiff,
-  getCommitRangeChangedFiles,
-  updateRemoteHEAD,
-  getBranchMergeBaseChangedFiles,
-  getBranchMergeBaseDiff,
-  checkoutCommit,
-  getRemoteURL,
-  getGlobalConfigPath,
-  getFilesDiffText,
-  TerminalOutput,
-  HookProgress,
-  getConfigValueWithOrigin,
-  IConfigValueOrigin,
-  unstageAll,
-  git,
-  removeFile,
+    abortMerge,
+    addRemote,
+    checkoutBranch,
+    createCommit,
+    getAuthorIdentity,
+    getChangedFiles,
+    getCommitDiff,
+    getMergeBase,
+    getRemotes,
+    getWorkingDirectoryDiff,
+    isCoAuthoredByTrailer,
+    pull as pullRepo,
+    push as pushRepo,
+    renameBranch,
+    saveGitIgnore,
+    appendIgnoreRule,
+    createMergeCommit,
+    getBranchesPointedAt,
+    abortRebase,
+    continueRebase,
+    rebase,
+    PushOptions,
+    RebaseResult,
+    getRebaseSnapshot,
+    IStatusResult,
+    GitError,
+    MergeResult,
+    getBranchesDifferingFromUpstream,
+    deleteLocalBranch,
+    deleteRemoteBranch,
+    fastForwardBranches,
+    GitResetMode,
+    reset,
+    getBranchAheadBehind,
+    getRebaseInternalState,
+    getCommit,
+    appendIgnoreFile,
+    getRepositoryType,
+    RepositoryType,
+    listWorktrees,
+    resolveMainWorktreePath,
+    removeWorktree,
+    moveWorktree,
+    getCommitRangeDiff,
+    getCommitRangeChangedFiles,
+    updateRemoteHEAD,
+    getBranchMergeBaseChangedFiles,
+    getBranchMergeBaseDiff,
+    checkoutCommit,
+    getRemoteURL,
+    getGlobalConfigPath,
+    getFilesDiffText,
+    TerminalOutput,
+    HookProgress,
+    getConfigValueWithOrigin,
+    IConfigValueOrigin,
+    unstageAll,
+    git,
+    removeFile,
 } from '../git'
 import {
-  installGlobalLFSFilters,
-  installLFSHooks,
-  isUsingLFS,
+    installGlobalLFSFilters,
+    installLFSHooks,
+    isUsingLFS,
 } from '../git/lfs'
 import { inferLastPushForRepository } from '../infer-last-push-for-repository'
 import { updateMenuState } from '../menu-update'
 import { merge } from '../merge'
 import {
-  IMatchedGitHubRepository,
-  matchGitHubRepository,
-  matchExistingRepository,
-  urlMatchesRemote,
+    IMatchedGitHubRepository,
+    matchGitHubRepository,
+    matchExistingRepository,
+    urlMatchesRemote,
 } from '../repository-matching'
 import { ForcePushBranchState, getCurrentBranchForcePushState } from '../rebase'
 import { RetryAction, RetryActionType } from '../../models/retry-actions'
 import {
-  Default as DefaultShell,
-  findShellOrDefault,
-  launchCustomShell,
-  launchShell,
-  parse as parseShell,
-  Shell,
+    Default as DefaultShell,
+    findShellOrDefault,
+    launchCustomShell,
+    launchShell,
+    parse as parseShell,
+    Shell,
 } from '../shells'
 import { ILaunchStats, StatsStore } from '../stats'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
@@ -318,60 +320,60 @@ import { promiseWithMinimumTimeout } from '../promise'
 import { BackgroundFetcher } from './helpers/background-fetcher'
 import { RepositoryStateCache } from './repository-state-cache'
 import {
-  commitGraph_DefaultBranchListWidth,
-  commitGraph_getCommitSelectionCandidates,
-  commitGraph_getStoredCollapsedBranchGroups,
-  commitGraph_getStoredHiddenBranchRefs,
-  commitGraph_BranchListWidthConfigKey,
-  commitGraph_setStoredCollapsedBranchGroups,
-  commitGraph_setStoredHiddenBranchRefs,
+    commitGraph_DefaultBranchListWidth,
+    commitGraph_getCommitSelectionCandidates,
+    commitGraph_getStoredCollapsedBranchGroups,
+    commitGraph_getStoredHiddenBranchRefs,
+    commitGraph_BranchListWidthConfigKey,
+    commitGraph_setStoredCollapsedBranchGroups,
+    commitGraph_setStoredHiddenBranchRefs,
 } from './commit-graph-state'
 import { readEmoji } from '../read-emoji'
 import { Emoji } from '../emoji'
 import { GitStoreCache } from './git-store-cache'
 import { GitErrorContext } from '../git-error-context'
 import {
-  setNumber,
-  setBoolean,
-  getBoolean,
-  getNumber,
-  getNumberArray,
-  setNumberArray,
-  getEnum,
-  getObject,
-  setObject,
-  getFloatNumber,
+    setNumber,
+    setBoolean,
+    getBoolean,
+    getNumber,
+    getNumberArray,
+    setNumberArray,
+    getEnum,
+    getObject,
+    setObject,
+    getFloatNumber,
 } from '../local-storage'
 import { ExternalEditorError, suggestedExternalEditor } from '../editors/shared'
 import { ApiRepositoriesStore } from './api-repositories-store'
 import {
-  updateChangedFiles,
-  updateConflictState,
-  selectWorkingDirectoryFiles,
+    updateChangedFiles,
+    updateConflictState,
+    selectWorkingDirectoryFiles,
 } from './updates/changes-state'
 import { ManualConflictResolution } from '../../models/manual-conflict-resolution'
 import { BranchPruner } from './helpers/branch-pruner'
 import {
-  enableCopilotConflictResolution,
-  enableCopilotSdkCommitMessageGeneration,
-  enableCustomIntegration,
-  enableOpenCodeCommitMessages,
-  enableWorktreeSupport,
+    enableCopilotConflictResolution,
+    enableCopilotSdkCommitMessageGeneration,
+    enableCustomIntegration,
+    enableOpenCodeCommitMessages,
+    enableWorktreeSupport,
 } from '../feature-flag'
 import { isGHES } from '../endpoint-capabilities'
 import { Banner, BannerType } from '../../models/banner'
 import { ComputedAction } from '../../models/computed-action'
 import {
-  createDesktopStashEntry,
-  getLastDesktopStashEntryForBranch,
-  popStashEntry,
-  dropDesktopStashEntry,
-  moveStashEntry,
-  renameStashEntry,
+    createDesktopStashEntry,
+    getLastDesktopStashEntryForBranch,
+    popStashEntry,
+    dropDesktopStashEntry,
+    moveStashEntry,
+    renameStashEntry,
 } from '../git/stash'
 import {
-  UncommittedChangesStrategy,
-  defaultUncommittedChangesStrategy,
+    UncommittedChangesStrategy,
+    defaultUncommittedChangesStrategy,
 } from '../../models/uncommitted-changes-strategy'
 import { IStashEntry, StashedChangesLoadStates } from '../../models/stash-entry'
 import { arrayEquals } from '../equality'
@@ -379,20 +381,20 @@ import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { updateRemoteUrl } from './updates/update-remote-url'
 import {
-  TutorialStep,
-  orderedTutorialSteps,
-  isValidTutorialStep,
+    TutorialStep,
+    orderedTutorialSteps,
+    isValidTutorialStep,
 } from '../../models/tutorial-step'
 import { OnboardingTutorialAssessor } from './helpers/tutorial-assessor'
 import {
-  getConflictedFiles,
-  getUntrackedFiles,
-  hasUnresolvedConflicts,
+    getConflictedFiles,
+    getUntrackedFiles,
+    hasUnresolvedConflicts,
 } from '../status'
 import { isBranchPushable } from '../helpers/push-control'
 import {
-  findAssociatedPullRequest,
-  isPullRequestAssociatedWithBranch,
+    findAssociatedPullRequest,
+    isPullRequestAssociatedWithBranch,
 } from '../helpers/pull-request-matching'
 import { parseRemote } from '../../lib/remote-parsing'
 import { createTutorialRepository } from './helpers/create-tutorial-repository'
@@ -403,16 +405,16 @@ import { getDefaultDir } from '../../ui/lib/default-dir'
 import { WorkflowPreferences } from '../../models/workflow-preferences'
 import { IFtpDeployment } from '../../models/ftp-deployment'
 import {
-  CommitMessageProvider,
-  loadCommitMessageProvider,
+    CommitMessageProvider,
+    loadCommitMessageProvider,
 } from '../opencode/commit-message-provider-pref'
 import { OpenCodeCommitMessageGenerator } from '../commit-message-generator/opencode-commit-message-generator'
 import { CopilotCommitMessageGenerator } from '../commit-message-generator/copilot-commit-message-generator'
 import { generateCommitReview } from '../opencode/commit-review'
 import { OpenCodeClient } from '../opencode/opencode-client'
 import {
-  getOpenCodeServerUrl,
-  loadOpenCodeConfig,
+    getOpenCodeServerUrl,
+    loadOpenCodeConfig,
 } from '../opencode/opencode-config'
 import { loadOpenCodeMemoryIntoConfig } from '../opencode/opencode-memory'
 import { IOpenCodeServerStatus } from '../../models/opencode-session'
@@ -421,39 +423,39 @@ import { isAttributableEmailFor } from '../email'
 import { TrashNameLabel } from '../../ui/lib/context-menu'
 import { GitError as DugiteError } from 'dugite'
 import {
-  ErrorWithMetadata,
-  CheckoutError,
-  DiscardChangesError,
-  StashChangesError,
+    ErrorWithMetadata,
+    CheckoutError,
+    DiscardChangesError,
+    StashChangesError,
 } from '../error-with-metadata'
 import {
-  ShowDiffMinimapDefault,
-  ShowSideBySideDiffDefault,
-  WrapDiffLinesDefault,
-  getShowDiffMinimap,
-  getShowSideBySideDiff,
-  getWrapDiffLines,
-  setShowDiffMinimap,
-  setShowSideBySideDiff,
-  setWrapDiffLines,
+    ShowDiffMinimapDefault,
+    ShowSideBySideDiffDefault,
+    WrapDiffLinesDefault,
+    getShowDiffMinimap,
+    getShowSideBySideDiff,
+    getWrapDiffLines,
+    setShowDiffMinimap,
+    setShowSideBySideDiff,
+    setWrapDiffLines,
 } from '../../ui/lib/diff-mode'
 import {
-  abortCherryPick,
-  cherryPick,
-  CherryPickResult,
-  continueCherryPick,
-  getCherryPickSnapshot,
-  isCherryPickHeadFound,
+    abortCherryPick,
+    cherryPick,
+    CherryPickResult,
+    continueCherryPick,
+    getCherryPickSnapshot,
+    isCherryPickHeadFound,
 } from '../git/cherry-pick'
 import { DragElement } from '../../models/drag-drop'
 import { ILastThankYou } from '../../models/last-thank-you'
 import { squash } from '../git/squash'
 import { getTipSha } from '../tip'
 import {
-  MultiCommitOperationDetail,
-  MultiCommitOperationKind,
-  MultiCommitOperationStep,
-  MultiCommitOperationStepKind,
+    MultiCommitOperationDetail,
+    MultiCommitOperationKind,
+    MultiCommitOperationStep,
+    MultiCommitOperationStepKind,
 } from '../../models/multi-commit-operation'
 import { reorder } from '../git/reorder'
 import { UseWindowsOpenSSHKey } from '../ssh/ssh'
@@ -462,8 +464,8 @@ import { clamp } from '../clamp'
 import { EndpointToken } from '../endpoint-token'
 import { IRefCheck } from '../ci-checks/ci-checks'
 import {
-  NotificationsStore,
-  getNotificationsEnabled,
+    NotificationsStore,
+    getNotificationsEnabled,
 } from './notifications-store'
 import * as ipcRenderer from '../ipc-renderer'
 import { pathExists } from '../path-exists'
@@ -477,36 +479,36 @@ import { compare } from '../compare'
 import { parseRepoRules, useRepoRulesLogic } from '../helpers/repo-rules'
 import { RepoRulesInfo } from '../../models/repo-rules'
 import {
-  setUseExternalCredentialHelper,
-  useExternalCredentialHelper,
-  useExternalCredentialHelperDefault,
+    setUseExternalCredentialHelper,
+    useExternalCredentialHelper,
+    useExternalCredentialHelperDefault,
 } from '../trampoline/use-external-credential-helper'
 import { IOAuthAction } from '../parse-app-url'
 import {
-  ICustomIntegration,
-  migratedCustomIntegration,
+    ICustomIntegration,
+    migratedCustomIntegration,
 } from '../custom-integration'
 import { updateStore } from '../../ui/lib/update-store'
 import { startTimer } from '../../ui/lib/timing'
 import { BypassReasonType } from '../../ui/secret-scanning/bypass-push-protection-dialog'
 import {
-  selectReferencedContext,
-  fallbackReferencedContext,
-  IConflictResolutionProgress,
-  ICopilotResolutionSummary,
-  IFileResolution,
-  ICopilotSkippedFile,
+    selectReferencedContext,
+    fallbackReferencedContext,
+    IConflictResolutionProgress,
+    ICopilotResolutionSummary,
+    IFileResolution,
+    ICopilotSkippedFile,
 } from '../copilot-conflict-resolution'
 import {
-  buildConflictContext,
-  gatherCommitContext,
-  IConflictContextCommit,
-  IConflictContextPullRequest,
-  IConflictResolutionContext,
+    buildConflictContext,
+    gatherCommitContext,
+    IConflictContextCommit,
+    IConflictContextPullRequest,
+    IConflictResolutionContext,
 } from '../copilot-conflict-context'
 import {
-  extractPullRequestNumbersFromCommits,
-  findPullRequestsByNumbers,
+    extractPullRequestNumbersFromCommits,
+    findPullRequestsByNumbers,
 } from '../pull-request-refs'
 import { resolveWithin } from '../path'
 import { WorktreeEntry } from '../../models/worktree'
@@ -678,6 +680,7 @@ export const showChangesFilterDefault = true
 
 export class AppStore extends TypedBaseStore<IAppState> {
   private readonly gitStoreCache: GitStoreCache
+  private readonly threadStoreCache: ThreadStoreCache
 
   private accounts: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
@@ -923,6 +926,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       (repo, store) => this.onGitStoreUpdated(repo, store),
       error => this.emitError(error)
     )
+
+    this.threadStoreCache = new ThreadStoreCache()
 
     window.addEventListener('resize', () => {
       this.updateResizableConstraints()
@@ -4016,6 +4021,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     selectedSection: RepositorySectionTab,
     forceButtonFocus: boolean = false
   ): Promise<void> {
+    // Stop polling for the previous section if it was Threads
+    const previousSection = this.repositoryStateCache.get(repository).selectedSection
+    if (previousSection === RepositorySectionTab.Threads) {
+      this.stopThreadsPolling(repository)
+    }
+
     this.repositoryStateCache.update(repository, state => {
       if (state.selectedSection !== selectedSection) {
         this.statsStore.increment('repositoryViewChangeCount')
@@ -4033,6 +4044,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     } else if (selectedSection === RepositorySectionTab.Worktree) {
       await this.loadWorktreeFiles(repository)
+    } else if (selectedSection === RepositorySectionTab.Threads) {
+      await this.loadThreadsSection(repository)
     } else if (selectedSection === RepositorySectionTab.OpenCode) {
       await this._refreshOpenCodeSessions(repository)
     }
@@ -4044,6 +4057,40 @@ export class AppStore extends TypedBaseStore<IAppState> {
       ) as HTMLButtonElement
       button?.focus()
     }
+  }
+
+  /**
+   * Loads the Threads section - initializes ThreadStore and starts polling.
+   */
+  private async loadThreadsSection(repository: Repository): Promise<void> {
+    const gitStore = this.gitStoreCache.get(repository)
+    const threadStore = this.threadStoreCache.get(repository, gitStore)
+
+    // Load threads
+    await threadStore.loadThreads()
+
+    // Start polling
+    threadStore.startPolling()
+  }
+
+  /**
+   * Stops polling for the Threads section.
+   */
+  private stopThreadsPolling(repository: Repository): void {
+    const threadStore = this.threadStoreCache.get(repository, this.gitStoreCache.get(repository))
+    threadStore.stopPolling()
+  }
+
+  /**
+   * Gets the ThreadStore for a repository.
+   */
+  public getThreadStore(repository: Repository): ThreadStore {
+    return this.threadStoreCache.get(repository, this.gitStoreCache.get(repository))
+  }
+
+  public async ensureThreadsBranch(repository: Repository): Promise<void> {
+    const threadStore = this.threadStoreCache.get(repository, this.gitStoreCache.get(repository))
+    await threadStore.getThreadService().ensureThreadsBranch()
   }
 
   /**
@@ -4184,15 +4231,16 @@ export class AppStore extends TypedBaseStore<IAppState> {
         path: filePath,
         filename: Path.basename(filePath),
         mime: 'text/plain',
-        url: `data:text/plain;base64,${Buffer.from(content).toString('base64')}`,
+        url: `data:text/plain;base64,${Buffer.from(content).toString(
+          'base64'
+        )}`,
         isReference: false,
       }
 
       // Send a prompt with the file attachment
-      await client.sendPrompt(repository.path, sessionId, 
-        `File: ${filePath}`,
-        { attachments: [attachment] }
-      )
+      await client.sendPrompt(repository.path, sessionId, `File: ${filePath}`, {
+        attachments: [attachment],
+      })
     } catch (e) {
       log.error(`Failed to add file ${filePath} to chat`, e)
     }
@@ -4455,6 +4503,134 @@ export class AppStore extends TypedBaseStore<IAppState> {
       },
     }))
     this.emitUpdate()
+  }
+
+  // Threads methods
+
+  /**
+   * Loads threads for the repository.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _loadThreads(repository: Repository): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.loadThreads()
+  }
+
+  /**
+   * Selects a thread and loads its messages.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _selectThread(repository: Repository, threadId: string): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.selectThread(threadId)
+  }
+
+  /**
+   * Creates a new thread.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _createThread(
+    repository: Repository,
+    title: string,
+    tags: readonly string[],
+    author: string
+  ): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.createThread(title, tags, author)
+  }
+
+  /**
+   * Sends a message to the selected thread.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _sendThreadMessage(
+    repository: Repository,
+    content: string,
+    author: string,
+    attachments: readonly string[] = [],
+    replyTo?: string
+  ): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.sendMessage(content, author, attachments, replyTo)
+  }
+
+  /**
+   * Edits a message in the selected thread.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _editThreadMessage(
+    repository: Repository,
+    messageHash: string,
+    newContent: string
+  ): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.editMessage(messageHash, newContent)
+  }
+
+  /**
+   * Deletes a message from the selected thread.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _deleteThreadMessage(
+    repository: Repository,
+    messageHash: string
+  ): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.deleteMessage(messageHash)
+  }
+
+  /**
+   * Adds an attachment to a message.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _addThreadAttachment(
+    repository: Repository,
+    messageHash: string,
+    fileName: string,
+    fileContent: Buffer
+  ): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.addAttachment(messageHash, fileName, fileContent)
+  }
+
+  /**
+   * Loads older messages for infinite scroll.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _loadOlderThreadMessages(repository: Repository): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.loadOlderMessages()
+  }
+
+  /**
+   * Updates the polling configuration for threads.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public _setThreadPollingConfig(
+    repository: Repository,
+    config: Partial<import('../../models/thread').IThreadPollingConfig>
+  ): void {
+    const threadStore = this.getThreadStore(repository)
+    threadStore.setPollingConfig(config)
+  }
+
+  /**
+   * Refreshes threads and messages.
+   *
+   * This shouldn't be called directly. See `Dispatcher`.
+   */
+  public async _refreshThreads(repository: Repository): Promise<void> {
+    const threadStore = this.getThreadStore(repository)
+    await threadStore.refreshThreads()
   }
 
   /**
@@ -5247,6 +5423,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       })
     } else if (section === RepositorySectionTab.Worktree) {
       refreshSectionPromise = this.loadWorktreeFiles(repository)
+    } else if (section === RepositorySectionTab.Threads) {
+      refreshSectionPromise = this.ensureThreadsBranch(repository)
     } else if (section === RepositorySectionTab.OpenCode) {
       refreshSectionPromise = this._refreshOpenCodeSessions(repository)
     } else {
